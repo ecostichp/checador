@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas._typing import AstypeArg
 from sqlalchemy import create_engine
 from .utils import (
     PROJECT_NAME,
@@ -27,12 +28,12 @@ def save_on_database(data: pd.DataFrame, table_name: str) -> None:
     # Se cierra la conexión
     engine.dispose()
 
-def load_from_database(table_name: str) -> pd.DataFrame:
+def load_from_database(table_name: str, dtype: AstypeArg = {}) -> pd.DataFrame:
 
     # Se abre la conexión a la base de datos
     with engine.connect() as conn, conn.begin():
         # Se carga la tabla en un DataFrame
-        data = pd.read_sql_table(table_name, conn)
+        data = pd.read_sql_query(f'SELECT * FROM {table_name}', conn, dtype= dtype)
 
     # Se cierra la conexión
     engine.dispose()
