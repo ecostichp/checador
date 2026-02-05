@@ -82,6 +82,54 @@ class _Pipes(_Interface_Pipes):
             .pipe(self._categorize_names)
         )
 
+    def check_integrity(
+        self,
+    ) -> pd.DataFrame | None:
+
+        validations = (
+            # Obtención de los registros
+            self._main._data.records
+            # Se descartan inicio y fin de jornada duplicados
+            .pipe(self._discard_duplicated)
+            # Se añaden las correcciones
+            .pipe(self._add_corrections)
+            # Validación de registros
+            .pipe(self._validate_records)
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.TIME,
+                COLUMN.DATE,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DEVICE,
+                COLUMN.IS_DUPLICATED,
+                COLUMN.IS_CORRECTION,
+                VALIDATION.COMPLETE,
+                VALIDATION.BREAK_PAIRS,
+                VALIDATION.UNIQUE_START_AND_END,
+            ]]
+            # Se descartan todos los registros que contengan alguna validación no aprobada
+            .pipe( self._main._factory.filter_by_validity('invalid') )
+            # Se selecciona un día específico en caso de existir algún valor para éste
+            .pipe(CHECK_SPECIFIC_DAY)
+        )
+
+        # Si existen registros a validar...
+        if len(validations):
+            # Se genera el archivo Excel con los registros a validar
+            validations.to_excel(f'{REPORT.VERIFICATION}.xlsx', index= False)
+            # Se indica al usuario que hay registros que requieren ser corregidos
+            print('Se encontraron registros para corregir.')
+            print('Accede a la información a través del atributo [validations] o al Excel generado.')
+            # Se retorna el DataFrame
+            return validations
+
+        # Si no existen registros a validar...
+        else:
+            # Se indica que todo está correcto
+            print("Todo está correcto")
+
     def common_operations(
         self,
         data: pd.DataFrame,
@@ -683,48 +731,6 @@ class _Pipes(_Interface_Pipes):
                 COLUMN.EXCEEDING_LUNCH_TIME,
             ]]
         )
-
-    def _check_integrity(
-        self,
-    ) -> pd.DataFrame | None:
-        """
-        ### Revisión de integridad de datos
-        Este método revisa los datos cargados y comprueba que no tienen inconsistencia
-        que puedan ser conflictivas con los posteriores cálculos basados en éstos
-        datos.
-
-        :param data DataFrame: Datos entrantes.
-        """
-
-        validations = (
-            # Obtención de los registros
-            self._main._data.records
-            # Se descartan inicio y fin de jornada duplicados
-            .pipe(self._discard_duplicated)
-            # Se añaden las correcciones
-            .pipe(self._add_corrections)
-            # Validación de registros
-            .pipe(self._validate_records)
-            # Se descartan todos los registros que contengan alguna validación no aprobada
-            .pipe( self._main._factory.filter_by_validity('invalid') )
-            # Se selecciona un día específico en caso de existir algún valor para éste
-            .pipe(CHECK_SPECIFIC_DAY)
-        )
-
-        # Si existen registros a validar...
-        if len(validations):
-            # Se genera el archivo Excel con los registros a validar
-            validations.to_excel(f'{REPORT.VERIFICATION}.xlsx', index= False)
-            # Se indica al usuario que hay registros que requieren ser corregidos
-            print('Se encontraron registros para corregir.')
-            print('Accede a la información a través del atributo [validations] o al Excel generado.')
-            # Se retorna el DataFrame
-            return validations
-
-        # Si no existen registros a validar...
-        else:
-            # Se indica que todo está correcto
-            print("Todo está correcto")
 
     def _discard_duplicated(
         self,

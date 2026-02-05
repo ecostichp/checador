@@ -30,6 +30,19 @@ class _Interface_Pipes:
         """
         ...
 
+    def check_integrity(
+        self,
+    ) -> pd.DataFrame | None:
+        """
+        ### Revisión de integridad de datos
+        Este método revisa los datos cargados y comprueba que no tienen inconsistencia
+        que puedan ser conflictivas con los posteriores cálculos basados en éstos
+        datos.
+
+        :param data DataFrame: Datos entrantes.
+        """
+        ...
+
     def get_exceeding_lunch_time(
         self,
         data: pd.DataFrame,

@@ -55,7 +55,7 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Se cargan los datos iniciales
         self._data.load()
         # Revisión de integridad de los datos
-        self._to_verify = self._pipes._check_integrity()
+        self._to_verify = self._pipes.check_integrity()
 
     def report(
         self,
