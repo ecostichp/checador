@@ -38,6 +38,8 @@ class _Data(_Interface_Data):
         self.corrections = self._load_corrections()
         self.justifications = self._load_justifications()
         self.holidays = self._load_holidays()
+        self.schedules = self._load_schedules()
+        self.schedule_offsets = self._load_schedule_offsets()
 
     def _load_users(
         self,
@@ -242,6 +244,41 @@ class _Data(_Interface_Data):
             load_from_database(DATABASE.TABLE.HOLIDAYS)
             # Asignación de tipos de datos
             .pipe(self._main._processing.assign_dtypes)
+        )
+
+    def _load_schedules(
+        self,
+    ) -> pd.DataFrame:
+
+        return (
+            # Se cargan los datos desde la base de datos
+            load_from_database(
+                'schedules',
+                # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
+                {
+                    COLUMN.WEEKDAY: 'uint8',
+                    COLUMN.START_SCHEDULE: 'timedelta64[ns]',
+                    COLUMN.END_SCHEDULE: 'timedelta64[ns]',
+                }
+            )
+        )
+
+    def _load_schedule_offsets(
+        self,
+    ) -> pd.DataFrame:
+
+        return (
+            # Se cargan los datos desde la base de datos
+            load_from_database(
+                'schedule_offsets',
+                # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
+                {
+                    COLUMN.USER_ID: 'uint16',
+                    COLUMN.WEEKDAY: 'uint8',
+                    COLUMN.START_OFFSET: 'timedelta64[ns]',
+                    COLUMN.END_OFFSET: 'timedelta64[ns]',
+                }
+            )
         )
 
     def _load_corrections_files(

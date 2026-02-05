@@ -10,6 +10,8 @@ class _Interface_Data:
     corrections: pd.DataFrame
     justifications: pd.DataFrame
     holidays: pd.DataFrame
+    schedules: pd.DataFrame
+    schedule_offsets: pd.DataFrame
 
     def load(
         self,

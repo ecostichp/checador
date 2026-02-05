@@ -11,10 +11,6 @@ from .._core import (
     _CoreRegistryProcessing,
     _Interface_Pipes,
 )
-from .._data import (
-    MANAGERS_SCHEDULES,
-    SCHEDULES,
-)
 from .._mapping import (
     LUNCH_REGISTRY_TYPES,
     ORDERED_REGISTRY_TYPE,
@@ -533,7 +529,7 @@ class _Pipes(_Interface_Pipes):
                 lambda df: (
                     pd.merge(
                         left= df,
-                        right= SCHEDULES,
+                        right= self._main._data.schedules,
                         left_on= COLUMN.WEEKDAY,
                         right_on= COLUMN.WEEKDAY,
                         how= 'left',
@@ -561,7 +557,7 @@ class _Pipes(_Interface_Pipes):
                 lambda df: (
                     pd.merge(
                         left= df,
-                        right= MANAGERS_SCHEDULES,
+                        right= self._main._data.schedule_offsets,
                         left_on= [COLUMN.USER_ID, COLUMN.WEEKDAY],
                         right_on= [COLUMN.USER_ID, COLUMN.WEEKDAY],
                         how= 'left',
