@@ -114,6 +114,14 @@ class COLUMN:
     """`uint8` Conteo de días festivos."""
     VACATION_DAYS = 'vacation_days'
     """`uint8` Conteo de días de vacaciones."""
+    HOLIDAY_NAME = 'holiday_name'
+    """
+    `str` Nombre del día festivo.
+    """
+    HOLIDAY_DATE = 'holiday_date'
+    """
+    `date` Fecha de validez del día festivo.
+    """
 
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
@@ -242,3 +250,5 @@ class DATABASE:
         """
         ASSISTANCE_RECORDS = 'assistance_records'
         """`Literal` Tabla de registros de asistencia."""
+        HOLIDAYS = 'holidays'
+        """`Literal` Tabla de días festivos."""

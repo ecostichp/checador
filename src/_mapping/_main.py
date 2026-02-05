@@ -34,6 +34,8 @@ ASSIGNED_DTYPES: dict[str, AstypeArg] = {
     COLUMN.PERMISSION_TYPE: 'category',
     COLUMN.PERMISSION_START: 'datetime64[ns]',
     COLUMN.PERMISSION_END: 'datetime64[ns]',
+    COLUMN.HOLIDAY_NAME: 'string[python]',
+    COLUMN.HOLIDAY_DATE: 'datetime64[ns]',
 }
 """
 `dict[str, AstypeArg]` Tipos de dato asignados a las columnas de DataFrames.

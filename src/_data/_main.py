@@ -97,14 +97,6 @@ REST_DAYS: dict[UserID, list[NumericWeekday]] = {
 `dict[UserID, list[NumericWeekday]]` Días de descanso por ID de usuario.
 """
 
-HOLIDAYS: list[DatetimeStr] = [
-    # Año nuevo
-    '2026-01-01',
-]
-"""
-`list[DatetimeStr]` Días festivos.
-"""
-
 USER_DEFAULT_REST_DAYS = [
     WEEKDAY.SUNDAY,
 ]

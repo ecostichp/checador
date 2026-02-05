@@ -9,6 +9,7 @@ class _Interface_Data:
     records: pd.DataFrame
     corrections: pd.DataFrame
     justifications: pd.DataFrame
+    holidays: pd.DataFrame
 
     def load(
         self,

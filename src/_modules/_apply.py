@@ -5,7 +5,6 @@ from .._core import (
     _CoreRegistryProcessing,
     _Interface_Apply,
 )
-from .._data import HOLIDAYS
 from .._typing import UserID
 
 class _Apply(_Interface_Apply):
@@ -57,10 +56,8 @@ class _Apply(_Interface_Apply):
         return (
             # Creación del rango de fecha
             pd.date_range(date_start, date_end)
-            # Se converten los valores a cadena de texto
-            .astype('string[python]')
-            # Validación de días encontrados en festivos
-            .isin(HOLIDAYS)
+            # # Validación de días encontrados en festivos
+            .isin(self._main._data.holidays[COLUMN.HOLIDAY_DATE])
             # Suma de los días encontrados
             .sum()
         )

@@ -1,6 +1,5 @@
 from ._main import (
     DEVICE_SERIAL_NUMBER,
-    HOLIDAYS,
     MANAGERS_SCHEDULES,
     REST_DAYS,
     SCHEDULES,

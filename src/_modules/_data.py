@@ -16,6 +16,7 @@ from .._templates import (
     SPREADSHEET,
 )
 from .._typing import ColumnAssignation
+from ..sql import load_from_database
 
 class _Data(_Interface_Data):
 
@@ -36,6 +37,7 @@ class _Data(_Interface_Data):
         self.records = self._load_records()
         self.corrections = self._load_corrections()
         self.justifications = self._load_justifications()
+        self.holidays = self._load_holidays()
 
     def _load_users(
         self,
@@ -229,6 +231,17 @@ class _Data(_Interface_Data):
             .pipe(self._main._processing.assign_dtypes)
             # Se ordenan los datos por término de fecha de pérmiso
             .sort_values(COLUMN.PERMISSION_END)
+        )
+
+    def _load_holidays(
+        self,
+    ) -> pd.DataFrame:
+
+        return (
+            # Se cargan los datos desde la base de datos
+            load_from_database(DATABASE.TABLE.HOLIDAYS)
+            # Asignación de tipos de datos
+            .pipe(self._main._processing.assign_dtypes)
         )
 
     def _load_corrections_files(
