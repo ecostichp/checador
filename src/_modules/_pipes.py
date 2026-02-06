@@ -1150,12 +1150,12 @@ class _Pipes(_Interface_Pipes):
                     ),
                 ]
             )
+            # Se forza el tipo de dato a booleano en indicadores de "es corrección" y "es duplicado"
+            .assign(**force_booleans)
             # Asignación de tipos de datos
             .pipe(self._main._processing.assign_dtypes)
             # Asignación de ordenamiento de valores de tipo de registro
             .pipe(self.assign_ordered_registry_type)
-            # Se forza el tipo de dato a booleano en indicadores de "es corrección" y "es duplicado"
-            .assign(**force_booleans)
             # Ordenamiento por fecha de registro
             .sort_values(COLUMN.REGISTRY_TIME)
             # Se recupera el tipo de dato en la columna de dispositivo
