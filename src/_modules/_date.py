@@ -18,7 +18,7 @@ class _Date(_Interface_Date):
         self._main = main
 
         # Obtención de la fecha del día de hoy
-        self.today = date(2026, 2, 1)
+        self.today = date.today()
 
         # Inicialización de valores de fechas
         self.most_recent_available_date = self.today - timedelta(days= 1)
