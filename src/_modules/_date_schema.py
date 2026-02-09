@@ -44,3 +44,20 @@ class _DateSchema(_Interface_DateSchema):
     ) -> str:
 
         return f'DateSchema["{self.frequency}"]({self.start_date}, {self.end_date}, {self.name})'
+
+    def __contains__(
+        self,
+        date_value: str | date,
+    ) -> bool:
+
+        # Si el valor es una cadena de texto...
+        if isinstance(date_value, str):
+            # Se convierte éste a valor de fecha
+            date_value = date.fromisoformat(date_value)
+
+        # Validaciones
+        ge = date_value >= self.start_date
+        le = date_value <= self.end_date
+        in_range = ge and le
+
+        return in_range

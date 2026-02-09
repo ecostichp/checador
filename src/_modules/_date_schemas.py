@@ -101,42 +101,24 @@ class _DateSchemas(_Interface_DateSchemas):
     def _initialize_weekly_schemas(
         self,
     ) -> None:
-        """
-        ### Inicialización de esquemas semanales
-        Este método inicializa los esquemas semanales que apliquen para el día en
-        curso.
-        """
 
-        # Obtención de la fecha del último día del ciclo semanal
-        week_last_day = self._get_week_last_day()
-        # Obtención de la fecha del primer día del ciclo semanal
-        week_first_day = week_last_day - timedelta(days= 6)
+        # Obtención del año y mes actuales
+        current_year = self._main._date.current_year
+        current_month = self._main._date.current_month
 
-        # Inicialización de valor de semanas previas
-        previous_weeks = 0
+        # Cálculo del primer día del mes
+        month_first_day = date(current_year, current_month, 1)
+        # Obtención del último día del ciclo semanal en base al primer día del mes
+        week_last_date = self._get_week_last_day(month_first_day)
+        # Obtención del primer día del ciclo semanal
+        week_first_date = week_last_date - timedelta(days= 6)
 
-        # Obtención de cantidad de semanas completas en el mes
-        complete_weeks_in_current_month = week_first_day.day // 7
-        # Evaluación de si existe una semana que cruza desde el mes anterior a al mes actual
-        current_month_has_started_week = ( self._today - timedelta(days= complete_weeks_in_current_month) ).day > 0
-        # Obtención de cantidad de semanas completas en el mes
-        weeks_in_current_month = complete_weeks_in_current_month + int( current_month_has_started_week )
+        # Asignación de fechas de inicio y final
+        start_date = week_first_date
+        end_date = week_last_date
 
-        # Si ya existen semanas completas en el mes y se requieren semanas anteriores a la actual...
-        if weeks_in_current_month and (week_first_day.month == self._most_recent_available_date.month):
-            # Se agregan éstas desde n - x hasta n - 1
-            for i in range(weeks_in_current_month):
-                # Obtención del esquema de la semana n - i
-                schema_i = self._get_n_minus_x_week(weeks_in_current_month, i)
-                # Incremento en contador de semanas previas
-                previous_weeks += 1
-                # Se añade el esquema
-                self._schemas.append(schema_i)
-
-        # Si el día de hoy es distinto al inicio de las semanas...
-        if self._most_recent_available_date.weekday() != WEEK_PERIOD_END:
-            # Obtención del esquema de la semana actual
-            self._schemas.append( self._current_week(previous_weeks + 1) )
+        # Creación de esquemas semanales
+        self._create_weekly_schemas(start_date, end_date)
 
     def _first_half(
         self,
@@ -188,47 +170,6 @@ class _DateSchemas(_Interface_DateSchemas):
 
         return schema
 
-    def _current_week(
-        self,
-        n: int
-    ) -> _DateSchema:
-        """
-        ### Semana actual
-        Construcción del esquema de tiempo que representa la semana actual del mes en
-        curso.
-        """
-
-        # Fin de la semana
-        end_date = self._get_week_last_day()
-        # Inicio de la semana
-        start_date = end_date - timedelta(days= 6)
-
-        # Creación del esquema
-        schema = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{'n': n}))
-
-        return schema
-
-    def _get_n_minus_x_week(
-        self,
-        weeks_in_current_month: int,
-        n: int,
-    ) -> _DateSchema:
-        """
-        ### Semana n - x
-        Construcción de un esquema de tiempo que representa una eneava semana anterior
-        a la semana actual del mes en curso.
-        """
-
-        # Fin de la semana
-        end_date = self._get_week_last_day() - timedelta(days= 7 * (weeks_in_current_month - n))
-        # Inicio de la semana
-        start_date = end_date - timedelta(days= 6)
-
-        # Creación del esquema
-        schema = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{'n': n + 1}))
-
-        return schema
-
     def _get_month_last_day(
         self,
     ) -> date:
@@ -260,6 +201,7 @@ class _DateSchemas(_Interface_DateSchemas):
 
     def _get_week_last_day(
         self,
+        date_value: date,
     ) -> date:
         """
         ### último día de la semana laboral
@@ -267,7 +209,7 @@ class _DateSchemas(_Interface_DateSchemas):
         """
 
         # Obtención del día numérico de la semana
-        weekday = self._most_recent_available_date.weekday()
+        weekday = date_value.weekday()
 
         # Si el día de la semana está por debajo o en el día de término...
         if weekday <= WEEK_PERIOD_END:
@@ -282,6 +224,33 @@ class _DateSchemas(_Interface_DateSchemas):
         days_difference = WEEK_PERIOD_END - weekday
 
         # Cálculo del último día de la semana
-        last_day = self._most_recent_available_date + timedelta(days= days_difference + offset)
+        last_day = date_value + timedelta(days= days_difference + offset)
 
         return last_day
+
+    def _create_weekly_schemas(
+        self,
+        start_date: date,
+        end_date: date,
+    ) -> None:
+
+        # Inicialización de contador de semanas
+        weeks_counter = 1
+
+        # Creación cíclica de esquemas
+        while True:
+            # Creación del esquema
+            schema_i = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{'n': weeks_counter}))
+            # Se añade el esquema
+            self._schemas.append(schema_i)
+            # Si la fecha actual está dentro del esquema i...
+            if self._most_recent_available_date in schema_i:
+                # Se finaliza el ciclo
+                break
+            # Si la fecha actual no está dentro del esquema i...
+            else:
+                # Incremento de la variable i
+                weeks_counter += weeks_counter
+                # Uso de nuevas variables de día
+                start_date += timedelta(days= 7)
+                end_date += timedelta(days= 7)
