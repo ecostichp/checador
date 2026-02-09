@@ -8,7 +8,7 @@ from .._constants import (
     COLUMN,
     REPORT,
 )
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Report,
 )

@@ -2,7 +2,7 @@ from datetime import date
 import pandas as pd
 import numpy as np
 from .._constants import COLUMN
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Factory,
 )

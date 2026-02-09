@@ -3,13 +3,13 @@ from datetime import (
     timedelta,
 )
 from typing import Iterator
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_DateSchemas,
 )
 from .._data import WEEK_PERIOD_END
 from .._modules import _DateSchema
-from .._settings import DATE_LIMITS
+from .._settings import CONFIG
 from .._templates import SCHEMA
 
 class _DateSchemas(_Interface_DateSchemas):
@@ -94,7 +94,7 @@ class _DateSchemas(_Interface_DateSchemas):
         self._schemas.append( self._first_half() )
 
         # Si el día es 16 en adelante...
-        if self._most_recent_available_date.day >= DATE_LIMITS.SECOND_HALF_MONTH_START:
+        if self._most_recent_available_date.day >= CONFIG.DATE_LIMITS.SECOND_HALF_MONTH_START:
             # Obtención del esquema de la segunda quincena
             self._schemas.append( self._second_half() )
 
@@ -139,7 +139,7 @@ class _DateSchemas(_Interface_DateSchemas):
         end_date = date(
             self._most_recent_available_date.year,
             self._most_recent_available_date.month,
-            DATE_LIMITS.FIRST_HALF_MONTH_END,
+            CONFIG.DATE_LIMITS.FIRST_HALF_MONTH_END,
         )
 
         # Creación del esquema
@@ -160,7 +160,7 @@ class _DateSchemas(_Interface_DateSchemas):
         start_date = date(
             self._most_recent_available_date.year,
             self._most_recent_available_date.month,
-            DATE_LIMITS.SECOND_HALF_MONTH_START,
+            CONFIG.DATE_LIMITS.SECOND_HALF_MONTH_START,
         )
         # Construcción de la fecha de término de la primera quincena
         end_date = self._get_month_last_day()

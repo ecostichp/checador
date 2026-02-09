@@ -1,5 +1,5 @@
 from odoo_api_manager import OdooAPIManager
-from ._interface import (
+from ._modules import (
     _Interface_Apply,
     _Interface_Data,
     _Interface_Database,

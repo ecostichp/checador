@@ -4,7 +4,7 @@ from ..._typing import (
     PermissionTypeOption,
     ValidityOptions,
 )
-from .._interface import _Interface_DateSchema
+from . import _Interface_DateSchema
 
 class _Interface_Factory:
     """

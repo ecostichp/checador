@@ -1,7 +1,7 @@
 from datetime import timedelta
 import pandas as pd
 from .._constants import COLUMN
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Processing,
 )

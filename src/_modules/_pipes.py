@@ -7,7 +7,7 @@ from .._constants import (
     REPORT,
     VALIDATION,
 )
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Pipes,
 )

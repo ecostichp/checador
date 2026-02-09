@@ -1,6 +1,6 @@
 import pandas as pd
 from odoo_api_manager import OdooAPIManager
-from ._core import _CoreRegistryProcessing
+from ._interface import _CoreRegistryProcessing
 from ._data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,

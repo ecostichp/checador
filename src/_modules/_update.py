@@ -9,7 +9,7 @@ from .._constants import (
     COLUMN,
     DATABASE,
 )
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )

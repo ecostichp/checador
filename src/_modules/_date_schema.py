@@ -2,7 +2,7 @@ from datetime import (
     date,
     datetime,
 )
-from .._core import _Interface_DateSchema
+from .._interface import _Interface_DateSchema
 from .._typing import PayFrequency
 
 class _DateSchema(_Interface_DateSchema):

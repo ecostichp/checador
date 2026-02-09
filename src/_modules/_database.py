@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Literal
-from .._core import (
+from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Database,
 )

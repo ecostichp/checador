@@ -1,6 +1,6 @@
 import pandas as pd
 from .._constants import COLUMN
-from .._core import _Interface_Names
+from .._interface import _Interface_Names
 
 class _Names(_Interface_Names):
 
