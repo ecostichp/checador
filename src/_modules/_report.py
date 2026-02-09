@@ -12,7 +12,7 @@ from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Report,
 )
-from .._modules import _DateSchema
+from .._resources import _DateSchema
 from .._typing import (
     DatetimeStr,
     DataFramePipe,

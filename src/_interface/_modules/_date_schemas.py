@@ -1,6 +1,6 @@
 from typing import Iterator
 from datetime import date
-from . import _Interface_DateSchema
+from ..._resources import _DateSchema
 
 class _Interface_DateSchemas:
 
@@ -33,5 +33,5 @@ class _Interface_DateSchemas:
 
     def __iter__(
         self,
-    ) -> Iterator[_Interface_DateSchema]:
+    ) -> Iterator[_DateSchema]:
         ...

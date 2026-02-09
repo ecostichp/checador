@@ -6,7 +6,7 @@ from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Factory,
 )
-from .._modules import _DateSchema
+from .._resources import _DateSchema
 from .._rules import (
     GLOBAL_FILTERS,
     VALIDATIONS_PER_DAY_AND_USER_ID,

@@ -1,7 +1,6 @@
 from ._apply import _Interface_Apply
 from ._data import _Interface_Data
 from ._database import _Interface_Database
-from ._date_schema import _Interface_DateSchema
 from ._date_schemas import _Interface_DateSchemas
 from ._date import _Interface_Date
 from ._factory import _Interface_Factory

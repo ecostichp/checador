@@ -8,7 +8,7 @@ from .._interface import (
     _Interface_DateSchemas,
 )
 from .._data import WEEK_PERIOD_END
-from .._modules import _DateSchema
+from .._resources import _DateSchema
 from .._settings import CONFIG
 from .._templates import SCHEMA
 

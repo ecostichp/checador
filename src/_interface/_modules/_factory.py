@@ -1,10 +1,10 @@
 from datetime import date
+from ..._resources import _DateSchema
 from ..._typing import (
     DataFramePipe,
     PermissionTypeOption,
     ValidityOptions,
 )
-from . import _Interface_DateSchema
 
 class _Interface_Factory:
     """
@@ -13,7 +13,7 @@ class _Interface_Factory:
 
     def vacation_days(
         self,
-        schema: _Interface_DateSchema,
+        schema: _DateSchema,
     ) -> DataFramePipe:
         """
         ### Resumen de días de vacaciones
@@ -27,7 +27,7 @@ class _Interface_Factory:
     def get_permissions_summary(
         self,
         perm_type: PermissionTypeOption,
-        schema: _Interface_DateSchema,
+        schema: _DateSchema,
     ) -> DataFramePipe:
         """
         ### Resumen de permisos

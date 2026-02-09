@@ -3,7 +3,6 @@ from ._modules import (
     _Interface_Apply,
     _Interface_Data,
     _Interface_Database,
-    _Interface_DateSchema,
     _Interface_DateSchemas,
     _Interface_Date,
     _Interface_Factory,
