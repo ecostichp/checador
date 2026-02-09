@@ -1,6 +1,7 @@
 from ._main import (
     COLUMN,
     DATABASE,
+    ENV_VAR_PREFIX,
     PERMISSION_NAME,
     REGISTRY_TYPE,
     REPORT,

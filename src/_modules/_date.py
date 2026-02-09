@@ -6,6 +6,7 @@ from .._core import (
     _CoreRegistryProcessing,
     _Interface_Date,
 )
+from .._settings import CONFIG
 
 class _Date(_Interface_Date):
 
@@ -18,7 +19,7 @@ class _Date(_Interface_Date):
         self._main = main
 
         # Obtención de la fecha del día de hoy
-        self.today = date.today()
+        self.today = CONFIG.TODAY
 
         # Inicialización de valores de fechas
         self.most_recent_available_date = self.today - timedelta(days= 1)

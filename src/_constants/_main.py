@@ -1,3 +1,8 @@
+ENV_VAR_PREFIX = 'CHECADOR_'
+"""
+`Literal` Prefijo de variables de entorno.
+"""
+
 class COLUMN:
     """
     `CONST` Colección de nombres de columnas de DataFrame.
