@@ -2,6 +2,7 @@ from ._main import (
     COLUMN,
     DATABASE,
     ENV_VAR_PREFIX,
+    LABEL_SCHEMA,
     PERMISSION_NAME,
     REGISTRY_TYPE,
     REPORT,
