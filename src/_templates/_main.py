@@ -71,7 +71,7 @@ class SCHEMA:
     """
     `CONST` Plantillas de nombres de esquemas de tiempo.
     """
-    WEEKLY = 'semanal {n}'
+    WEEKLY = 'Semana {n}'
     """`Literal` Esquema semanal."""
-    BIWEEKLY = 'quincenal {n}'
+    BIWEEKLY = 'Quincena {n}'
     """`Literal` Esquema quincenal."""

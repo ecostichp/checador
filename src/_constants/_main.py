@@ -257,3 +257,8 @@ class DATABASE:
         """`Literal` Tabla de registros de asistencia."""
         HOLIDAYS = 'holidays'
         """`Literal` Tabla de días festivos."""
+
+LABEL_SCHEMA = 'Esquema'
+"""
+`Literal` Etiqueta de esquema.
+"""

@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from .._constants import (
     COLUMN,
+    LABEL_SCHEMA,
     REPORT,
 )
 from .._interface import (
@@ -79,21 +80,29 @@ class _Report(_Interface_Report):
                 )
             )
 
-            # Resúmenes de sumas
-            for schema_i in self._main._schemas:
-                (
-                    self._cummulated_summary(schema_i)
-                    # Exportación del archivo a Excel
-                    .to_excel(writer, sheet_name=f'{REPORT.SUMMARY.SHEET.CUMMULATED_SUMMARY} {schema_i.name}', index=False)
+            # Resumen acumulado
+            (
+                pd.concat(
+                    [
+                        self._cummulated_summary(schema_i)
+                        for schema_i in self._main._schemas
+                    ]
                 )
+                # Exportación del archivo a Excel
+                .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.CUMMULATED_SUMMARY, index=False)
+            )
 
-            # Conteo de justificaciones
-            for schema_i in self._main._schemas:
-                (
-                    self._justification_counts(schema_i)
-                    # Exportación del archivo a Excel
-                    .to_excel(writer, sheet_name=f'{REPORT.SUMMARY.SHEET.JUSTIFICATIONS} {schema_i.name}', index=False)
+            # Incidencias
+            (
+                pd.concat(
+                    [
+                        self._justification_counts(schema_i)
+                        for schema_i in self._main._schemas
+                    ]
                 )
+                # Exportación del archivo a Excel
+                .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.JUSTIFICATIONS, index=False)
+            )
 
     def _summary(
         self,
@@ -190,6 +199,16 @@ class _Report(_Interface_Report):
             ]]
             # Se unen los reportes
             .pipe(fn)
+            # Ejecución dentro de una función para utilizar el estado desde aquí
+            .pipe(
+                lambda df: (
+                    df
+                    # Se asigna una columna para capturar el esquema actual
+                    .assign(**{LABEL_SCHEMA: schema.name})
+                    # Reordenamiento de columnas
+                    [ [LABEL_SCHEMA] + df.columns.tolist() ]
+                )
+            )
         )
 
     def _justification_counts(
@@ -211,6 +230,16 @@ class _Report(_Interface_Report):
                         right= self._justifications(schema),
                         on= [COLUMN.USER_ID, COLUMN.NAME],
                     )
+                )
+            )
+            # Ejecución dentro de una función para utilizar el estado desde aquí
+            .pipe(
+                lambda df: (
+                    df
+                    # Se asigna una columna para capturar el esquema actual
+                    .assign(**{LABEL_SCHEMA: schema.name})
+                    # Reordenamiento de columnas
+                    [ [LABEL_SCHEMA] + df.columns.tolist() ]
                 )
             )
         )
