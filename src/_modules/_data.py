@@ -163,6 +163,10 @@ class _Data(_Interface_Data):
         return (
             # Se cargan archivos de correcciones
             self._load_corrections_files()
+            # Obtención de los nombres de empleados
+            .pipe(self._main._pipes.get_user_names)
+            # Se filtran los registros con nombres vacíos
+            .pipe(lambda df: df[df[COLUMN.NAME].notna()])
             # Asignación de tipos de dato
             .pipe(self._main._processing.assign_dtypes)
             # Asignación de ordenamiento de valores de tipo de registro
