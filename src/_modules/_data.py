@@ -198,6 +198,24 @@ class _Data(_Interface_Data):
         Este método carga los datos de justificaciones y los almacena en un DataFrame.
         """
 
+        # Obtención de categorías de nombres
+        user_names_categories = (
+            self.users
+            [COLUMN.NAME]
+            .to_list()
+        )
+
+        # Función para reasignar nombres como categorías
+        reassign_name_categories: ColumnAssignation = {
+            COLUMN.NAME: (
+                lambda df: (
+                    df
+                    [COLUMN.NAME]
+                    .cat.set_categories(user_names_categories)
+                )
+            )
+        }
+
         return (
             (
                 # Se cargan los datos desde los documentos de Hojas de Cálculo
@@ -235,6 +253,8 @@ class _Data(_Interface_Data):
             .pipe(self._main._processing.format_permission_date_strings)
             # Asignación de tipos de datos
             .pipe(self._main._processing.assign_dtypes)
+            # Se reasignan los nombres como categorías
+            .assign(**reassign_name_categories)
             # Se ordenan los datos por término de fecha de pérmiso
             .sort_values(COLUMN.PERMISSION_END)
         )
