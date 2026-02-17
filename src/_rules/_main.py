@@ -10,7 +10,7 @@ from .._typing import (
 
 GLOBAL_FILTERS: DataFramePipe = lambda df: (
     df[
-        ~( df[COLUMN.USER_ID].isin([1, 24]) )
+        ~( df[COLUMN.USER_ID].isin([1,]) )
     ]
 )
 """
