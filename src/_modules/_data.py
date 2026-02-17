@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import timedelta
 from ccc_utils import spreadsheet
 from ..utils import path_from_dropbox
 from .._constants import (
@@ -109,6 +110,18 @@ class _Data(_Interface_Data):
             )
         )
 
+        # Función para convertir cadena de texto en delta de tiempo
+        def string_to_timedelta(value: str) -> timedelta:
+            # Obtención de los valores
+            [ hour, minute, second ] = value.split(':')
+            # Inicialización del objeto de delta de tiempo
+            value = timedelta(
+                hours= int(hour),
+                minutes= int(minute),
+                seconds= int(second),
+            )
+            return value
+
         # Asignación de columnas de fecha y tiempo
         date_and_time: ColumnAssignation = {
             COLUMN.DATE: (
@@ -121,6 +134,8 @@ class _Data(_Interface_Data):
                 lambda df: (
                     df[COLUMN.REGISTRY_TIME]
                     .dt.time
+                    .astype('string')
+                    .apply(string_to_timedelta)
                 )
             ),
         }
@@ -160,6 +175,15 @@ class _Data(_Interface_Data):
         Este método carga los datos de correcciones y los almacena en un DataFrame.
         """
 
+        # Función para convertir la columna de tiempo en texto antes de asignar dtype
+        time_first_to_string: ColumnAssignation = {
+            COLUMN.TIME: (
+                lambda df: (
+                    df[COLUMN.TIME].astype('string')
+                )
+            )
+        }
+
         return (
             # Se cargan archivos de correcciones
             self._load_corrections_files()
@@ -167,6 +191,8 @@ class _Data(_Interface_Data):
             .pipe(self._main._pipes.get_user_names)
             # Se filtran los registros con nombres vacíos
             .pipe(lambda df: df[df[COLUMN.NAME].notna()])
+            # Se convierte el tipo de dato de la columna de tiempo en cadena de texto para ser convertida a datetime64[ns]
+            .assign(**time_first_to_string)
             # Asignación de tipos de dato
             .pipe(self._main._processing.assign_dtypes)
             # Asignación de ordenamiento de valores de tipo de registro

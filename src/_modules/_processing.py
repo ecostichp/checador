@@ -15,6 +15,7 @@ from .._typing import (
     ColumnAssignation,
     DataFramePipe,
     SeriesApply,
+    SeriesFromDataFrame,
 )
 
 class _Processing(_Interface_Processing):
@@ -199,6 +200,21 @@ class _Processing(_Interface_Processing):
         `'time'` de los registros.
         """
 
+        # Función para extraer los datos de hora desde un texto
+        extract_time_from_string: SeriesApply[str] = (
+            lambda dt: (
+                dt.split(' ')[2]
+            )
+        )
+        # Función para convertir delta de tiempo en texto
+        from_timedelta_to_string_time: SeriesFromDataFrame = (
+            lambda df: (
+                df[COLUMN.TIME]
+                .astype('string')
+                .apply(extract_time_from_string)
+            )
+        )
+
         # Columna de fecha y hora de registro
         string_registry_time: ColumnAssignation = {
             COLUMN.REGISTRY_TIME: (
@@ -210,7 +226,7 @@ class _Processing(_Interface_Processing):
                             .astype('string[python]')
                         )
                         + ' '
-                        + df[COLUMN.TIME]
+                        + from_timedelta_to_string_time(df)
                     )
                 )
             )
