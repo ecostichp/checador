@@ -250,7 +250,7 @@ class _DateSchemas(_Interface_DateSchemas):
             # Si la fecha actual no está dentro del esquema i...
             else:
                 # Incremento de la variable i
-                weeks_counter += weeks_counter
+                weeks_counter += 1
                 # Uso de nuevas variables de día
                 start_date += timedelta(days= 7)
                 end_date += timedelta(days= 7)
