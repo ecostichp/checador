@@ -257,6 +257,10 @@ class DATABASE:
         """`Literal` Tabla de registros de asistencia."""
         HOLIDAYS = 'holidays'
         """`Literal` Tabla de días festivos."""
+        SCHEDULES = 'schedules'
+        """`Literal` Tabla de horarios."""
+        SCHEDULE_OFFSETS = 'schedule_offsets'
+        """`Literal` Tabla de desfases de horarios."""
 
 LABEL_SCHEMA = 'Esquema'
 """

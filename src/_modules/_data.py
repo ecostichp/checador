@@ -277,7 +277,7 @@ class _Data(_Interface_Data):
         return (
             # Se cargan los datos desde la base de datos
             load_from_database(
-                'schedules',
+                DATABASE.TABLE.SCHEDULES,
                 # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
                 {
                     COLUMN.WEEKDAY: 'uint8',
@@ -294,7 +294,7 @@ class _Data(_Interface_Data):
         return (
             # Se cargan los datos desde la base de datos
             load_from_database(
-                'schedule_offsets',
+                DATABASE.TABLE.SCHEDULE_OFFSETS,
                 # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
                 {
                     COLUMN.USER_ID: 'uint16',
