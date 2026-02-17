@@ -60,7 +60,7 @@ class _Report(_Interface_Report):
 
             # Datos completos verificados
             (
-                self._summary()
+                self.complete_general_summary()
                 # Exportación del archivo a Excel
                 .to_excel(
                     writer,
@@ -82,29 +82,19 @@ class _Report(_Interface_Report):
 
             # Resumen acumulado
             (
-                pd.concat(
-                    [
-                        self._cummulated_summary(schema_i)
-                        for schema_i in self._main._schemas
-                    ]
-                )
+                self.lunch_summary()
                 # Exportación del archivo a Excel
                 .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.CUMMULATED_SUMMARY, index=False)
             )
 
             # Incidencias
             (
-                pd.concat(
-                    [
-                        self._justification_counts(schema_i)
-                        for schema_i in self._main._schemas
-                    ]
-                )
+                self.justfications_summmary()
                 # Exportación del archivo a Excel
                 .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.JUSTIFICATIONS, index=False)
             )
 
-    def _summary(
+    def complete_general_summary(
         self,
     ) -> pd.DataFrame:
         """
@@ -120,24 +110,31 @@ class _Report(_Interface_Report):
             .pipe(self._main._pipes.common_operations)
         )
 
-    # def _monthly_justifications(
-    #     self,
-    # ) -> pd.DataFrame:
-    #     """
-    #     ### Justificaciones del mes
-    #     Este método genera la tabla de justificaciones del mes completo.
-    #     """
+    def lunch_summary(
+        self,
+    ) -> pd.DataFrame:
 
-    #     return (
-    #         self._main._data.justifications
-    #         # Se filtran todas las incidencias dentro del mes actual
-    #         .pipe(
-    #             self._main._factory.get_records_in_range(
-    #                 self._main._date.month_start_date,
-    #                 self._main._date.month_end_date,
-    #             )
-    #         )
-    #     )
+        return (
+            pd.concat(
+                [
+                    self._cummulated_summary(schema_i)
+                    for schema_i in self._main._schemas
+                ]
+            )
+        )
+
+    def justfications_summmary(
+        self,
+    ) -> pd.DataFrame:
+
+        return (
+            pd.concat(
+                [
+                    self._justification_counts(schema_i)
+                    for schema_i in self._main._schemas
+                ]
+            )
+        )
 
     def _cummulated_summary(
         self,
