@@ -71,7 +71,7 @@ class _Report(_Interface_Report):
 
             # Incidencias del mes
             (
-                self._monthly_justifications()
+                self._main._data.justifications
                 # Exportación del archivo a Excel
                 .to_excel(
                     writer,
@@ -120,24 +120,24 @@ class _Report(_Interface_Report):
             .pipe(self._main._pipes.common_operations)
         )
 
-    def _monthly_justifications(
-        self,
-    ) -> pd.DataFrame:
-        """
-        ### Justificaciones del mes
-        Este método genera la tabla de justificaciones del mes completo.
-        """
+    # def _monthly_justifications(
+    #     self,
+    # ) -> pd.DataFrame:
+    #     """
+    #     ### Justificaciones del mes
+    #     Este método genera la tabla de justificaciones del mes completo.
+    #     """
 
-        return (
-            self._main._data.justifications
-            # Se filtran todas las incidencias dentro del mes actual
-            .pipe(
-                self._main._factory.get_records_in_range(
-                    self._main._date.month_start_date,
-                    self._main._date.month_end_date,
-                )
-            )
-        )
+    #     return (
+    #         self._main._data.justifications
+    #         # Se filtran todas las incidencias dentro del mes actual
+    #         .pipe(
+    #             self._main._factory.get_records_in_range(
+    #                 self._main._date.month_start_date,
+    #                 self._main._date.month_end_date,
+    #             )
+    #         )
+    #     )
 
     def _cummulated_summary(
         self,
