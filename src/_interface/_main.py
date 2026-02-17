@@ -3,14 +3,15 @@ from ._modules import (
     _Interface_Apply,
     _Interface_Data,
     _Interface_Database,
+    _Interface_Date,
     _Interface_DateSchemas,
     _Interface_Factory,
     _Interface_Names,
     _Interface_Pipes,
     _Interface_Processing,
-    _Interface_Update,
     _Interface_Report,
-    _Interface_Date,
+    _Interface_Update,
+    _Interface_Upload,
 )
 
 class _CoreRegistryProcessing:
@@ -54,6 +55,10 @@ class _CoreRegistryProcessing:
     _update: _Interface_Update
     """
     `[Submódulo]` Módulo de actualización de datos.
+    """
+    _upload: _Interface_Upload
+    """
+    `[Submódulo]` Módulo de actualización de archivo.
     """
     _report: _Interface_Report
     """

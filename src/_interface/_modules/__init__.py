@@ -7,5 +7,6 @@ from ._factory import _Interface_Factory
 from ._names import _Interface_Names
 from ._pipes import _Interface_Pipes
 from ._processing import _Interface_Processing
-from ._update import _Interface_Update
 from ._report import _Interface_Report
+from ._update import _Interface_Update
+from ._upload import _Interface_Upload
