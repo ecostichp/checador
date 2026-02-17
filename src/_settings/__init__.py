@@ -1,1 +1,4 @@
-from ._main import CONFIG
+from ._main import (
+    CONFIG,
+    MAIN_FILE,
+)

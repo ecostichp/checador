@@ -15,8 +15,9 @@ from ._modules import (
     _Names,
     _Pipes,
     _Processing,
-    _Update,
     _Report,
+    _Update,
+    _Upload,
 )
 from ._typing import (
     UserID,
@@ -51,6 +52,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._schemas = _DateSchemas(self)
         # Inicialización de módulo de actualización de datos
         self._update = _Update(self)
+        # Inicialización de módulo de actualización de archivo
+        self._upload = _Upload(self)
 
         # Se cargan los datos iniciales
         self._data.load()
@@ -67,6 +70,17 @@ class RegistryProcessing(_CoreRegistryProcessing):
 
         # Se generan los reportes
         self._report.generate()
+
+    def update(
+        self,
+    ) -> None:
+        """
+        ### Actualización
+        Este método actualiza los datos en el archivo Google Sheets vinculado
+        """
+
+        # Actualización del archivo
+        self._upload._update()
 
     @property
     def to_verify(
@@ -108,6 +122,13 @@ class RegistryProcessing(_CoreRegistryProcessing):
         """
 
         return self._schemas
+
+    @property
+    def reports(
+        self,
+    ) -> _Report:
+
+        return self._report
 
     def _get_user_rest_days(
         self,

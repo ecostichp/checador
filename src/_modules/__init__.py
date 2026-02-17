@@ -7,5 +7,6 @@ from ._factory import _Factory
 from ._names import _Names
 from ._pipes import _Pipes
 from ._processing import _Processing
-from ._update import _Update
 from ._report import _Report
+from ._update import _Update
+from ._upload import _Upload
