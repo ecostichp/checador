@@ -67,6 +67,16 @@ class QUERY:
     )
     """Obtención de registros en un rango de tiempo determinado."""
 
+    UPDATE_LAST_UPDATE_IN_RECORDS = (
+        """
+        UPDATE {table_name}
+            SET 'date' = '{date}'
+            WHERE name = '{name}'
+        ;
+        """
+    )
+    """Actualización de última hora de actualización en registros."""
+
 class SCHEMA:
     """
     `CONST` Plantillas de nombres de esquemas de tiempo.

@@ -8,5 +8,6 @@ from ._main import (
     REPORT,
     VALIDATION,
     WAREHOUSE_NAME,
+    WAREHOUSES,
     WEEKDAY,
 )

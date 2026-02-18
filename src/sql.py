@@ -1,6 +1,10 @@
+from typing import Any
 import pandas as pd
 from pandas._typing import AstypeArg
-from sqlalchemy import create_engine
+from sqlalchemy import (
+    create_engine,
+    text,
+)
 from .utils import (
     PROJECT_NAME,
     path_from_dropbox,
@@ -39,3 +43,20 @@ def load_from_database(table_name: str, dtype: AstypeArg = {}) -> pd.DataFrame:
     engine.dispose()
 
     return data
+
+def execute_query(query: str, /, commit: bool = False) -> Any:
+
+    # Se compila el código provisto
+    compiled_query = text(query)
+
+    # Se abre la conexión a la base de datos
+    with engine.connect() as conn, conn.begin():
+
+        # Ejecución en la base de datos
+        result = conn.execute(compiled_query)
+
+        # Si se especificó commit, se realiza éste
+        if commit:
+            conn.commit()
+
+    return result

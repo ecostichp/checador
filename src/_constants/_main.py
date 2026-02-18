@@ -262,7 +262,18 @@ class DATABASE:
         SCHEDULE_OFFSETS = 'schedule_offsets'
         """`Literal` Tabla de desfases de horarios."""
 
+        LAST_UPDATE_DATES = 'last_update_dates'
+        """`Literal` Tabla de última de hora de actualización en datos."""
+
 LABEL_SCHEMA = 'Esquema'
 """
 `Literal` Etiqueta de esquema.
+"""
+
+WAREHOUSES = [
+    'csl',
+    'sjc',
+]
+"""
+`list[Literal]` Lista de nombres abreviados de almacenes.
 """

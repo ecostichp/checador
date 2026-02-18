@@ -2,12 +2,14 @@ import re
 import pandas as pd
 from datetime import (
     date,
+    datetime,
     timedelta,
 )
 from attendance_registry import Assistance
 from .._constants import (
     COLUMN,
     DATABASE,
+    WAREHOUSES,
 )
 from .._interface import (
     _CoreRegistryProcessing,
@@ -20,6 +22,7 @@ from .._typing import (
     Devices,
     SeriesApply,
 )
+from ..sql import execute_query
 
 class _Update(_Interface_Update):
 
@@ -161,6 +164,10 @@ class _Update(_Interface_Update):
         records: pd.DataFrame,
     ) -> None:
 
+        # Actualización de hora de última actualización
+        self._set_last_update(records)
+
+        # Se guardan los registros en la base de datos
         self._main._database.save_in_database(
             records,
             DATABASE.TABLE.ASSISTANCE_RECORDS,
@@ -182,3 +189,38 @@ class _Update(_Interface_Update):
             self._save_records(records)
 
             print('Se guardaron los datos')
+
+    def _set_last_update(
+        self,
+        data: pd.DataFrame,
+    ) -> None:
+
+        # Función para obtennción de fecha más reciente de último registro en dispositivo por almacén
+        def _get_last_date_on_warehouse(warehouse_name: str) -> datetime:
+            return (
+                data.pipe(
+                    lambda df_: (
+                        # Filtro por los registros que pertenecen al almacén
+                        df_[df_[COLUMN.DEVICE] == warehouse_name]
+                    )
+                )
+                # Selección de la columna de fecha de registro en el dispositivo
+                [COLUMN.REGISTRY_TIME]
+                # Obtención del valor de fecha más reciente
+                .max()
+            )
+
+        # Se actualiza la fecha de última hora de actualización por cada almacén
+        for warehouse_i in WAREHOUSES:
+            # Construcción del query
+            query = (
+                QUERY.UPDATE_LAST_UPDATE_IN_RECORDS
+                .format(**{
+                    'table_name': DATABASE.TABLE.LAST_UPDATE_DATES,
+                    'date': _get_last_date_on_warehouse(warehouse_i),
+                    'name': warehouse_i,
+                })
+            )
+
+            # Ejecución del comando
+            execute_query(query, commit= True)
