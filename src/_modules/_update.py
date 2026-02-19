@@ -1,28 +1,26 @@
-import re
 import pandas as pd
-from datetime import (
-    date,
-    datetime,
-    timedelta,
-)
+from datetime import datetime
 from attendance_registry import Assistance
 from .._constants import (
     COLUMN,
     DATABASE,
     WAREHOUSES,
 )
+from .._data import DEVICE_SERIAL_NUMBER
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
-from .._data import DEVICE_SERIAL_NUMBER
 from .._templates import QUERY
 from .._typing import (
     ColumnAssignation,
     Devices,
     SeriesApply,
 )
-from ..sql import execute_query
+from ..sql import (
+    execute_query,
+    get_value,
+)
 
 class _Update(_Interface_Update):
 
@@ -45,63 +43,103 @@ class _Update(_Interface_Update):
         # Actualización de registros
         self._update_records()
 
-    def _get_last_date_saved(
+    def _update_records(
         self,
-    ) -> date:
+    ) -> None:
 
-        # Patrón para encontrar fecha
-        find_date_pattern = r'\w{3}(\d{8})'
-        # Patrón para encontrar valores de fecha
-        find_date_values_pattern = r'(\d{4})(\d{2})(\d{2})'
-        # Patrón para dividir valores de fecha
-        delimit_date_values_pattern = r'\1-\2-\3'
+        # Inicialización de lista de DataFrames de datos obtenidos desde la API
+        all_data_from_api: list[pd.DataFrame] = []
+        # Inicialización de última fecha y hora de registros por almacén obtenidos desde la API
+        records_last_dates: list[tuple[str, str]] = []
 
-        # Construcción de query para lectura de datos
-        query = (
-            QUERY.GET_EXISTING_LAST_DATE
-            .format(
-                **{
-                    'id_column': COLUMN.ID,
-                    'table_name': DATABASE.TABLE.ASSISTANCE_RECORDS,
-                    'time_column': COLUMN.REGISTRY_TIME,
-                }
-            )
-        )
-
-        # Obtención de los datos
-        data = self._main._database.load_data_from_query(query)
-
-        # Lectura de registro
-        last_saved_id: str = (
-            data
-            .at[0, COLUMN.ID]
-        )
-
-        # Obtención de un valor para usarse como fecha
-        string_date = (
-            re.sub(
-                find_date_values_pattern,
-                delimit_date_values_pattern,
-                (
-                    re
-                    .match(find_date_pattern, last_saved_id)
-                    .group(1)
+        for warehouse_i in WAREHOUSES:
+            # Obtención de la última fecha de actualización de los datos
+            last_date_saved = datetime.fromisoformat(
+                get_value(
+                    DATABASE.TABLE.LAST_UPDATE_DATES,
+                    'date',
+                    f"name = '{warehouse_i}'",
                 )
             )
-        )
+            # Obtención de los datos desde la API
+            data_i = self._get_from_api(last_date_saved, warehouse_i)
 
-        # Obtención del valor en formato fecha
-        last_date_saved =  date.fromisoformat(string_date)
+            # Si existen datos obtenidos del dispositivo desde la API...
+            if len(data_i):
+                # Obtención de la fecha más actual de los nuevos datos del dispositivo
+                max_found_datetime = self.get_datetime_from_last_recent_record(data_i)
+                # Se añade el valor junto con el nombre del almacén para guardarse
+                records_last_dates.append( (warehouse_i, max_found_datetime) )
 
-        return last_date_saved
+                # Se añaden éstos a los datos totales
+                all_data_from_api.append(data_i)
 
-    def _get_records(
+        # Si existen datos obtenidos desde la API...
+        if all_data_from_api:
+            # Construcción de los datos a guardar
+            data_to_save = (
+                # Concatenación de todos los DataFrames
+                pd.concat(all_data_from_api)
+                # Se ordenan los datos por fecha y hora de registro
+                .sort_values(COLUMN.REGISTRY_TIME)
+            )
+            # Se guardan los datos en la base de datos
+            self._save_on_database(data_to_save)
+            # Actualización de fechas guardadas
+            self._update_last_update_dates(records_last_dates)
+
+    def _update_last_update_dates(
         self,
+        max_dates: list[tuple[str, str]],
+    ) -> None:
+
+        # Iteración por cada par almacén/valor
+        for ( warehouse_i, max_found_datetime ) in max_dates:
+            # Construcción del query
+            query = (
+                QUERY.UPDATE_LAST_UPDATE_IN_RECORDS
+                .format(**{
+                    'table_name': DATABASE.TABLE.LAST_UPDATE_DATES,
+                    'date': max_found_datetime,
+                    'name': warehouse_i,
+                })
+            )
+
+            # Ejecución del comando
+            execute_query(query, commit= True)
+
+    def get_datetime_from_last_recent_record(
+        self,
+        data: pd.DataFrame,
+    ) -> str:
+
+        # Obtención del valor más alto en fecha
+        max_found_value = str(data[COLUMN.REGISTRY_TIME].max())
+
+        return max_found_value
+
+    def _get_from_api(
+        self,
+        last_date_saved: datetime,
+        device: str,
     ) -> pd.DataFrame:
 
-        # Construcción de las fechas de rango de inicio en fin en cadena de texto
-        string_start_date = str( self._last_date_saved + timedelta(days= 1) )
-        string_end_date = str( self._main._date.most_recent_available_date )
+        # Definición de fecha y hora de inicio y final
+        start_date = last_date_saved
+        last_date = datetime.now()
+
+        # Definición de rango de fecha y hora para búsqueda
+        date_range = (start_date, last_date)
+
+        # Obtención de los datos desde la API
+        data = self._registry.get_daily_attendance(date_range, device)
+
+        return data
+
+    def _save_on_database(
+        self,
+        data: pd.DataFrame,
+    ) -> None:
 
         # Conversión de fecha a código
         to_code: SeriesApply[str] = (
@@ -129,11 +167,8 @@ class _Update(_Interface_Update):
             )
         }
 
-        return (
-            # Obtención de los registros desde la API de HikVision
-            self._registry.get_daily_attendance(
-                (string_start_date, string_end_date)
-            )
+        data_to_save = (
+            data
             # Reasignación de nombres de columnas
             .rename(
                 columns= {
@@ -159,13 +194,13 @@ class _Update(_Interface_Update):
             ]]
         )
 
+        # Se guardan los datos en la tabla de la base de datos local
+        self._save_records(data_to_save)
+
     def _save_records(
         self,
         records: pd.DataFrame,
     ) -> None:
-
-        # Actualización de hora de última actualización
-        self._set_last_update(records)
 
         # Se guardan los registros en la base de datos
         self._main._database.save_in_database(
@@ -173,54 +208,3 @@ class _Update(_Interface_Update):
             DATABASE.TABLE.ASSISTANCE_RECORDS,
             'append',
         )
-
-    def _update_records(
-        self,
-    ) -> None:
-
-        # Lectura del último día de actualización en la base de datos
-        self._last_date_saved = self._get_last_date_saved()
-
-        # Si existen fechas cuyos registros no han sido guardados...
-        if self._last_date_saved < self._main._date.most_recent_available_date:
-            # Obtención de los registros desde la API de HikVision
-            records = self._get_records()
-            # Se guardan los datos en la tabla de la base de datos local
-            self._save_records(records)
-
-            print('Se guardaron los datos')
-
-    def _set_last_update(
-        self,
-        data: pd.DataFrame,
-    ) -> None:
-
-        # Función para obtennción de fecha más reciente de último registro en dispositivo por almacén
-        def _get_last_date_on_warehouse(warehouse_name: str) -> datetime:
-            return (
-                data.pipe(
-                    lambda df_: (
-                        # Filtro por los registros que pertenecen al almacén
-                        df_[df_[COLUMN.DEVICE] == warehouse_name]
-                    )
-                )
-                # Selección de la columna de fecha de registro en el dispositivo
-                [COLUMN.REGISTRY_TIME]
-                # Obtención del valor de fecha más reciente
-                .max()
-            )
-
-        # Se actualiza la fecha de última hora de actualización por cada almacén
-        for warehouse_i in WAREHOUSES:
-            # Construcción del query
-            query = (
-                QUERY.UPDATE_LAST_UPDATE_IN_RECORDS
-                .format(**{
-                    'table_name': DATABASE.TABLE.LAST_UPDATE_DATES,
-                    'date': _get_last_date_on_warehouse(warehouse_i),
-                    'name': warehouse_i,
-                })
-            )
-
-            # Ejecución del comando
-            execute_query(query, commit= True)
