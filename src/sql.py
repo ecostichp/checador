@@ -60,3 +60,21 @@ def execute_query(query: str, /, commit: bool = False) -> Any:
             conn.commit()
 
     return result
+
+def get_value(table_name: str, column: str, condition: str) -> Any:
+
+    # Construcción del query
+    query = (
+        f"""
+        SELECT
+            {column}
+        FROM {table_name}
+        WHERE {condition}
+        ;
+        """
+    )
+
+    # Obtención del valor
+    [ ( value, ) ] = execute_query(query)
+
+    return value
