@@ -8,6 +8,7 @@ from .._constants import (
     COLUMN,
     LABEL_SCHEMA,
     REPORT,
+    VALIDATION,
 )
 from .._interface import (
     _CoreRegistryProcessing,
@@ -108,6 +109,29 @@ class _Report(_Interface_Report):
             self._main.data.records
             # Se añaden las correcciones
             .pipe(self._main._pipes.common_operations)
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.TIME,
+                COLUMN.DATE,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DEVICE,
+                COLUMN.IS_DUPLICATED,
+
+                COLUMN.REGISTRY_TIME,
+                COLUMN.IS_CORRECTION,
+                VALIDATION.COMPLETE,
+                VALIDATION.BREAK_PAIRS,
+                VALIDATION.UNIQUE_START_AND_END,
+                COLUMN.WEEKDAY,
+                COLUMN.ALLOWED_START,
+                COLUMN.ALLOWED_END,
+                VALIDATION.IS_LATE_START,
+                VALIDATION.IS_EARLY_END,
+                COLUMN.LATE_TIME,
+                COLUMN.EARLY_TIME,
+            ]]
         )
 
     def lunch_summary(
