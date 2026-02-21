@@ -17,3 +17,5 @@ class CONFIG:
     class DATE_LIMITS:
         FIRST_HALF_MONTH_END = 15
         SECOND_HALF_MONTH_START = 16
+
+SELECTED_DATABASE = env.variable('DATABASE')
