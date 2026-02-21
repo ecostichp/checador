@@ -105,7 +105,7 @@ class _Data(_Interface_Data):
                     'table_name': DATABASE.TABLE.ASSISTANCE_RECORDS,
                     'time_column': COLUMN.REGISTRY_TIME,
                     'start_date': self._main._schemas.min_date(),
-                    'end_date': self._main._date.most_recent_available_date
+                    'end_date': self._main._date.today
                 }
             )
         )

@@ -141,16 +141,22 @@ class _Factory(_Interface_Factory):
 
     def filter_by_validity(
         self,
+        /,
         by: ValidityOptions,
+        keep_today_check_in: bool = False,
     ) -> DataFramePipe:
 
-        # Columna temporal
-        _ALL_VALID = '_all_valid'
+        # Función para conservar los registros de entrada del día en curso
+        def keep_check_in(data: pd.DataFrame) -> pd.Series:
+
+            return (
+                data[COLUMN.IS_CURRENT_DAY_CHECKIN] == keep_today_check_in
+            )
 
         # Funciones para asignar el filtro de los registros
         filter_: dict[ValidityOptions, DataFramePipe] = {
-            'valid': lambda df: df[ df[_ALL_VALID] ],
-            'invalid': lambda df: df[ ~df[_ALL_VALID] ],
+            'valid': lambda df: df[ df[COLUMN.IS_CLOSED_CORRECT] | keep_check_in(df) ],
+            'invalid': lambda df: df[ ~df[COLUMN.IS_CLOSED_CORRECT] | keep_check_in(df) ],
         }
 
         def fn(data: pd.DataFrame) -> pd.DataFrame:
@@ -160,22 +166,20 @@ class _Factory(_Interface_Factory):
                 # Iteración por cada nombre de validación
                 for validation_name in VALIDATIONS_PER_DAY_AND_USER_ID.keys():
                     # Unión de las columnas con AND
-                    df[_ALL_VALID] &= df[validation_name]
+                    df[COLUMN.IS_CLOSED_CORRECT] &= df[validation_name]
 
                 return df
 
             return (
                 data
                 # Creación de columna booleana inicializada en verdadera
-                .assign(**{_ALL_VALID: True})
+                .assign(**{COLUMN.IS_CLOSED_CORRECT: True})
                 # Unión de las validaciones
                 .pipe(validations_union)
                 # Se filtra el DataFrame únicamente por los datos especificados
                 .pipe( filter_[by] )
                 # Filtros globales
                 .pipe(GLOBAL_FILTERS)
-                # Se descarta la columna temporal
-                [data.columns]
             )
 
         return fn

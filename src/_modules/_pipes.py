@@ -104,9 +104,12 @@ class _Pipes(_Interface_Pipes):
                 VALIDATION.COMPLETE,
                 VALIDATION.BREAK_PAIRS,
                 VALIDATION.UNIQUE_START_AND_END,
+                COLUMN.IS_CURRENT_DAY_CHECKIN,
             ]]
+            # Se descartan todos los registros de entrada del día en curso
+            .pipe(lambda df: df[ ~df[COLUMN.IS_CURRENT_DAY_CHECKIN] ])
             # Se descartan todos los registros que contengan alguna validación no aprobada
-            .pipe( self._main._factory.filter_by_validity('invalid') )
+            .pipe( self._main._factory.filter_by_validity(by= 'invalid') )
             # Se selecciona un día específico en caso de existir algún valor para éste
             .pipe(CHECK_SPECIFIC_DAY)
         )
@@ -140,7 +143,7 @@ class _Pipes(_Interface_Pipes):
             # Validación de registros
             .pipe(self._validate_records)
             # Se filtran únicamente los registros correctos
-            .pipe( self._main._factory.filter_by_validity('valid') )
+            .pipe( self._main._factory.filter_by_validity(by= 'valid', keep_today_check_in= True) )
             # Definición de inicio y finalización de tiempos permitidos para cada usuario
             .pipe(self._define_allowed_start_and_end_time)
             # Obtención de tiempo acumulado en entradas tardías y salidas anticipadas
@@ -165,6 +168,8 @@ class _Pipes(_Interface_Pipes):
                 COLUMN.ALLOWED_END,
                 VALIDATION.IS_LATE_START,
                 VALIDATION.IS_EARLY_END,
+                COLUMN.IS_CURRENT_DAY_CHECKIN,
+                COLUMN.IS_CLOSED_CORRECT,
                 COLUMN.LATE_TIME,
                 COLUMN.EARLY_TIME,
             ]]
@@ -889,6 +894,33 @@ class _Pipes(_Interface_Pipes):
             )
             # Selección de las columnas originales mas las validaciones
             [data.columns.to_list() + validation_names]
+            # Validación de si es registro de entrada del día en curso
+            .pipe(self._validate_today_check_in)
+            # Asignación de tipos de datos
+            .pipe(self._main._processing.assign_dtypes)
+        )
+
+    def _validate_today_check_in(
+        self,
+        data: pd.DataFrame,
+    ) -> pd.DataFrame:
+
+        # Función para validar si un registro es entrada del día en curso
+        is_current_day_checkin: ColumnAssignation = {
+            COLUMN.IS_CURRENT_DAY_CHECKIN: (
+                lambda df: (
+                    # El tipo de registro es inicio de jornada laboral
+                    ( df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN )
+                    # La fecha del registro es igual a la fecha del día en curso
+                    & ( df[COLUMN.DATE].dt.date == self._main._date.today )
+                )
+            )
+        }
+
+        return (
+            data
+            # Validación de si es registro de entrada del día en curso
+            .assign(**is_current_day_checkin)
             # Asignación de tipos de datos
             .pipe(self._main._processing.assign_dtypes)
         )

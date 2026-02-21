@@ -41,7 +41,9 @@ class _Interface_Factory:
 
     def filter_by_validity(
         self,
+        /,
         by: ValidityOptions,
+        keep_today_check_in: bool = False,
     ) -> DataFramePipe:
         """
         ### Mantener registros válidos/inválidos

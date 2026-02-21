@@ -128,6 +128,11 @@ class COLUMN:
     `date` Fecha de validez del día festivo.
     """
 
+    IS_CLOSED_CORRECT = 'is_closed_correct'
+    """`bool` Es día cerrado y correcto."""
+    IS_CURRENT_DAY_CHECKIN = 'is_today_check_in'
+    """`bool` Es registro de entrada del día en curso."""
+
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
     CHECK_IN = 'checkIn'
