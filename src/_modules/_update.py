@@ -1,5 +1,8 @@
 import pandas as pd
-from datetime import datetime
+from datetime import (
+    datetime,
+    timedelta,
+)
 from attendance_registry import Assistance
 from .._constants import (
     COLUMN,
@@ -54,12 +57,16 @@ class _Update(_Interface_Update):
 
         for warehouse_i in WAREHOUSES:
             # Obtención de la última fecha de actualización de los datos
-            last_date_saved = datetime.fromisoformat(
-                get_value(
-                    DATABASE.TABLE.LAST_UPDATE_DATES,
-                    'date',
-                    f"name = '{warehouse_i}'",
+            last_date_saved = (
+                datetime.fromisoformat(
+                    get_value(
+                        DATABASE.TABLE.LAST_UPDATE_DATES,
+                        'date',
+                        f"name = '{warehouse_i}'",
+                    )
                 )
+                # Se incrementa 1 segundo para evitar obtener nuevamente el último resultado ya guardado
+                + timedelta(seconds= 1)
             )
             # Obtención de los datos desde la API
             data_i = self._get_from_api(last_date_saved, warehouse_i)
