@@ -147,19 +147,29 @@ class _Factory(_Interface_Factory):
     ) -> DataFramePipe:
 
         # Función para conservar los registros de entrada del día en curso
-        def keep_check_in(data: pd.DataFrame) -> pd.Series:
+        def filter_records(data: pd.DataFrame) -> pd.Series:
+
+            # Condiciones para filtrar por validez de integridad de datos completos
+            filter_validity: dict[ValidityOptions, pd.Series] = {
+                'valid': data[COLUMN.IS_CLOSED_CORRECT],
+                'invalid': ~data[COLUMN.IS_CLOSED_CORRECT],
+            }
+
+            # Construcción de condición
+            validated_condition = filter_validity[by]
+
+            # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
+            if keep_today_check_in:
+                # Construcción de validación de registros
+                is_current_day_check_in = data[COLUMN.IS_CURRENT_DAY_CHECKIN] == True
+                # Se añade la validación
+                validated_condition |= is_current_day_check_in
 
             return (
-                data[COLUMN.IS_CURRENT_DAY_CHECKIN] == keep_today_check_in
+                data[validated_condition]
             )
 
-        # Funciones para asignar el filtro de los registros
-        filter_: dict[ValidityOptions, DataFramePipe] = {
-            'valid': lambda df: df[ df[COLUMN.IS_CLOSED_CORRECT] | keep_check_in(df) ],
-            'invalid': lambda df: df[ ~df[COLUMN.IS_CLOSED_CORRECT] | keep_check_in(df) ],
-        }
-
-        def fn(data: pd.DataFrame) -> pd.DataFrame:
+        def evaluate_pivot_validations(data: pd.DataFrame) -> pd.DataFrame:
 
             # Inicialización de función que une con AND todas las validaciones
             def validations_union(df: pd.DataFrame) -> pd.DataFrame:
@@ -177,12 +187,12 @@ class _Factory(_Interface_Factory):
                 # Unión de las validaciones
                 .pipe(validations_union)
                 # Se filtra el DataFrame únicamente por los datos especificados
-                .pipe( filter_[by] )
+                .pipe(filter_records)
                 # Filtros globales
                 .pipe(GLOBAL_FILTERS)
             )
 
-        return fn
+        return evaluate_pivot_validations
 
     def get_records_in_range(
         self,
