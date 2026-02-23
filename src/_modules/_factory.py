@@ -158,12 +158,17 @@ class _Factory(_Interface_Factory):
             # Construcción de condición
             validated_condition = filter_validity[by]
 
+            # Construcción de validación de registros
+            is_current_day_check_in = data[COLUMN.IS_CURRENT_DAY_CHECKIN] == keep_today_check_in
+
             # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
             if keep_today_check_in:
-                # Construcción de validación de registros
-                is_current_day_check_in = data[COLUMN.IS_CURRENT_DAY_CHECKIN] == True
-                # Se añade la validación
+                # Se añade la validación de si es registro de inicio de jornada en el día en curso
                 validated_condition |= is_current_day_check_in
+            # Si se especificó que no se incluyeran los registros de inicio de jornada del día en curso...
+            else:
+                # Se añade la validación de si la fecha de registros es distinta al día en curso
+                validated_condition &= data[COLUMN.DATE].dt.date != self._main._date.today
 
             return (
                 data[validated_condition]
