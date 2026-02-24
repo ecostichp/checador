@@ -1,10 +1,12 @@
 import pandas as pd
+from IPython.display import display
 from odoo_api_manager import OdooAPIManager
-from ._interface import _CoreRegistryProcessing
+from ._constants import COLUMN
 from ._data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,
 )
+from ._interface import _CoreRegistryProcessing
 from ._modules import (
     _Apply,
     _DateSchemas,
@@ -20,6 +22,7 @@ from ._modules import (
     _Upload,
 )
 from ._typing import (
+    ColumnAssignation,
     UserID,
     NumericWeekday,
 )
@@ -59,6 +62,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._data.load()
         # Revisión de integridad de los datos
         self._to_verify = self._pipes.check_integrity()
+        # Revisión de días con apertura tardía
+        self._check_late_open()
 
     def report(
         self,
@@ -145,3 +150,73 @@ class RegistryProcessing(_CoreRegistryProcessing):
         rest_days = REST_DAYS.get(user_id, USER_DEFAULT_REST_DAYS)
 
         return rest_days
+
+    def _check_late_open(
+        self,
+    ) -> None:
+
+        # Búsqueda de días con apertura tardía
+        found_results = self._search_for_late_open()
+
+        # Si existen registros de días con apertura tardía...
+        if len(found_results):
+            # Se muestra un mensaje
+            print('Se encontraron días con apertura tardía.')
+            # Se muestran los registros
+            display(found_results)
+
+    def _search_for_late_open(
+        self,
+    ) -> None:
+
+        # Obtención del resumen de registros completo
+        summary = self._report.complete_general_summary()
+
+        # Función para asignar columna de día de la semana
+        weekday: ColumnAssignation = {
+            COLUMN.WEEKDAY: (
+                lambda df: (
+                    df
+                    [COLUMN.DATE]
+                    .dt.weekday
+                )
+            )
+        }
+
+        return (
+            summary
+            # Agrupamiento por fecha y sucursal
+            .groupby(
+                [
+                    COLUMN.DATE,
+                    COLUMN.DEVICE,
+                ],
+                observed= False,
+            )
+            # Se busca el primer valor de hora
+            [COLUMN.TIME]
+            .first()
+            # Reseteo de índice
+            .reset_index()
+            # Obtención del día de la semana
+            .assign(**weekday)
+            # Unión con datos de horarios para obtener hora de entrada
+            .merge(
+                right= (
+                    # Uso de los datos de horarios de la semana
+                    self._data.schedules
+                    # Selección de columnas
+                    [[COLUMN.WEEKDAY, COLUMN.START_SCHEDULE]]
+                ),
+                on= COLUMN.WEEKDAY,
+                how= 'left',
+            )
+            # Se filtran las fechas cuyo primer registro sea posterior al inicio de jornada laboral
+            .pipe(lambda df: df[df[COLUMN.TIME] > df[COLUMN.START_SCHEDULE]])
+            # Selección de columnas
+            [[
+                COLUMN.DEVICE,
+                COLUMN.DATE,
+                COLUMN.TIME,
+            ]]
+        )
