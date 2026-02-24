@@ -1,7 +1,10 @@
 from datetime import date
 import pandas as pd
 import numpy as np
-from .._constants import COLUMN
+from .._constants import (
+    COLUMN,
+    REGISTRY_TYPE,
+)
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Factory,
@@ -158,17 +161,24 @@ class _Factory(_Interface_Factory):
             # Construcción de condición
             validated_condition = filter_validity[by]
 
-            # Construcción de validación de registros
-            is_current_day_check_in = data[COLUMN.IS_CURRENT_DAY_CHECKIN] == keep_today_check_in
+            # Validación de si los registros no son anulados
+            is_not_null = data[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.NULL
 
             # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
             if keep_today_check_in:
+                # Construcción de validación de registros
+                is_current_day_check_in = data[COLUMN.IS_CURRENT_DAY_CHECKIN] == keep_today_check_in
                 # Se añade la validación de si es registro de inicio de jornada en el día en curso
                 validated_condition |= is_current_day_check_in
             # Si se especificó que no se incluyeran los registros de inicio de jornada del día en curso...
             else:
+                # Validación de si la fecha de registros es distinta al día en curso
+                date_is_not_current_day = data[COLUMN.DATE].dt.date != self._main._date.today
                 # Se añade la validación de si la fecha de registros es distinta al día en curso
-                validated_condition &= data[COLUMN.DATE].dt.date != self._main._date.today
+                validated_condition &= date_is_not_current_day
+
+            # Se añade la validación de registro no anulado
+            validated_condition &= is_not_null
 
             return (
                 data[validated_condition]
