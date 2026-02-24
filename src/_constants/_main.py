@@ -145,6 +145,8 @@ class REGISTRY_TYPE:
     """`Literal` Fin de jornada laboral."""
     UNDEFINED = 'undefined'
     """`Literal` No especificado."""
+    NULL = 'null'
+    """`Literal` Registro anulado."""
 
 class VALIDATION:
     """`CONST` Nombres de columnas de DataFrame generados por validaciones."""

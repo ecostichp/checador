@@ -1014,6 +1014,12 @@ class _Pipes(_Interface_Pipes):
         :param data DataFrame: Datos entrantes.
         """
 
+        # Declaración de registros catalogados como inválidos
+        invalid_registry_types = [
+            REGISTRY_TYPE.NULL,
+            REGISTRY_TYPE.UNDEFINED,
+        ]
+
         return (
             data
             .pipe(
@@ -1038,7 +1044,7 @@ class _Pipes(_Interface_Pipes):
                     # Se descartan todos los registros que no tengan tipo de registro especificado
                     .pipe(
                         lambda grouped_df: (
-                            grouped_df[ grouped_df[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.UNDEFINED ]
+                            grouped_df[ ~grouped_df[COLUMN.REGISTRY_TYPE].isin(invalid_registry_types) ]
                         )
                     )
                 )

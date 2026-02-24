@@ -421,7 +421,13 @@ class _Data(_Interface_Data):
                 }
             )
         )
+        # Obtención de la ruta del archivo
+        file_path = path_from_dropbox(f'{file_name}.xlsx')
+
         # Obtención de los datos desde un archivo de Excel
-        data = pd.read_excel( path_from_dropbox(f'{file_name}.xlsx') )
+        data = pd.read_excel(
+            file_path,
+            keep_default_na= False,
+        )
 
         return data
