@@ -30,7 +30,7 @@ def save_on_database(data: pd.DataFrame, table_name: str) -> None:
     # Se cierra la conexión
     engine.dispose()
 
-def load_from_database(table_name: str, dtype: AstypeArg = {}) -> pd.DataFrame:
+def load_from_database(table_name: str, dtype: dict[str, AstypeArg] = {}) -> pd.DataFrame:
 
     # Se abre la conexión a la base de datos
     with engine.connect() as conn, conn.begin():
