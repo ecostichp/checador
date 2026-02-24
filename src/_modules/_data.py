@@ -3,6 +3,7 @@ from datetime import timedelta
 from ccc_utils import spreadsheet
 from ..utils import path_from_dropbox
 from .._constants import (
+    ARGS,
     COLUMN,
     DATABASE,
 )
@@ -13,6 +14,7 @@ from .._interface import (
 from .._mapping import ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
 from .._templates import (
     EXCEL_FILE,
+    MESSAGE,
     QUERY,
     SPREADSHEET,
 )
@@ -102,10 +104,10 @@ class _Data(_Interface_Data):
             QUERY.GET_RECORDS_IN_DATE_RANGE
             .format(
                 **{
-                    'table_name': DATABASE.TABLE.ASSISTANCE_RECORDS,
-                    'time_column': COLUMN.REGISTRY_TIME,
-                    'start_date': self._main._schemas.min_date(),
-                    'end_date': self._main._date.today
+                    ARGS.TABLE_NAME: DATABASE.TABLE.ASSISTANCE_RECORDS,
+                    ARGS.REGISTRY_TIME: COLUMN.REGISTRY_TIME,
+                    ARGS.START_DATE: self._main._schemas.min_date(),
+                    ARGS.END_DATE: self._main._date.today
                 }
             )
         )
@@ -388,7 +390,15 @@ class _Data(_Interface_Data):
                 # Si no fue encontrado...
                 except FileNotFoundError:
                     # Se indica el error y se continúa con el siguiente libro
-                    print(f'No se encontraron corrección del año y mes {year}/{month}')
+                    print(
+                        MESSAGE.CORRECTIONS_FILE_NOT_FOUND
+                        .format(
+                            **{
+                                ARGS.YEAR: year,
+                                ARGS.MONTH: month,
+                            }
+                        )
+                    )
 
             # Concatenación de DataFrames
             corrections = pd.concat(corrections_in_required_dates)
@@ -416,8 +426,8 @@ class _Data(_Interface_Data):
             EXCEL_FILE.CORRECTIONS.NAME
             .format(
                 **{
-                    'year': year,
-                    'month': month,
+                    ARGS.YEAR: year,
+                    ARGS.MONTH: month,
                 }
             )
         )

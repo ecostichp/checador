@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from .._constants import (
+    ARGS,
     COLUMN,
     PERMISSION_NAME,
     REGISTRY_TYPE,
@@ -17,6 +18,7 @@ from .._mapping import (
     PERMISSION_TYPE_REASSIGNATION_NAMES,
     WAREHOUSE_RENAME,
 )
+from .._templates import MESSAGE
 from .._typing import (
     ColumnAssignation,
     Many2One,
@@ -119,15 +121,22 @@ class _Pipes(_Interface_Pipes):
             # Se genera el archivo Excel con los registros a validar
             validations.to_excel(f'{REPORT.VERIFICATION}.xlsx', index= False)
             # Se indica al usuario que hay registros que requieren ser corregidos
-            print('Se encontraron registros para corregir.')
-            print('Accede a la información a través del atributo [validations] o al Excel generado.')
+            print(MESSAGE.RECORDS_TO_FIX_WERE_FOUND)
+            print(
+                MESSAGE.HINT_VALIDATIONS
+                .format(
+                    **{
+                        ARGS.VALIDATIONS_ATTRIBUTE: self._main.to_verify.__name__
+                    }
+                )
+            )
             # Se retorna el DataFrame
             return validations
 
         # Si no existen registros a validar...
         else:
             # Se indica que todo está correcto
-            print("Todo está correcto")
+            print(MESSAGE.ALL_OK)
 
     def common_operations(
         self,

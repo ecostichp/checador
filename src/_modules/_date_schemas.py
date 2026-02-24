@@ -3,6 +3,7 @@ from datetime import (
     timedelta,
 )
 from typing import Iterator
+from .._constants import ARGS
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_DateSchemas,
@@ -143,7 +144,7 @@ class _DateSchemas(_Interface_DateSchemas):
         )
 
         # Creación del esquema
-        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{'n': 1}))
+        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{ARGS.N: 1}))
 
         return schema
 
@@ -166,7 +167,7 @@ class _DateSchemas(_Interface_DateSchemas):
         end_date = self._get_month_last_day()
 
         # Creación del esquema
-        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{'n': 2}))
+        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{ARGS.N: 2}))
 
         return schema
 
@@ -240,7 +241,7 @@ class _DateSchemas(_Interface_DateSchemas):
         # Creación cíclica de esquemas
         while True:
             # Creación del esquema
-            schema_i = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{'n': weeks_counter}))
+            schema_i = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{ARGS.N: weeks_counter}))
             # Se añade el esquema
             self._schemas.append(schema_i)
             # Si la fecha actual está dentro del esquema i...

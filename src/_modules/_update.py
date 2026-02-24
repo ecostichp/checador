@@ -5,6 +5,7 @@ from datetime import (
 )
 from attendance_registry import Assistance
 from .._constants import (
+    ARGS,
     COLUMN,
     DATABASE,
     WAREHOUSES,
@@ -106,9 +107,9 @@ class _Update(_Interface_Update):
             query = (
                 QUERY.UPDATE_LAST_UPDATE_IN_RECORDS
                 .format(**{
-                    'table_name': DATABASE.TABLE.LAST_UPDATE_DATES,
-                    'date': max_found_datetime,
-                    'name': warehouse_i,
+                    ARGS.TABLE_NAME: DATABASE.TABLE.LAST_UPDATE_DATES,
+                    ARGS.DATE: max_found_datetime,
+                    ARGS.DEVICE_NAME: warehouse_i,
                 })
             )
 

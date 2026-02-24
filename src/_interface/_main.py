@@ -1,3 +1,4 @@
+import pandas as pd
 from odoo_api_manager import OdooAPIManager
 from ._modules import (
     _Interface_Apply,
@@ -78,4 +79,9 @@ class _CoreRegistryProcessing:
     def data(
         self,
     ) -> _Interface_Data:
+        ...
+
+    def to_verify(
+        self,
+    ) -> pd.DataFrame | None:
         ...

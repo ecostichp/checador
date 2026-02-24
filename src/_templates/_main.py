@@ -1,3 +1,16 @@
+from .._constants import ARGS
+
+class MESSAGE:
+    """
+    `Literal` Mensajes para imprimir.
+    """
+    LATE_OPEN_FOUND = 'Se encontraron días con apertura tardía.'
+    NO_VALIDATIONS_TO_SHOW = 'No hay validaciones para mostrar.'
+    CORRECTIONS_FILE_NOT_FOUND = f'No se encontraron corrección del año y mes {{{ARGS.YEAR}}}/{{{ARGS.MONTH}}}.'
+    RECORDS_TO_FIX_WERE_FOUND = 'Se encontraron registros para corregir.'
+    HINT_VALIDATIONS = f'Accede a la información a través del atributo [{{{ARGS.VALIDATIONS_ATTRIBUTE}}}] o al Excel generado.'
+    ALL_OK = 'Todo está correcto.'
+
 class EXCEL_FILE:
     """
     `CONST` Nombres de archivos de Excel y sus hojas.
@@ -6,7 +19,7 @@ class EXCEL_FILE:
         """
         `CONST` Archivo de correcciones de registros de asistencia.
         """
-        NAME = 'correcciones_{year}/correcciones_checador_{month:02d}_{year}'
+        NAME = f'correcciones_{{{ARGS.YEAR}}} prueba/correcciones_checador_{{{ARGS.MONTH}:02d}}_{{{ARGS.YEAR}}}'
         """
         `Literal` Nombre del archivo.
         """
@@ -15,7 +28,7 @@ class DB_TABLE:
     """
     `CONST` Nombres de tablas de base de datos.
     """
-    RECORDS = 'registros_{year}_{month:02d}'
+    RECORDS = f'registros_{{{ARGS.YEAR}}}_{{{ARGS.MONTH}:02d}}'
     """
     `Literal` Nombre de la tabla de registros.
     """
@@ -41,37 +54,24 @@ class QUERY:
     `CONST` Plantillas de queries para SQL
     """
 
-    GET_EXISTING_LAST_DATE = (
-        """
-        SELECT
-            {id_column}
-        FROM {table_name}
-        ORDER BY {time_column} DESC
-        LIMIT 1;
-        """
-    )
-    """
-    Obtención de última fecha existente en registros de asistencia.
-    """
-
     GET_RECORDS_IN_DATE_RANGE = (
-        """
+        f"""
         SELECT
             *
-        FROM {table_name}
+        FROM {{{ARGS.TABLE_NAME}}}
         WHERE (
-            DATE({time_column}) >= '{start_date}'
-            AND DATE({time_column}) <= '{end_date}'
+            DATE({{{ARGS.REGISTRY_TIME}}}) >= '{{{ARGS.START_DATE}}}'
+            AND DATE({{{ARGS.REGISTRY_TIME}}}) <= '{{{ARGS.END_DATE}}}'
         );
         """
     )
     """Obtención de registros en un rango de tiempo determinado."""
 
     UPDATE_LAST_UPDATE_IN_RECORDS = (
-        """
-        UPDATE {table_name}
-            SET 'date' = '{date}'
-            WHERE name = '{name}'
+        f"""
+        UPDATE {{{ARGS.TABLE_NAME}}}
+            SET 'date' = '{{{ARGS.DATE}}}'
+            WHERE name = '{{{ARGS.DEVICE_NAME}}}'
         ;
         """
     )
@@ -81,7 +81,7 @@ class SCHEMA:
     """
     `CONST` Plantillas de nombres de esquemas de tiempo.
     """
-    WEEKLY = 'Semana {n}'
+    WEEKLY = f'Semana {{{ARGS.N}}}'
     """`Literal` Esquema semanal."""
-    BIWEEKLY = 'Quincena {n}'
+    BIWEEKLY = f'Quincena {{{ARGS.N}}}'
     """`Literal` Esquema quincenal."""

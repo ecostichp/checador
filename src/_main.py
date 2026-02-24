@@ -2,6 +2,7 @@ import pandas as pd
 from IPython.display import display
 from odoo_api_manager import OdooAPIManager
 from ._constants import COLUMN
+from ._templates import MESSAGE
 from ._data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,
@@ -100,7 +101,7 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Si no existe DataFrame de validaciones...
         if self._to_verify is None:
             # Se indica esto al usuario
-            print('No hay validaciones para mostrar')
+            print(MESSAGE.NO_VALIDATIONS_TO_SHOW)
         # Si existe DataFrame de validaciones...
         else:
             # Se retorna éste
@@ -161,7 +162,7 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Si existen registros de días con apertura tardía...
         if len(found_results):
             # Se muestra un mensaje
-            print('Se encontraron días con apertura tardía.')
+            print(MESSAGE.LATE_OPEN_FOUND)
             # Se muestran los registros
             display(found_results)
 
