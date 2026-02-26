@@ -75,7 +75,7 @@ class _Data(_Interface_Data):
                     'job_id': COLUMN.JOB,
                 },
             )
-            # Ordenamiento de columnas
+            # Ordenamiento y selección de columnas de columnas
             [[
                 COLUMN.USER_ID,
                 COLUMN.NAME,
@@ -230,7 +230,8 @@ class _Data(_Interface_Data):
         user_names_categories = (
             self.users
             [COLUMN.NAME]
-            .to_list()
+            .unique()
+            .tolist()
         )
 
         # Función para reasignar nombres como categorías
@@ -243,6 +244,11 @@ class _Data(_Interface_Data):
                 )
             )
         }
+
+        # Declaración de diccionario de reasignación de nombres de columnas
+        columns_to_rename = ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
+        # Construcción de iterable de columnas seleccionadas
+        selected_columns = ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES.values()
 
         return (
             (
@@ -260,23 +266,27 @@ class _Data(_Interface_Data):
                 )
             )
             # Reasignación de nombres de columnas
-            .rename(columns= ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES)
+            .rename(columns= columns_to_rename)
             # Selección de columnas
-            [ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES.values()]
+            [selected_columns]
             # Obtención de la ID de usuario
             .pipe(
                 lambda df: (
                     pd.merge(
-                        left= self.users[[COLUMN.USER_ID, COLUMN.NAME]],
+                        left= (
+                            # Uso de los datos de usuarios
+                            self.users
+                            # Selección de columnas
+                            [[COLUMN.USER_ID, COLUMN.NAME]]
+                        ),
                         right= df,
-                        left_on= COLUMN.NAME,
-                        right_on= COLUMN.NAME,
+                        on= COLUMN.NAME,
                         how= 'right'
                     )
                 )
             )
             # Se descartan los usuarios cuya ID no fue encontrada ya que están inactivos
-            .pipe(lambda df: df[ df[COLUMN.USER_ID].notna() ])
+            .pipe(lambda df: df[df[COLUMN.USER_ID].notna()])
             # Formateo de fechas provenientes de los documentos de Google Sheets
             .pipe(self._main._processing.format_permission_date_strings)
             # Asignación de tipos de datos
@@ -293,9 +303,13 @@ class _Data(_Interface_Data):
 
         return (
             # Se cargan los datos desde la base de datos
-            load_from_database(DATABASE.TABLE.HOLIDAYS)
-            # Asignación de tipos de datos
-            .pipe(self._main._processing.assign_dtypes)
+            load_from_database(
+                DATABASE.TABLE.HOLIDAYS,
+                {
+                    COLUMN.HOLIDAY_NAME: 'string[python]',
+                    COLUMN.HOLIDAY_DATE: 'datetime64[ns]',
+                }
+            )
         )
 
     def _load_schedules(

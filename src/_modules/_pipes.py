@@ -6,6 +6,7 @@ from .._constants import (
     PERMISSION_NAME,
     REGISTRY_TYPE,
     REPORT,
+    TIME_DELTA_ON_ZERO,
     VALIDATION,
 )
 from .._interface import (
@@ -31,10 +32,7 @@ from .._rules import (
     CHECK_SPECIFIC_DAY,
     VALIDATIONS_PER_DAY_AND_USER_ID,
 )
-from .._values import (
-    LUNCH_DURATION_LIMIT,
-    TIME_DELTA_ON_ZERO,
-)
+from .._settings import LUNCH_DURATION_LIMIT
 
 class _Pipes(_Interface_Pipes):
 
@@ -119,14 +117,14 @@ class _Pipes(_Interface_Pipes):
         # Si existen registros a validar...
         if len(validations):
             # Se genera el archivo Excel con los registros a validar
-            validations.to_excel(f'{REPORT.VERIFICATION}.xlsx', index= False)
+            validations.to_excel(f'{REPORT.VERIFICATION.NAME}.xlsx', index= False)
             # Se indica al usuario que hay registros que requieren ser corregidos
             print(MESSAGE.RECORDS_TO_FIX_WERE_FOUND)
             print(
                 MESSAGE.HINT_VALIDATIONS
                 .format(
                     **{
-                        ARGS.VALIDATIONS_ATTRIBUTE: self._main.to_verify.__name__
+                        ARGS.VALIDATIONS_ATTRIBUTE: 'to_verify'
                     }
                 )
             )
@@ -221,22 +219,22 @@ class _Pipes(_Interface_Pipes):
                         on= COLUMN.USER_AND_DATE_INDEX,
                         how= 'inner',
                     )
-                    # Agrupación por nombres de usuario y fecha para obtención de valores únicos
-                    .groupby(
-                        [
-                            COLUMN.NAME,
-                            COLUMN.DATE,
-                        ],
-                        observed= True,
-                    )
-                    .agg({
-                        COLUMN.USER_ID: 'first',
-                        COLUMN.EXCEEDING_LUNCH_TIME: 'first',
-                    })
-                    # Reseteo de índice
-                    .reset_index()
                 )
             )
+            # Agrupación por nombres de usuario y fecha para obtención de valores únicos
+            .groupby(
+                [
+                    COLUMN.NAME,
+                    COLUMN.DATE,
+                ],
+                observed= True,
+            )
+            .agg({
+                COLUMN.USER_ID: 'first',
+                COLUMN.EXCEEDING_LUNCH_TIME: 'first',
+            })
+            # Reseteo de índice
+            .reset_index()
         )
 
     def get_user_id(
@@ -366,9 +364,9 @@ class _Pipes(_Interface_Pipes):
 
         # Funciones de conteo de tipos de día y obtención de total de días de vacaciones
         day_assignations: ColumnAssignation = {
-            COLUMN.REST_DAYS: ( lambda df: df.apply(self._main._apply.count_rest_days, axis= 1, result_type= 'reduce') ),
-            COLUMN.HOLIDAYS: ( lambda df: df.apply(self._main._apply.count_holidays, axis= 1, result_type= 'reduce') ),
-            COLUMN.VACATION_DAYS: ( lambda df: df.apply(self._main._apply.count_vacation_days, axis= 1, result_type= 'reduce') ),
+            COLUMN.REST_DAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_rest_days, axis= 1, result_type= 'reduce') ),
+            COLUMN.HOLIDAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_holidays, axis= 1, result_type= 'reduce') ),
+            COLUMN.VACATION_DAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_vacation_days, axis= 1, result_type= 'reduce') ),
         }
 
         return (

@@ -50,7 +50,7 @@ class _Factory(_Interface_Factory):
                 .groupby(COLUMN.USER_ID)
                 # Suma de los días de vacaciones
                 .agg({
-                    COLUMN.VACATION_DAYS: 'sum',
+                    COLUMN.VACATION_DAYS_COUNT: 'sum',
                 })
                 # Reseteo de índice
                 .reset_index()
@@ -75,9 +75,9 @@ class _Factory(_Interface_Factory):
                     )
                 )
                 # Reemplazo de todos los valores np.NaN
-                .replace({ COLUMN.VACATION_DAYS: {np.nan: 0} })
+                .replace({ COLUMN.VACATION_DAYS_COUNT: {np.nan: 0} })
                 # Conversión del tipo de dato
-                .astype({ COLUMN.VACATION_DAYS: 'uint8' })
+                .astype({ COLUMN.VACATION_DAYS_COUNT: 'uint8' })
             )
 
         return fn
@@ -234,19 +234,19 @@ class _Factory(_Interface_Factory):
         )
 
         # Función que evalúa si un registro entra dentro del rango de fecha proporcionado
-        record_in_range: DataFramePipe = (
-            lambda df: (
-                df[
+        def fn(data: pd.DataFrame) -> pd.DataFrame:
+            return (
+                data
+                [
                     (
-                        _start_date_in_range(df)
-                        | _end_date_in_range(df)
-                        | _range_segment_in_range(df)
+                        _start_date_in_range(data)
+                        | _end_date_in_range(data)
+                        | _range_segment_in_range(data)
                     )
                 ]
             )
-        )
 
-        return record_in_range
+        return fn
 
     def _reassign_registry_type_categories(
         self,

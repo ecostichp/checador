@@ -4,11 +4,11 @@ from datetime import (
 )
 from typing import Iterator
 from .._constants import ARGS
+from .._data import WEEK_PERIOD_END
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_DateSchemas,
 )
-from .._data import WEEK_PERIOD_END
 from .._resources import _DateSchema
 from .._settings import CONFIG
 from .._templates import SCHEMA
@@ -200,6 +200,7 @@ class _DateSchemas(_Interface_DateSchemas):
 
         return month_last_day
 
+    # TODO Mover a módulo [date]
     def _get_week_last_day(
         self,
         date_value: date,

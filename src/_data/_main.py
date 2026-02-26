@@ -1,9 +1,5 @@
-from .._constants import (
-    COLUMN,
-    WEEKDAY,
-)
+from .._constants import WEEKDAY
 from .._typing import (
-    DatetimeStr,
     UserID,
     NumericWeekday,
 )

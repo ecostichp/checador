@@ -26,9 +26,9 @@ class _Database(_Interface_Database):
     ) -> pd.DataFrame:
 
         # Función para obtención de los datos
-        fn: ConnFunction[pd.DataFrame] = lambda conn: pd.read_sql_query(query, conn)
+        load_data: ConnFunction[pd.DataFrame] = lambda conn: pd.read_sql_query(query, conn)
         # Obtención de los datos
-        data = self._execute_on_connection(fn)
+        data = self._execute_on_connection(load_data)
 
         return data
 

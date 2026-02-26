@@ -14,6 +14,10 @@ from ._modules import (
     _Interface_Update,
     _Interface_Upload,
 )
+from .._typing import (
+    UserID,
+    NumericWeekday,
+)
 
 class _CoreRegistryProcessing:
 
@@ -84,4 +88,10 @@ class _CoreRegistryProcessing:
     def to_verify(
         self,
     ) -> pd.DataFrame | None:
+        ...
+
+    def _get_user_rest_days(
+        self,
+        user_id: UserID,
+    ) -> list[NumericWeekday]:
         ...

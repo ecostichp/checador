@@ -6,9 +6,7 @@ class _Interface_Names:
     """
 
     categories: list[str] = []
-    """
-    Valores categóricos disponibles.
-    """
+    """Valores categóricos disponibles."""
 
     def register_names(
         self,

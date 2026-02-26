@@ -70,8 +70,8 @@ class _Apply(_Interface_Apply):
         # Obtención de valores
         date_start: datetime = record_row[COLUMN.PERMISSION_START]
         date_end: datetime = record_row[COLUMN.PERMISSION_END]
-        rest_days: int = record_row[COLUMN.REST_DAYS]
-        holidays: int = record_row[COLUMN.HOLIDAYS]
+        rest_days: int = record_row[COLUMN.REST_DAYS_COUNT]
+        holidays: int = record_row[COLUMN.HOLIDAYS_COUNT]
 
         # Creación de rango de fecha
         date_range = pd.date_range(date_start, date_end)

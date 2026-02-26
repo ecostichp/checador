@@ -1,20 +1,25 @@
+from datetime import timedelta
+
 ENV_VAR_PREFIX = 'CHECADOR_'
 """
 `Literal` Prefijo de variables de entorno.
 """
+
+class ENV_VARIABLE:
+    """`CONST` Nombres de variables de entornos."""
+    TODAY = 'TODAY'
+    """`Literal` Día en curso."""
 
 class COLUMN:
     """
     `CONST` Colección de nombres de columnas de DataFrame.
     """
     ID = 'id'
-    """
-    `str` ID en la base de datos.
-    """
+    """`str` ID en la base de datos."""
     DATE = 'date'
-    """`str[date]` Fecha del registro."""
+    """`datetime64[s]` Fecha del registro."""
     TIME = 'time'
-    """`str[time]` Hora del registro."""
+    """`timedelta64[ns]` Hora del registro."""
     REGISTRY_TIME = 'registry_time'
     """`datetime64[ns]` Fecha y hora del registro."""
     NAME = 'name'
@@ -31,6 +36,7 @@ class COLUMN:
     - `'breakIn'`: Fin de tiempo de comida.
     - `'checkOut'`: Fin de jornada laboral.
     - `'undefined'`: No especificado.
+    - `'null'`: Registro anulado.
     """
     DEVICE = 'device'
     """
@@ -45,15 +51,19 @@ class COLUMN:
     WAREHOUSE = 'warehouse'
     """`category[str]` Almacén al que el usuario pertenece."""
     JOB = 'job'
-    """
-    `category[str]` Puesto de trabajo.
-    """
+    """`category[str]` Puesto de trabajo."""
     IS_CORRECTION = 'is_correction'
     """`bool` El registro es una corrección."""
     IS_DUPLICATED = 'duplicated'
-    """`bool` El tipo de registro se introdujo dos o más veces por el usuario."""
+    """
+    `bool` El tipo de registro representa un mismo evento pero se creó dos o más
+    veces por el usuario en el mismo día
+    ."""
     USER_AND_DATE_INDEX = 'user_date_index'
-    """`str` Columna computada para mapear validaciones a nivel día y usuario en pivoteo de tablas."""
+    """
+    `str` Columna computada para mapear validaciones a nivel día y usuario en
+    pivoteo de tablas.
+    """
     COUNT = 'count'
     """`uint64` Conteo."""
     WEEKDAY = 'weekday'
@@ -70,25 +80,25 @@ class COLUMN:
     - `6`: Domingo
     """
     START_SCHEDULE = 'start_schedule'
-    """`timedelta` Inicio general de jornada laboral."""
+    """`timedelta64[ns]` Inicio general de jornada laboral."""
     END_SCHEDULE = 'end_schedule'
-    """`timedelta` Fin general de jornada laboral."""
+    """`timedelta64[ns]` Fin general de jornada laboral."""
     START_OFFSET = 'start_offset'
-    """`timedelta` Desfase de inicio de jornada laboral."""
+    """`timedelta64[ns]` Desfase de inicio de jornada laboral."""
     END_OFFSET = 'end_offset'
-    """`timedelta` Desfase de fin de jornada laboral."""
+    """`timedelta64[ns]` Desfase de fin de jornada laboral."""
     ALLOWED_START = 'allowed_start'
-    """`datetime` Tiempo permitido de inicio de jornada laboral."""
+    """`datetime64[ns]` Tiempo permitido de inicio de jornada laboral."""
     ALLOWED_END = 'allowed_end'
-    """`datetime` Tiempo permitido de fin de jornada laboral."""
+    """`datetime64[ns]` Tiempo permitido de fin de jornada laboral."""
     LATE_TIME = 'late_time'
-    """`timedelta` Tiempo de retardo."""
+    """`timedelta64[ns]` Tiempo de entrada tardía."""
     EARLY_TIME = 'early_time'
-    """`timedelta` Tiempo de salida anticipada."""
+    """`timedelta64[ns]` Tiempo de salida anticipada."""
     TIME_IN_DELTA = 'time_in_delta'
-    """`timedelta` Tiempo en formato delta."""
+    """`timedelta64[ns]` Tiempo en formato delta."""
     EXCEEDING_LUNCH_TIME = 'exceeding_lunch_time'
-    """`timedelta` Tiempo excedido en horario de comida."""
+    """`timedelta64[ns]` Tiempo excedido en horario de comida."""
     PERMISSION_TYPE = 'permission_type'
     """
     `category[str]` Tipo de permiso.
@@ -110,28 +120,27 @@ class COLUMN:
         - `'meal_break_compensation'`: Compensación por hora de comida no tomada.
     """
     PERMISSION_START = 'permission_start'
-    """`datetime` Fecha y hora de inicio de permiso."""
+    """`datetime64[ns]` Fecha y hora de inicio de permiso."""
     PERMISSION_END = 'permission_end'
-    """`datetime` Fecha y hora de fin de permiso."""
-    REST_DAYS = 'rest_days'
+    """`datetime64[ns]` Fecha y hora de fin de permiso."""
+    REST_DAYS_COUNT = 'rest_days_count'
     """`uint8` Conteo de días de descanso."""
-    HOLIDAYS = 'holidays'
+    HOLIDAYS_COUNT = 'holidays_count'
     """`uint8` Conteo de días festivos."""
-    VACATION_DAYS = 'vacation_days'
+    VACATION_DAYS_COUNT = 'vacation_days_count'
     """`uint8` Conteo de días de vacaciones."""
     HOLIDAY_NAME = 'holiday_name'
-    """
-    `str` Nombre del día festivo.
-    """
+    """`str` Nombre del día festivo."""
     HOLIDAY_DATE = 'holiday_date'
-    """
-    `date` Fecha de validez del día festivo.
-    """
+    """`datetime64[ns]` Fecha del día festivo."""
 
     IS_CLOSED_CORRECT = 'is_closed_correct'
     """`bool` Es día cerrado y correcto."""
     IS_CURRENT_DAY_CHECKIN = 'is_today_check_in'
-    """`bool` Es registro de entrada del día en curso."""
+    """`bool` Es registro de inicio de jornada laboral en el día en curso."""
+
+    SCHEMA = 'schema'
+    """`str` Nombre del esquema."""
 
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
@@ -153,10 +162,10 @@ class VALIDATION:
     COMPLETE = 'complete'
     """
     `bool` Validación de registro diario por empleado donde debe existir al menos un registro por cada tipo de registro:
-    - `checkIn`: Inicio jornada laboral
-    - `breakOut`: Inicio de hora de comida
-    - `breakIn`: Fin de hora de comida
-    - `checkOut`: Fin de jornada laboral
+    - `checkIn`: Inicio jornada laboral.
+    - `breakOut`: Inicio de tiempo de comida.
+    - `breakIn`: Fin de tiempo de comida.
+    - `checkOut`: Fin de jornada laboral.
     """
     BREAK_PAIRS = 'break_pairs'
     """
@@ -170,31 +179,39 @@ class VALIDATION:
     laboral son únicos para cada uno de éstos.
     """
     IS_LATE_START = 'is_late_start'
-    """`bool` Es retardo."""
+    """`bool` Es inicio de jornada laboral tardío."""
     IS_EARLY_END = 'is_early_end'
-    """`bool` Es salida anticipada."""
+    """`bool` Es fin de jornada laboral anticipado."""
 
 class REPORT:
     """
     `CONST` Nombres de reportes que se generan en Excel.
     """
-    VERIFICATION = 'verification'
-    """`CONST` Nombre de reporte de verificaciones en Excel."""
-    SUMMARY__ = 'resumen_de_registros'
-    """`CONST` Nombre de reporte de resumen en Excel."""
+    class VERIFICATION:
+        """`CONST` Valores de reporte de verificaciones en Excel."""
+        NAME = 'verification'
+
     class SUMMARY:
+        """`CONST` Valores de reporte general en Excel."""
         NAME = 'resumen_de_registros'
+
         class SHEET:
             COMPLETE = 'Datos completos'
+            '`Literal` Hoja de datos completos.'
             CUMMULATED_SUMMARY = 'Resumen'
+            '`Literal` Hoja de resumen de acumulados.'
             JUSTIFICATIONS = 'Justificaciones'
+            '`Literal` Hoja de resumen de incidencias.'
             MONTHLY_JUSTIFICATIONS = 'Incidencias del mes'
+            '`Literal` Hoja de historial de incidencias.'
             USERS = 'Usuarios'
+            '`Literal` Hoja de usuarios.'
 
 class PERMISSION_NAME:
     """
     `CONST` Nombres de tipos de permiso.
     """
+    # Permisos generales por día
     VACATION = 'vacation'
     """`Literal` Ausencia por vacaciones."""
     SICK_GENERAL = 'sick_general'
@@ -204,21 +221,25 @@ class PERMISSION_NAME:
     MATERNITY = 'maternity'
     """`Literal` Ausencia por maternidad."""
 
+    # Ausencias
     UNJUSTIFIED_ABSENCE = 'unjustified_absence'
     """`Literal` Ausencia injustificada (Falta)."""
     UNPAID_EXTRA_ABSENCE = 'unpaid_extra_absence'
     """`Literal` Ausencia extra sin goce de sueldo y sin afectar bonos."""
 
+    # Días festivos
     HOLIDAY_ABSENCE = 'holiday_absence'
     """`Literal` Ausencia por día festivo."""
     HOLIDAY_COMPENSATION = 'holiday_compensation'
     """`Literal` Ausencia por compensación de día festivo no descansado."""
 
+    # Permisos generales por horas
     HOURS_PERMISSION = 'hours_permission'
     """`Literal` Permiso de horas."""
     OVERTIME = 'overtime'
     """`Literal` Horas extra."""
 
+    # Tiempo de comida no tomado o compensado
     MEAL_BREAK_MISSING = 'meal_break_missing'
     """`Literal` Hora de comida pendiente por reponer."""
     MEAL_BREAK_COMPENSATION = 'meal_break_compensation'
@@ -272,15 +293,15 @@ class DATABASE:
         LAST_UPDATE_DATES = 'last_update_dates'
         """`Literal` Tabla de última de hora de actualización en datos."""
 
-LABEL_SCHEMA = 'Esquema'
-"""
-`Literal` Etiqueta de esquema.
-"""
-
 WAREHOUSES = [
     'csl',
     'sjc',
 ]
 """
 `list[Literal]` Lista de nombres abreviados de almacenes.
+"""
+
+TIME_DELTA_ON_ZERO = timedelta()
+"""
+`timedelta(00:00:00)` Valor de delta de tiempo en ceros.
 """

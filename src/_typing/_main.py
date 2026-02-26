@@ -148,7 +148,7 @@ Dispositivos en ubicaciones.
 class Many2One:
     """
     ### Muchos a uno
-    Tipo de dato encontrado en valores de campos de tipo *many2one
+    Tipo de dato encontrado en valores de campos de tipo *many2one*
     provenientes de datos de la API de Odoo.
 
     Este tipo de dato almacena una ID de tipo `int` en la posición `0` y un

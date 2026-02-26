@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 from .._constants import (
     COLUMN,
-    LABEL_SCHEMA,
     REPORT,
+    TIME_DELTA_ON_ZERO,
     VALIDATION,
 )
 from .._interface import (
@@ -19,7 +19,6 @@ from .._typing import (
     DatetimeStr,
     DataFramePipe,
 )
-from .._values import TIME_DELTA_ON_ZERO
 
 class _Report(_Interface_Report):
 
@@ -225,9 +224,9 @@ class _Report(_Interface_Report):
                 lambda df: (
                     df
                     # Se asigna una columna para capturar el esquema actual
-                    .assign(**{LABEL_SCHEMA: schema.name})
+                    .assign(**{COLUMN.SCHEMA: schema.name})
                     # Reordenamiento de columnas
-                    [ [LABEL_SCHEMA] + df.columns.tolist() ]
+                    [ [COLUMN.SCHEMA] + df.columns.tolist() ]
                 )
             )
         )
@@ -258,9 +257,9 @@ class _Report(_Interface_Report):
                 lambda df: (
                     df
                     # Se asigna una columna para capturar el esquema actual
-                    .assign(**{LABEL_SCHEMA: schema.name})
+                    .assign(**{COLUMN.SCHEMA: schema.name})
                     # Reordenamiento de columnas
-                    [ [LABEL_SCHEMA] + df.columns.tolist() ]
+                    [ [COLUMN.SCHEMA] + df.columns.tolist() ]
                 )
             )
         )

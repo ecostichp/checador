@@ -4,6 +4,7 @@ from datetime import (
 )
 from .._typing import PayFrequency
 
+# TODO incluir identificador de espquema en curso
 class _DateSchema():
 
     frequency: PayFrequency
