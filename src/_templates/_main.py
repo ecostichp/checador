@@ -19,7 +19,7 @@ class EXCEL_FILE:
         """
         `CONST` Archivo de correcciones de registros de asistencia.
         """
-        NAME = f'correcciones_{{{ARGS.YEAR}}} prueba/correcciones_checador_{{{ARGS.MONTH}:02d}}_{{{ARGS.YEAR}}}'
+        NAME = f'correcciones_{{{ARGS.YEAR}}}/correcciones_checador_{{{ARGS.MONTH}:02d}}_{{{ARGS.YEAR}}}'
         """
         `Literal` Nombre del archivo.
         """
