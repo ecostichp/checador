@@ -1,9 +1,6 @@
-from datetime import (
-    date,
-    timedelta,
-)
 import pandas as pd
 import numpy as np
+from datetime import timedelta
 from .._constants import (
     COLUMN,
     REPORT,
@@ -19,6 +16,7 @@ from .._typing import (
     DatetimeStr,
     DataFramePipe,
 )
+from .._typing import ColumnAssignation
 
 class _Report(_Interface_Report):
 
@@ -181,6 +179,7 @@ class _Report(_Interface_Report):
             COLUMN.LATE_TIME: self._late_start(schema),
             COLUMN.EARLY_TIME: self._early_end(schema),
             COLUMN.EXCEEDING_LUNCH_TIME: self._lunch_time(schema),
+            COLUMN.WORKED_DAYS: self._worked_days(schema),
         }
 
         def fn(data: pd.DataFrame) -> pd.DataFrame:
@@ -276,24 +275,11 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        # Función para generar lambda de filtro
-        def filter_(start_date: date, end_date: date):
-
-            # Lambda de filtro en base a las fechas provistas en el esquema de tiempo
-            fn: DataFramePipe = (
-                lambda df: df[
-                    ( df[COLUMN.REGISTRY_TIME].dt.date >= start_date )
-                    & ( df[COLUMN.REGISTRY_TIME].dt.date <= end_date )
-                ]
-            )
-
-            return fn
-
         return (
             # Obtención de los registros
             self._main.data.records
             # Filtro por fechas usando lambda generada
-            .pipe( filter_(schema.start_date, schema.end_date) )
+            .pipe( self._filter_by_schema_date(schema) )
             # Se añaden las correcciones
             .pipe(self._main._pipes.common_operations)
             # Registros de entradas tardías con minutos acumulados
@@ -331,24 +317,11 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        # Función para generar lambda de filtro
-        def filter_(start_date: date, end_date: date):
-
-            # Lambda de filtro en base a las fechas provistas en el esquema de tiempo
-            fn: DataFramePipe = (
-                lambda df: df[
-                    ( df[COLUMN.REGISTRY_TIME].dt.date >= start_date )
-                    & ( df[COLUMN.REGISTRY_TIME].dt.date <= end_date )
-                ]
-            )
-
-            return fn
-
         return (
             # Obtención de los registros
             self._main.data.records
             # Filtro por fechas usando lambda generada
-            .pipe( filter_(schema.start_date, schema.end_date) )
+            .pipe( self._filter_by_schema_date(schema) )
             # Se añaden las correcciones
             .pipe(self._main._pipes.common_operations)
             # Registros de salidas anticipadas con minutos acumulados
@@ -386,24 +359,11 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        # Función para generar lambda de filtro
-        def filter_(start_date: date, end_date: date):
-
-            # Lambda de filtro en base a las fechas provistas en el esquema de tiempo
-            fn: DataFramePipe = (
-                lambda df: df[
-                    ( df[COLUMN.REGISTRY_TIME].dt.date >= start_date )
-                    & ( df[COLUMN.REGISTRY_TIME].dt.date <= end_date )
-                ]
-            )
-
-            return fn
-
         return (
             # Obtención de los registros
             self._main.data.records
             # Filtro por fechas usando lambda generada
-            .pipe( filter_(schema.start_date, schema.end_date) )
+            .pipe( self._filter_by_schema_date(schema) )
             # Se añaden las correcciones
             .pipe(self._main._pipes.common_operations)
             # Minutos extras en tiempo de comida
@@ -424,6 +384,56 @@ class _Report(_Interface_Report):
                 COLUMN.NAME,
                 COLUMN.EXCEEDING_LUNCH_TIME,
             ]]
+        )
+
+    def _worked_days(
+        self,
+        schema: _DateSchema,
+    ) -> pd.DataFrame:
+        """
+        ### Días laborados
+        Este método genera el conteo de días laborados en base a las fechas del esquema
+        de tiempo provisto.
+
+        :param schema _DateSchema: Esquema de tiempo para usar como criterio.
+        """
+
+        # Función para obtención de validación de día completo de booleano a unsigned int 8
+        validation_complete_as_int: ColumnAssignation = {
+            COLUMN.WORKED_DAYS: (
+                lambda df: (
+                    df[VALIDATION.COMPLETE].astype('uint8')
+                )
+            )
+        }
+
+        return (
+            # Obtención de los registros
+            self._main.data.records
+            # Filtro por fechas usando lambda generada
+            .pipe( self._filter_by_schema_date(schema) )
+            # Se añaden las correcciones
+            .pipe(self._main._pipes.common_operations)
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.DATE,
+                VALIDATION.COMPLETE,
+            ]]
+            # Agrupamiento por ID de usuario y fecha
+            .groupby([COLUMN.USER_ID, COLUMN.DATE])
+            .agg({
+                VALIDATION.COMPLETE: 'first',
+            })
+            # Asignación de columna numérica de validación de día completo
+            .assign(**validation_complete_as_int)
+            # Agrupamiento por ID de usuario
+            .groupby(COLUMN.USER_ID)
+            .agg({
+                COLUMN.WORKED_DAYS: 'count',
+            })
+            # Reseteo de índice
+            .reset_index()
         )
 
     def _justifications(
@@ -459,3 +469,18 @@ class _Report(_Interface_Report):
                 )
             )
         )
+
+    def _filter_by_schema_date(
+        self,
+        schema: _DateSchema,
+    ) -> DataFramePipe:
+
+            # Lambda de filtro en base a las fechas provistas en el esquema de tiempo
+            fn: DataFramePipe = (
+                lambda df: df[
+                    ( df[COLUMN.REGISTRY_TIME].dt.date >= schema.start_date )
+                    & ( df[COLUMN.REGISTRY_TIME].dt.date <= schema.end_date )
+                ]
+            )
+
+            return fn

@@ -142,6 +142,9 @@ class COLUMN:
     SCHEMA = 'schema'
     """`str` Nombre del esquema."""
 
+    WORKED_DAYS = 'worked_days'
+    """`uint8` Días laborados dentro del esquema de tiempo."""
+
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
     CHECK_IN = 'checkIn'
