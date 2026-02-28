@@ -2,6 +2,7 @@ from datetime import (
     date,
     timedelta,
 )
+from .._data import WEEK_PERIOD_END
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_Date,
@@ -26,6 +27,35 @@ class _Date(_Interface_Date):
         self.current_year = self.most_recent_available_date.year
         self.current_month = self.most_recent_available_date.month
         ( self.month_start_date, self.month_end_date ) = self._compute_month_first_and_last_day()
+
+    def get_week_last_day(
+        self,
+        date_value: date,
+    ) -> date:
+        """
+        ### último día de la semana laboral
+        Este método obtiene y retorna el último día de la semana laboral en curso.
+        """
+
+        # Obtención del día numérico de la semana
+        weekday = date_value.weekday()
+
+        # Si el día de la semana está por debajo o en el día de término...
+        if weekday <= WEEK_PERIOD_END:
+            # Asignación de desfase para cálculo
+            offset = 0
+        # Si el día de la semana está por encima del día de término...
+        else:
+            # Asignación de desfase para cálculo
+            offset = 7
+
+        # Obtención de diferencia de días
+        days_difference = WEEK_PERIOD_END - weekday
+
+        # Cálculo del último día de la semana
+        last_day = date_value + timedelta(days= days_difference + offset)
+
+        return last_day
 
     def _compute_month_first_and_last_day(
         self,

@@ -4,7 +4,6 @@ from datetime import (
 )
 from typing import Iterator
 from .._constants import ARGS
-from .._data import WEEK_PERIOD_END
 from .._interface import (
     _CoreRegistryProcessing,
     _Interface_DateSchemas,
@@ -110,7 +109,7 @@ class _DateSchemas(_Interface_DateSchemas):
         # Cálculo del primer día del mes
         month_first_day = date(current_year, current_month, 1)
         # Obtención del último día del ciclo semanal en base al primer día del mes
-        week_last_date = self._get_week_last_day(month_first_day)
+        week_last_date = self._main._date.get_week_last_day(month_first_day)
         # Obtención del primer día del ciclo semanal
         week_first_date = week_last_date - timedelta(days= 6)
 
@@ -199,36 +198,6 @@ class _DateSchemas(_Interface_DateSchemas):
         month_last_day = date(year, month, day) -  timedelta(days= 1)
 
         return month_last_day
-
-    # TODO Mover a módulo [date]
-    def _get_week_last_day(
-        self,
-        date_value: date,
-    ) -> date:
-        """
-        ### último día de la semana laboral
-        Este método obtiene y retorna el último día de la semana laboral en curso.
-        """
-
-        # Obtención del día numérico de la semana
-        weekday = date_value.weekday()
-
-        # Si el día de la semana está por debajo o en el día de término...
-        if weekday <= WEEK_PERIOD_END:
-            # Asignación de desfase para cálculo
-            offset = 0
-        # Si el día de la semana está por encima del día de término...
-        else:
-            # Asignación de desfase para cálculo
-            offset = 7
-
-        # Obtención de diferencia de días
-        days_difference = WEEK_PERIOD_END - weekday
-
-        # Cálculo del último día de la semana
-        last_day = date_value + timedelta(days= days_difference + offset)
-
-        return last_day
 
     def _create_weekly_schemas(
         self,

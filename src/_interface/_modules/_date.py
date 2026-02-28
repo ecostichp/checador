@@ -14,3 +14,9 @@ class _Interface_Date():
     """`date` Fecha de fin de mes."""
     most_recent_available_date: date
     """`date` Fecha más reciente disponible."""
+
+    def get_week_last_day(
+        self,
+        date_value: date,
+    ) -> date:
+        ...
