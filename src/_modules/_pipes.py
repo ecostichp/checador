@@ -328,6 +328,41 @@ class _Pipes(_Interface_Pipes):
         # Generación de los elementos ordenados y filtrados a usar para reordenamiento
         items = [value for value in ORDERED_REGISTRY_TYPE if value in available_values]
 
+        # Función para reasignación y ordenamiento de categorías de tipo de registro
+        def _handle_category_integrity(s: pd.Series) -> pd.Series:
+
+            # Si no existe registro de fin de jornada laboral...
+            if 'checkOut' not in items:
+                # Se agrega éste a las categorías a asignar (Se espera que el resto vaya)
+                new_items = [
+                    REGISTRY_TYPE.UNDEFINED,
+                    REGISTRY_TYPE.CHECK_IN,
+                    REGISTRY_TYPE.BREAK_OUT,
+                    REGISTRY_TYPE.BREAK_IN,
+                    REGISTRY_TYPE.CHECK_OUT,
+                ]
+
+                return (
+                    s
+                    # Se añade la categoría de fin de jornada laboral
+                    .cat.add_categories([REGISTRY_TYPE.CHECK_OUT])
+                    # Ordenamiento de categorías
+                    .cat.reorder_categories(
+                        new_items,
+                        ordered= True
+                    )
+                )
+            else:
+
+                return (
+                    s
+                    # Ordenamiento de categorías
+                    .cat.reorder_categories(
+                        items,
+                        ordered= True
+                    )
+                )
+
         # Construcción de función a usar para la reasignación de columna con categorías ordenadas
         categorized_registry_type_assignation: ColumnAssignation = {
             COLUMN.REGISTRY_TYPE: (
@@ -335,11 +370,8 @@ class _Pipes(_Interface_Pipes):
                     df[COLUMN.REGISTRY_TYPE]
                     # Se forza la asignación de tipo de dato a categoría
                     .astype('category')
-                    # Ordenamiento de categorías
-                    .cat.reorder_categories(
-                        items,
-                        ordered= True
-                    )
+                    # Reasignación y ordenamiento de categorías
+                    .pipe(_handle_category_integrity)
                 )
             )
         }
@@ -697,7 +729,8 @@ class _Pipes(_Interface_Pipes):
             )
         }
 
-        return (
+        # Obtención de los registros únicamente de hora de comida
+        lunch_records = (
             data
             # Selección de registros que pertenecen a tiempo de comida
             .pipe(
@@ -705,40 +738,71 @@ class _Pipes(_Interface_Pipes):
                     df[ df[COLUMN.REGISTRY_TYPE].isin(LUNCH_REGISTRY_TYPES) ]
                 )
             )
-            # Obtención de tiempo de inicio y fin en formato timedelta
-            .assign(**time_in_delta_assignation)
-            # Suma de tiempo de inicio y de fin de registros
-            .groupby(
-                [COLUMN.USER_AND_DATE_INDEX, COLUMN.REGISTRY_TYPE],
-                # Se descartan los tipos de registro de inicio y fin de jornada laboral
-                observed= False,
-            )
-            # Suma de tiempos de inicio y de fin de registros por tipo de registro
-            .agg( {COLUMN.TIME_IN_DELTA: 'sum'} )
-            # Reseteo de índice
-            .reset_index()
-            # Conversión explícita de tipo de dato a timedelta
-            .astype({COLUMN.TIME_IN_DELTA: 'timedelta64[ns]'})
-            # Pivoteo de tabla para obtención de diferencias de tiempo entre intervalos
-            .pivot_table(
-                index= COLUMN.USER_AND_DATE_INDEX,
-                columns= COLUMN.REGISTRY_TYPE,
-                values= COLUMN.TIME_IN_DELTA,
-                # Se descartan los tipos de registro de inicio y fin de jornada laboral
-                observed= False,
-            )
-            # Asignación de diferencia de intervalos de inicio y fin de tiempo de comida
-            .assign(**time_difference_assignation)
-            # Obtención de total de tiempo excedente en tiempo de comida
-            .assign(**exceeding_lunch_time_assignation)
-            # Reseteo de índice
-            .reset_index()
-            # Selección de columnas
-            [[
-                COLUMN.USER_AND_DATE_INDEX,
-                COLUMN.EXCEEDING_LUNCH_TIME,
-            ]]
         )
+
+        # Si existen registros de hora de comida...
+        if len(lunch_records):
+
+            return (
+                data
+                # Selección de registros que pertenecen a tiempo de comida
+                .pipe(
+                    lambda df: (
+                        df[ df[COLUMN.REGISTRY_TYPE].isin(LUNCH_REGISTRY_TYPES) ]
+                    )
+                )
+                # Obtención de tiempo de inicio y fin en formato timedelta
+                .assign(**time_in_delta_assignation)
+                # Suma de tiempo de inicio y de fin de registros
+                .groupby(
+                    [COLUMN.USER_AND_DATE_INDEX, COLUMN.REGISTRY_TYPE],
+                    # Se descartan los tipos de registro de inicio y fin de jornada laboral
+                    observed= False,
+                )
+                # Suma de tiempos de inicio y de fin de registros por tipo de registro
+                .agg( {COLUMN.TIME_IN_DELTA: 'sum'} )
+                # Reseteo de índice
+                .reset_index()
+                # Conversión explícita de tipo de dato a timedelta
+                .astype({COLUMN.TIME_IN_DELTA: 'timedelta64[ns]'})
+                # Pivoteo de tabla para obtención de diferencias de tiempo entre intervalos
+                .pivot_table(
+                    index= COLUMN.USER_AND_DATE_INDEX,
+                    columns= COLUMN.REGISTRY_TYPE,
+                    values= COLUMN.TIME_IN_DELTA,
+                    # Se descartan los tipos de registro de inicio y fin de jornada laboral
+                    observed= False,
+                )
+                # Asignación de diferencia de intervalos de inicio y fin de tiempo de comida
+                .assign(**time_difference_assignation)
+                # Obtención de total de tiempo excedente en tiempo de comida
+                .assign(**exceeding_lunch_time_assignation)
+                # Reseteo de índice
+                .reset_index()
+                # Selección de columnas
+                [[
+                    COLUMN.USER_AND_DATE_INDEX,
+                    COLUMN.EXCEEDING_LUNCH_TIME,
+                ]]
+            )
+
+        # Si no existen registros de hora de comida...
+        else:
+
+            # Se retorna DataFrame vacío para poder manejar los merge posteriores
+            return (
+                pd.DataFrame(
+                        {
+                        COLUMN.USER_AND_DATE_INDEX: [],
+                        COLUMN.EXCEEDING_LUNCH_TIME: [],
+                    }
+                )
+                .astype({
+                    COLUMN.USER_AND_DATE_INDEX: 'string',
+                    COLUMN.EXCEEDING_LUNCH_TIME: 'timedelta64[ns]',
+                })
+            )
+
 
     def _discard_duplicated(
         self,
