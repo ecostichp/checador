@@ -1,11 +1,10 @@
-from datetime import datetime
 import pandas as pd
 from ..constants import COLUMN
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Apply,
 )
-from ..typing.aliases import UserID
+from ..typing.interfaces import HorizontalSeries
 
 class _Apply(_Interface_Apply):
 
@@ -19,13 +18,13 @@ class _Apply(_Interface_Apply):
 
     def count_rest_days(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
 
         # Obtención de los valores
-        user_id: UserID = record_row[COLUMN.USER_ID]
-        date_start: datetime = record_row[COLUMN.PERMISSION_START]
-        date_end: datetime = record_row[COLUMN.PERMISSION_END]
+        user_id = record_row[COLUMN.USER_ID]
+        date_start = record_row[COLUMN.PERMISSION_START]
+        date_end = record_row[COLUMN.PERMISSION_END]
 
         # Obtención de los datos de días de descanso
         rest_days = self._main._get_user_rest_days(user_id)
@@ -46,12 +45,12 @@ class _Apply(_Interface_Apply):
 
     def count_holidays(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
 
         # Obtención de valores
-        date_start: datetime = record_row[COLUMN.PERMISSION_START]
-        date_end: datetime = record_row[COLUMN.PERMISSION_END]
+        date_start = record_row[COLUMN.PERMISSION_START]
+        date_end = record_row[COLUMN.PERMISSION_END]
 
         return (
             # Creación del rango de fecha
@@ -64,14 +63,14 @@ class _Apply(_Interface_Apply):
 
     def count_vacation_days(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
 
         # Obtención de valores
-        date_start: datetime = record_row[COLUMN.PERMISSION_START]
-        date_end: datetime = record_row[COLUMN.PERMISSION_END]
-        rest_days: int = record_row[COLUMN.REST_DAYS_COUNT]
-        holidays: int = record_row[COLUMN.HOLIDAYS_COUNT]
+        date_start = record_row[COLUMN.PERMISSION_START]
+        date_end = record_row[COLUMN.PERMISSION_END]
+        rest_days = record_row[COLUMN.REST_DAYS_COUNT]
+        holidays = record_row[COLUMN.HOLIDAYS_COUNT]
 
         # Creación de rango de fecha
         date_range = pd.date_range(date_start, date_end)

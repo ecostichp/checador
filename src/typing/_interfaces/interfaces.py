@@ -1,7 +1,10 @@
+from datetime import datetime
+import pandas as pd
 from typing import (
     Literal,
     overload,
 )
+from .._base.aliases import UserID
 
 class Many2One:
     """
@@ -29,3 +32,23 @@ class Many2One:
     def __getitem__(self, position: Literal[0]) -> int: ...
     @overload
     def __getitem__( self, position: Literal[1]) -> str: ...
+
+class HorizontalSeries(pd.Series):
+    """
+    ### Series horizontal
+    Este tipo de dato es una Pandas Series horizontal que se usa para extraer
+    contenido. Esta declaración de interfaz describe los tipos de dato obtenidos
+    en base a la llave provista a la serie.
+
+    Esta interfaz no debe utilizarse para instanciar, solo como interfaz de tipado.
+    """
+    @overload
+    def __getitem__(self, key: Literal['user_id']) -> UserID: ...
+    @overload
+    def __getitem__(self, key: Literal['permission_start']) -> datetime: ...
+    @overload
+    def __getitem__(self, key: Literal['permission_end']) -> datetime: ...
+    @overload
+    def __getitem__(self, key: Literal['rest_days_count']) -> int: ...
+    @overload
+    def __getitem__(self, key: Literal['holidays_count']) -> int: ...
