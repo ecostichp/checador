@@ -2,35 +2,20 @@ from datetime import (
     date,
     datetime,
 )
+from .._interface.resources import _Interface_DateSchema
 from .._typing import PayFrequency
 
 # TODO incluir identificador de espquema en curso
-class _DateSchema():
-
-    frequency: PayFrequency
-    """
-    Frecuencia de pago.
-
-    Valores disponibles:
-    - `'weekly'`: Semanal.
-    - `'biweekly'`: Quincenal.
-    """
-    start_date: datetime
-    """Fecha de inicio."""
-    end_date: datetime
-    """Fecha de término."""
-    name: str
-    """Nombre usado para generar reportes."""
-
-    _today: date
-    """Fecha de hoy."""
+class _DateSchema(_Interface_DateSchema):
 
     def __init__(
         self,
+        *,
         frequency: PayFrequency,
         start_date: datetime,
         end_date: datetime,
         name: str,
+        current: bool,
     ) -> None:
 
         # Se guardan los valores provistos
@@ -38,12 +23,20 @@ class _DateSchema():
         self.start_date = start_date
         self.end_date = end_date
         self.name = name
+        self.current = current
 
     def __repr__(
         self,
     ) -> str:
 
-        return f'DateSchema["{self.frequency}"]({self.start_date}, {self.end_date}, {self.name})'
+        # Obtención de valores a mostrar
+        frequency = self.frequency
+        start_date = self.start_date
+        end_date = self.end_date
+        name = self.name
+        current = f'-current' if self.current else ''
+
+        return f'DateSchema["{frequency}"{current}]({start_date}, {end_date}, {name})'
 
     def __contains__(
         self,

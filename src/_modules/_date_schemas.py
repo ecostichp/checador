@@ -90,13 +90,19 @@ class _DateSchemas(_Interface_DateSchemas):
         curso.
         """
 
-        # Obtención del esquema de la primera quincena
-        self._schemas.append( self._first_half() )
+        # Evaluación de si el segundo período quincenal es el actual
+        second_half_is_current = (
+            self._most_recent_available_date.day >= CONFIG.DATE_LIMITS.SECOND_HALF_MONTH_START
+        )
 
-        # Si el día es 16 en adelante...
-        if self._most_recent_available_date.day >= CONFIG.DATE_LIMITS.SECOND_HALF_MONTH_START:
+        # Obtención del esquema de la primera quincena
+        schema = self._first_half(not second_half_is_current)
+        self._schemas.append(schema)
+
+        if second_half_is_current:
             # Obtención del esquema de la segunda quincena
-            self._schemas.append( self._second_half() )
+            schema = self._second_half()
+            self._schemas.append(schema)
 
     def _initialize_weekly_schemas(
         self,
@@ -113,15 +119,12 @@ class _DateSchemas(_Interface_DateSchemas):
         # Obtención del primer día del ciclo semanal
         week_first_date = week_last_date - timedelta(days= 6)
 
-        # Asignación de fechas de inicio y final
-        start_date = week_first_date
-        end_date = week_last_date
-
         # Creación de esquemas semanales
-        self._create_weekly_schemas(start_date, end_date)
+        self._create_weekly_schemas(week_first_date, week_last_date)
 
     def _first_half(
         self,
+        current: bool = False,
     ) -> _DateSchema:
         """
         ### Primera quincena
@@ -143,7 +146,13 @@ class _DateSchemas(_Interface_DateSchemas):
         )
 
         # Creación del esquema
-        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{ARGS.N: 1}))
+        schema = _DateSchema(
+            frequency= 'biweekly',
+            start_date= start_date,
+            end_date= end_date,
+            name= SCHEMA.BIWEEKLY.format(**{ARGS.N: 1}),
+            current= current,
+        )
 
         return schema
 
@@ -166,7 +175,13 @@ class _DateSchemas(_Interface_DateSchemas):
         end_date = self._get_month_last_day()
 
         # Creación del esquema
-        schema = _DateSchema('biweekly', start_date, end_date, SCHEMA.BIWEEKLY.format(**{ARGS.N: 2}))
+        schema = _DateSchema(
+            frequency= 'biweekly',
+            start_date= start_date,
+            end_date= end_date,
+            name= SCHEMA.BIWEEKLY.format(**{ARGS.N: 2}),
+            current= True,
+        )
 
         return schema
 
@@ -201,21 +216,36 @@ class _DateSchemas(_Interface_DateSchemas):
 
     def _create_weekly_schemas(
         self,
-        start_date: date,
-        end_date: date,
+        week_first_date: date,
+        week_last_date: date,
     ) -> None:
+
+        # Obtención de las fechas de inicio y final a usar
+        start_date = week_first_date
+        end_date = week_last_date
 
         # Inicialización de contador de semanas
         weeks_counter = 1
 
         # Creación cíclica de esquemas
         while True:
+            # Evaluación de si la semana i es la actual
+            week_i_is_current = (
+                self._most_recent_available_date >= start_date
+                and self._most_recent_available_date <= end_date
+            )
             # Creación del esquema
-            schema_i = _DateSchema('weekly', start_date, end_date, SCHEMA.WEEKLY.format(**{ARGS.N: weeks_counter}))
+            schema_i = _DateSchema(
+                frequency= 'weekly',
+                start_date= start_date,
+                end_date= end_date,
+                name= SCHEMA.WEEKLY.format(**{ARGS.N: weeks_counter}),
+                current= week_i_is_current,
+            )
             # Se añade el esquema
             self._schemas.append(schema_i)
             # Si la fecha actual está dentro del esquema i...
-            if self._most_recent_available_date in schema_i:
+            if week_i_is_current:
                 # Se finaliza el ciclo
                 break
             # Si la fecha actual no está dentro del esquema i...
