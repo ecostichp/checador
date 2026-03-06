@@ -3,10 +3,8 @@ from ..constants import (
     REGISTRY_TYPE,
     VALIDATION,
 )
-from ..typing import (
-    ColumnAssignation,
-    DataFramePipe,
-)
+from ..typing.callables import DataFramePipe
+from ..typing.dicts import ColumnAssignation
 
 GLOBAL_FILTERS: DataFramePipe = lambda df: (
     df[

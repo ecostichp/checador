@@ -3,9 +3,8 @@ from datetime import (
     datetime,
 )
 from ..contracts.resources import _Interface_DateSchema
-from ..typing import PayFrequency
+from ..typing.literals import PayFrequency
 
-# TODO incluir identificador de espquema en curso
 class _DateSchema(_Interface_DateSchema):
 
     def __init__(

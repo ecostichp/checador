@@ -1,6 +1,6 @@
 import pandas as pd
 from pandas._typing import AstypeArg
-from ...typing import (
+from ...typing.dicts import (
     ColumnAssignation,
     PermissionOptionGenericMap,
 )

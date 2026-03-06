@@ -4,10 +4,8 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Database,
 )
-from ..typing import (
-    _T,
-    ConnFunction,
-)
+from ..typing.callables import ConnFunction
+from ..typing.generics import _T
 from ..sql import engine
 
 class _Database(_Interface_Database):

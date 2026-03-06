@@ -13,11 +13,9 @@ from .modules import (
     _Interface_Update,
     _Interface_Upload,
 )
-from ..contracts.services import _Contract_ServicesMain
-from ..typing import (
-    UserID,
-    NumericWeekday,
-)
+from .services import _Contract_ServicesMain
+from ..typing.aliases import UserID
+from ..typing.literals import NumericWeekday
 
 class _CoreRegistryProcessing:
 

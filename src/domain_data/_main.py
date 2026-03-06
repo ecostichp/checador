@@ -1,8 +1,6 @@
 from ..constants import WEEKDAY
-from ..typing import (
-    UserID,
-    NumericWeekday,
-)
+from ..typing.aliases import UserID
+from ..typing.literals import NumericWeekday
 
 REST_DAYS: dict[UserID, list[NumericWeekday]] = {
     36: [

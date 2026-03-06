@@ -20,14 +20,14 @@ from ..mapping import (
     WAREHOUSE_RENAME,
 )
 from ..templates import MESSAGE
-from ..typing import (
-    ColumnAssignation,
-    Many2One,
+from ..typing.dicts import ColumnAssignation
+from ..typing.callables import (
     DataFramePipe,
     SeriesApply,
     SeriesFromDataFrame,
     SeriesPipe,
 )
+from ..typing.interfaces import Many2One
 from ..rules import (
     CHECK_SPECIFIC_DAY,
     VALIDATIONS_PER_DAY_AND_USER_ID,

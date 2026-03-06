@@ -5,7 +5,7 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Apply,
 )
-from ..typing import UserID
+from ..typing.aliases import UserID
 
 class _Apply(_Interface_Apply):
 

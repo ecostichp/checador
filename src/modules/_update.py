@@ -16,11 +16,9 @@ from ..contracts import (
     _Interface_Update,
 )
 from ..templates import QUERY
-from ..typing import (
-    ColumnAssignation,
-    Devices,
-    SeriesApply,
-)
+from ..typing.callables import SeriesApply
+from ..typing.dicts import ColumnAssignation
+from ..typing.literals import Devices
 from ..sql import (
     execute_query,
     get_value,

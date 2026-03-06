@@ -22,11 +22,9 @@ from .modules import (
     _Upload,
 )
 from .services import Services
-from .typing import (
-    ColumnAssignation,
-    UserID,
-    NumericWeekday,
-)
+from .typing.aliases import UserID
+from .typing.dicts import ColumnAssignation
+from .typing.literals import NumericWeekday
 
 class RegistryProcessing(_CoreRegistryProcessing):
 
