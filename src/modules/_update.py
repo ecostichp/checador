@@ -15,7 +15,7 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
-from ..templates import QUERY
+from ..templates.queries import QUERY
 from ..typing.callables import SeriesApply
 from ..typing.dicts import ColumnAssignation
 from ..typing.literals import Devices

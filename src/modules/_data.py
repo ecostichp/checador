@@ -12,12 +12,12 @@ from ..contracts import (
     _Interface_Data,
 )
 from ..mapping import ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
-from ..templates import (
+from ..templates.files import (
     EXCEL_FILE,
-    MESSAGE,
-    QUERY,
     SPREADSHEET,
 )
+from ..templates.messages import MESSAGE
+from ..templates.queries import QUERY
 from ..typing.dicts import ColumnAssignation
 from ..sql import load_from_database
 

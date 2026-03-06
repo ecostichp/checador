@@ -10,7 +10,7 @@ from ..contracts import (
 )
 from ..resources import _DateSchema
 from ..settings import CONFIG
-from ..templates import SCHEMA
+from ..templates.names import SCHEMA
 
 class _DateSchemas(_Interface_DateSchemas):
 

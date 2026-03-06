@@ -2,7 +2,7 @@ import pandas as pd
 from IPython.display import display
 from odoo_api_manager import OdooAPIManager
 from .constants import COLUMN
-from .templates import MESSAGE
+from .templates.messages import MESSAGE
 from .domain_data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,

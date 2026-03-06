@@ -19,7 +19,7 @@ from ..mapping import (
     PERMISSION_TYPE_REASSIGNATION_NAMES,
     WAREHOUSE_RENAME,
 )
-from ..templates import MESSAGE
+from ..templates.messages import MESSAGE
 from ..typing.dicts import ColumnAssignation
 from ..typing.callables import (
     DataFramePipe,
