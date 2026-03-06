@@ -1,14 +1,14 @@
 import pandas as pd
 from IPython.display import display
 from odoo_api_manager import OdooAPIManager
-from ._constants import COLUMN
-from ._templates import MESSAGE
-from ._data import (
+from .constants import COLUMN
+from .templates import MESSAGE
+from .domain_data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,
 )
-from ._interface import _CoreRegistryProcessing
-from ._modules import (
+from .contracts import _CoreRegistryProcessing
+from .modules import (
     _Apply,
     _DateSchemas,
     _Data,
@@ -22,7 +22,7 @@ from ._modules import (
     _Update,
     _Upload,
 )
-from ._typing import (
+from .typing import (
     ColumnAssignation,
     UserID,
     NumericWeekday,

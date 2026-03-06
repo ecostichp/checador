@@ -6,7 +6,7 @@ from sqlalchemy import (
     text,
 )
 from .utils import path_from_dropbox
-from ._settings import SELECTED_DATABASE
+from .settings import SELECTED_DATABASE
 
 # Se define la ruta para los datos en Dropbox
 _db_file = f'{SELECTED_DATABASE}.db'
