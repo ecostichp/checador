@@ -1,7 +1,6 @@
 from ._apply import _Apply
 from ._data import _Data
 from ._database import _Database
-from ._date import _Date
 from ._date_schemas import _DateSchemas
 from ._factory import _Factory
 from ._names import _Names

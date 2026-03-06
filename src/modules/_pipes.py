@@ -983,7 +983,7 @@ class _Pipes(_Interface_Pipes):
                     # El tipo de registro es inicio de jornada laboral
                     ( df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN )
                     # La fecha del registro es igual a la fecha del día en curso
-                    & ( df[COLUMN.DATE].dt.date == self._main._date.today )
+                    & ( df[COLUMN.DATE].dt.date == self._main._services.date.today )
                 )
             )
         }

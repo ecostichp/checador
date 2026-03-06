@@ -34,7 +34,7 @@ class _Report(_Interface_Report):
 
         # Construcción de una fecha en cadena de texto
         string_date: DatetimeStr = (
-            self._main._date.most_recent_available_date
+            self._main._services.date.most_recent_available_date
             .__str__()
             .replace('-', '')
         )

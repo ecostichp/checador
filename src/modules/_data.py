@@ -18,7 +18,7 @@ from ..templates import (
     QUERY,
     SPREADSHEET,
 )
-from ..typing import ColumnAssignation
+from ..typing.dicts import ColumnAssignation
 from ..sql import load_from_database
 
 class _Data(_Interface_Data):
@@ -107,7 +107,7 @@ class _Data(_Interface_Data):
                     ARGS.TABLE_NAME: DATABASE.TABLE.ASSISTANCE_RECORDS,
                     ARGS.REGISTRY_TIME: COLUMN.REGISTRY_TIME,
                     ARGS.START_DATE: self._main._schemas.min_date(),
-                    ARGS.END_DATE: self._main._date.today
+                    ARGS.END_DATE: self._main._services.date.today
                 }
             )
         )
@@ -365,7 +365,7 @@ class _Data(_Interface_Data):
         )
         # Mes de fin
         end_month = (
-            self._main._date
+            self._main._services.date
             .most_recent_available_date
             .month
         )
@@ -380,7 +380,7 @@ class _Data(_Interface_Data):
             )
             # Año de fin
             end_year = (
-                self._main._date
+                self._main._services.date
                 .most_recent_available_date
                 .year
             )
@@ -420,7 +420,10 @@ class _Data(_Interface_Data):
         # Si el mes de inicio es igual al mes de fin...
         else:
             # Carga del archivo
-            corrections = self._load_corrections_book(self._main._date.current_year, self._main._date.current_month)
+            corrections = self._load_corrections_book(
+                self._main._services.date.current_year,
+                self._main._services.date.current_month,
+            )
 
         return corrections
 

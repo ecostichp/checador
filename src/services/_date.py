@@ -2,22 +2,15 @@ from datetime import (
     date,
     timedelta,
 )
+from ..contracts.services import _Contract_Date
 from ..domain_data import WEEK_PERIOD_END
-from ..contracts import (
-    _CoreRegistryProcessing,
-    _Interface_Date,
-)
 from ..settings import CONFIG
 
-class _Date(_Interface_Date):
+class DateService(_Contract_Date):
 
     def __init__(
         self,
-        main: _CoreRegistryProcessing,
     ) -> None:
-
-        # Asignación de instancia principal
-        self._main = main
 
         # Obtención de la fecha del día de hoy
         self.today = CONFIG.TODAY
@@ -26,38 +19,10 @@ class _Date(_Interface_Date):
         self.most_recent_available_date = self.today - timedelta(days= 1)
         self.current_year = self.most_recent_available_date.year
         self.current_month = self.most_recent_available_date.month
-        ( self.month_start_date, self.month_end_date ) = self._compute_month_first_and_last_day()
+        ( self.month_start_date, self.month_end_date ) = self._compute_month_start_and_end_dates()
+        ( self.first_week_end_date, self.first_week_start_date ) = self._compute_first_week_start_and_end_dates()
 
-    def get_week_last_day(
-        self,
-        date_value: date,
-    ) -> date:
-        """
-        ### último día de la semana laboral
-        Este método obtiene y retorna el último día de la semana laboral en curso.
-        """
-
-        # Obtención del día numérico de la semana
-        weekday = date_value.weekday()
-
-        # Si el día de la semana está por debajo o en el día de término...
-        if weekday <= WEEK_PERIOD_END:
-            # Asignación de desfase para cálculo
-            offset = 0
-        # Si el día de la semana está por encima del día de término...
-        else:
-            # Asignación de desfase para cálculo
-            offset = 7
-
-        # Obtención de diferencia de días
-        days_difference = WEEK_PERIOD_END - weekday
-
-        # Cálculo del último día de la semana
-        last_day = date_value + timedelta(days= days_difference + offset)
-
-        return last_day
-
-    def _compute_month_first_and_last_day(
+    def _compute_month_start_and_end_dates(
         self,
     ) -> tuple[date, date]:
 
@@ -80,3 +45,30 @@ class _Date(_Interface_Date):
         month_end_date = date(year, month, 1) - timedelta(days= 1)
 
         return (month_start_day, month_end_date)
+
+    def _compute_first_week_start_and_end_dates(
+        self,
+    ) -> tuple[date, date]:
+
+        # Obtención del día numérico de la semana
+        weekday = self.month_start_date.weekday()
+
+        # Si el día de la semana está por debajo o en el día de término...
+        if weekday <= WEEK_PERIOD_END:
+            # Asignación de desfase para cálculo
+            offset = 0
+        # Si el día de la semana está por encima del día de término...
+        else:
+            # Asignación de desfase para cálculo
+            offset = 7
+
+        # Obtención de diferencia de días
+        days_difference = WEEK_PERIOD_END - weekday
+
+        # Cálculo del último día de la semana
+        week_last_date = self.month_start_date + timedelta(days= days_difference + offset)
+
+        # Obtención del primer día del ciclo semanal
+        week_first_date = week_last_date - timedelta(days= 6)
+
+        return (week_last_date, week_first_date)

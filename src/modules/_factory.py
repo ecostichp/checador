@@ -173,7 +173,7 @@ class _Factory(_Interface_Factory):
             # Si se especificó que no se incluyeran los registros de inicio de jornada del día en curso...
             else:
                 # Validación de si la fecha de registros es distinta al día en curso
-                date_is_not_current_day = data[COLUMN.DATE].dt.date != self._main._date.today
+                date_is_not_current_day = data[COLUMN.DATE].dt.date != self._main._services.date.today
                 # Se añade la validación de si la fecha de registros es distinta al día en curso
                 validated_condition &= date_is_not_current_day
 

@@ -13,7 +13,6 @@ from .modules import (
     _DateSchemas,
     _Data,
     _Database,
-    _Date,
     _Factory,
     _Names,
     _Pipes,
@@ -22,6 +21,7 @@ from .modules import (
     _Update,
     _Upload,
 )
+from .services import Services
 from .typing import (
     ColumnAssignation,
     UserID,
@@ -40,10 +40,11 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._factory = _Factory(self)
         self._processing = _Processing(self)
 
+        # Inicialización de servicios
+        self._services = Services()
+
         # Inicialización de instancia de conexión a API de Odoo
         self._odoo = OdooAPIManager()
-        # Incialización de módulo de fechas
-        self._date = _Date(self)
         # Inicialización de módulo de nombres
         self._names = _Names()
         # Inicialización de módulo de datos

@@ -4,7 +4,6 @@ from .modules import (
     _Interface_Apply,
     _Interface_Data,
     _Interface_Database,
-    _Interface_Date,
     _Interface_DateSchemas,
     _Interface_Factory,
     _Interface_Names,
@@ -14,6 +13,7 @@ from .modules import (
     _Interface_Update,
     _Interface_Upload,
 )
+from ..contracts.services import _Contract_ServicesMain
 from ..typing import (
     UserID,
     NumericWeekday,
@@ -36,10 +36,6 @@ class _CoreRegistryProcessing:
     _database: _Interface_Database
     """
     `[Submódulo]` Conexión a base de datos.
-    """
-    _date: _Interface_Date
-    """
-    `[Submódulo]` Definición de fechas.
     """
     _factory: _Interface_Factory
     """
@@ -73,6 +69,8 @@ class _CoreRegistryProcessing:
     """
     `OdooAPIManager` Módulo de conexión a API de Odoo.
     """
+
+    _services: _Contract_ServicesMain
 
     def report(
         self,

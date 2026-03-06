@@ -23,8 +23,8 @@ class _DateSchemas(_Interface_DateSchemas):
         self._main = main
 
         # Obtención del día de hoy
-        self._today = self._main._date.today
-        self._most_recent_available_date = self._main._date.most_recent_available_date
+        self._today = self._main._services.date.today
+        self._most_recent_available_date = self._main._services.date.most_recent_available_date
 
         # Inicialización de esquemas
         self._initialize_schemas()
@@ -108,19 +108,13 @@ class _DateSchemas(_Interface_DateSchemas):
         self,
     ) -> None:
 
-        # Obtención del año y mes actuales
-        current_year = self._main._date.current_year
-        current_month = self._main._date.current_month
-
-        # Cálculo del primer día del mes
-        month_first_day = date(current_year, current_month, 1)
-        # Obtención del último día del ciclo semanal en base al primer día del mes
-        week_last_date = self._main._date.get_week_last_day(month_first_day)
-        # Obtención del primer día del ciclo semanal
-        week_first_date = week_last_date - timedelta(days= 6)
+        # Obtención del inicio del primer ciclo semanal del mes
+        week_first_date = self._main._services.date.first_week_start_date
+        # Obtención del fin del primer ciclo semanal del mes
+        first_week_end_date = self._main._services.date.first_week_end_date
 
         # Creación de esquemas semanales
-        self._create_weekly_schemas(week_first_date, week_last_date)
+        self._create_weekly_schemas(week_first_date, first_week_end_date)
 
     def _first_half(
         self,
