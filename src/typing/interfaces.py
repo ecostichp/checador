@@ -4,5 +4,6 @@ from ._interfaces.dicts import (
 )
 from ._interfaces.interfaces import (
     HorizontalSeries,
+    Interface_RegistryProcessing,
     Many2One,
 )

@@ -52,3 +52,28 @@ class HorizontalSeries(pd.Series):
     def __getitem__(self, key: Literal['rest_days_count']) -> int: ...
     @overload
     def __getitem__(self, key: Literal['holidays_count']) -> int: ...
+
+class Interface_RegistryProcessing:
+    _data: Data
+    _report: Report
+
+    class Data:
+        users: pd.DataFrame
+        justifications: pd.DataFrame
+
+    class Report:
+
+        def complete_general_summary(
+            self,
+        ) -> pd.DataFrame:
+            ...
+
+        def lunch_summary(
+            self,
+        ) -> pd.DataFrame:
+            ...
+
+        def justfications_summmary(
+            self,
+        ) -> pd.DataFrame:
+            ...

@@ -4,7 +4,10 @@ from typing import (
 )
 import pandas as pd
 from sqlalchemy import Connection
-from .._base.generics import _T
+from .._base.generics import (
+    _Main,
+    _T,
+)
 
 SeriesApply = Callable[[_T], Any]
 """
@@ -67,5 +70,21 @@ El tipado recibe un genérico, por ejemplo, `DataFrame`.
 >>> 
 >>> # Esto es exactamente lo mismo
 >>> def fn(conn: Connection) -> pd.DataFrame:
+>>>     ...
+"""
+
+DataFrameGetter = Callable[[_Main], pd.DataFrame]
+"""
+Función que genera un reporte en formato Pandas DataFrame.
+
+Este tipo de dato requiere que se declare la instancia principal como genérico
+por limitaciones de importación circular.
+
+>>> fn: DataFrameGetter[_CoreRegistryProcessing] = (
+>>>     lambda main: main._report.generate_x_report(),
+>>> )
+>>> 
+>>> # Esto es exactamente lo mismo
+>>> def fn(main: _CoreRegistryProcessing) -> pd.DataFrame:
 >>>     ...
 """

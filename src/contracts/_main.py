@@ -9,7 +9,6 @@ from .modules import (
     _Interface_Processing,
     _Interface_Report,
     _Interface_Update,
-    _Interface_Upload,
 )
 from .services import _Contract_ServicesMain
 from ..typing.aliases import UserID
@@ -48,10 +47,6 @@ class _CoreRegistryProcessing:
     _update: _Interface_Update
     """
     `[Submódulo]` Módulo de actualización de datos.
-    """
-    _upload: _Interface_Upload
-    """
-    `[Submódulo]` Módulo de actualización de archivo.
     """
     _report: _Interface_Report
     """

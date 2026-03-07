@@ -1,6 +1,12 @@
-from .._base.generics import _T
+from .._base.generics import (
+    _Main,
+    _T,
+)
 from .._base.literals import PermissionTypeOption
-from .._structures.callables import SeriesFromDataFrame
+from .._structures.callables import (
+    DataFrameGetter,
+    SeriesFromDataFrame,
+)
 
 ColumnAssignation = dict[str, SeriesFromDataFrame]
 """
@@ -20,4 +26,12 @@ Ejemplo:
 PermissionOptionGenericMap = dict[PermissionTypeOption, _T]
 """
 Mapa genérico para tipos de permiso.
+"""
+
+ReportsFromInstance = dict[str, DataFrameGetter[_Main]]
+"""
+Reportes de instancia.
+
+Este tipo de dato requiere que se declare la instancia principal como genérico
+por limitaciones de importación circular.
 """

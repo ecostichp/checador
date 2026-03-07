@@ -7,4 +7,3 @@ from ._pipes import _Pipes
 from ._processing import _Processing
 from ._report import _Report
 from ._update import _Update
-from ._upload import _Upload

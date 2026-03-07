@@ -1,12 +1,11 @@
 import pandas as pd
 from IPython.display import display
 from .constants import COLUMN
-from .templates.messages import MESSAGE
+from .contracts import _CoreRegistryProcessing
 from .domain_data import (
     REST_DAYS,
     USER_DEFAULT_REST_DAYS,
 )
-from .contracts import _CoreRegistryProcessing
 from .modules import (
     _Apply,
     _DateSchemas,
@@ -17,9 +16,9 @@ from .modules import (
     _Processing,
     _Report,
     _Update,
-    _Upload,
 )
 from .services import Services
+from .templates.messages import MESSAGE
 from .typing.aliases import UserID
 from .typing.dicts import ColumnAssignation
 from .typing.literals import NumericWeekday
@@ -49,8 +48,6 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._schemas = _DateSchemas(self)
         # Inicialización de módulo de actualización de datos
         self._update = _Update(self)
-        # Inicialización de módulo de actualización de archivo
-        self._upload = _Upload(self)
 
         # Se cargan los datos iniciales
         self._data.load()
@@ -78,8 +75,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         Este método actualiza los datos en el archivo Google Sheets vinculado
         """
 
-        # Actualización del archivo
-        self._upload._update()
+        # Uso del servicio de conexión con Google Sheets para actualización
+        self._services.google_sheets.update(self)
 
     @property
     def to_verify(
