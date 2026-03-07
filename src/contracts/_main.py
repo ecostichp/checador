@@ -1,5 +1,4 @@
 import pandas as pd
-from odoo_api_manager import OdooAPIManager
 from .modules import (
     _Interface_Apply,
     _Interface_Data,
@@ -62,10 +61,6 @@ class _CoreRegistryProcessing:
     _report: _Interface_Report
     """
     `[Submódulo]` Funciones de generación de reportes.
-    """
-    _odoo: OdooAPIManager
-    """
-    `OdooAPIManager` Módulo de conexión a API de Odoo.
     """
 
     _services: _Contract_ServicesMain

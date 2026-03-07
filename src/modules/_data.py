@@ -54,7 +54,7 @@ class _Data(_Interface_Data):
 
         return (
             # Obtención de la lista de empleados desde Odoo
-            self._main._odoo.search_read(
+            self._main._services.odoo.search_read(
                 # Modelo de empleados
                 'hr.employee',
                 # Campos

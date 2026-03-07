@@ -1,6 +1,5 @@
 import pandas as pd
 from IPython.display import display
-from odoo_api_manager import OdooAPIManager
 from .constants import COLUMN
 from .templates.messages import MESSAGE
 from .domain_data import (
@@ -41,8 +40,6 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Inicialización de servicios
         self._services = Services()
 
-        # Inicialización de instancia de conexión a API de Odoo
-        self._odoo = OdooAPIManager()
         # Inicialización de módulo de nombres
         self._names = _Names()
         # Inicialización de módulo de datos
