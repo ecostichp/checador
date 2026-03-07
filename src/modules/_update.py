@@ -209,7 +209,7 @@ class _Update(_Interface_Update):
     ) -> None:
 
         # Se guardan los registros en la base de datos
-        self._main._database.save_in_database(
+        self._main._services.database.save_in_database(
             records,
             DATABASE.TABLE.ASSISTANCE_RECORDS,
             'append',

@@ -143,7 +143,7 @@ class _Data(_Interface_Data):
         }
 
         # Obtención de los datos desde la tabla de la base de datos
-        data = self._main._database.load_data_from_query(query)
+        data = self._main._services.database.load_data_from_query(query)
 
         return (
             data

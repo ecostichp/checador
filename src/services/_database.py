@@ -1,22 +1,11 @@
 import pandas as pd
 from typing import Literal
-from ..contracts import (
-    _CoreRegistryProcessing,
-    _Interface_Database,
-)
+from ..contracts.services import _Contract_Database
 from ..typing.callables import ConnFunction
 from ..typing.generics import _T
 from ..sql import engine
 
-class _Database(_Interface_Database):
-
-    def __init__(
-        self,
-        main: _CoreRegistryProcessing,
-    ) -> None:
-
-        # Asignación de instancia principal
-        self._main = main
+class _Database(_Contract_Database):
 
     def load_data_from_query(
         self,

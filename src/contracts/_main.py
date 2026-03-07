@@ -2,7 +2,6 @@ import pandas as pd
 from .modules import (
     _Interface_Apply,
     _Interface_Data,
-    _Interface_Database,
     _Interface_DateSchemas,
     _Interface_Factory,
     _Interface_Names,
@@ -29,10 +28,6 @@ class _CoreRegistryProcessing:
     _data: _Interface_Data
     """
     `[Submódulo]` Acceso a objetos de datos en formato DataFrame.
-    """
-    _database: _Interface_Database
-    """
-    `[Submódulo]` Conexión a base de datos.
     """
     _factory: _Interface_Factory
     """

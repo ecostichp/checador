@@ -2,7 +2,6 @@ from ._main import _CoreRegistryProcessing
 from .modules import (
     _Interface_Apply,
     _Interface_Data,
-    _Interface_Database,
     _Interface_DateSchemas,
     _Interface_Factory,
     _Interface_Names,
