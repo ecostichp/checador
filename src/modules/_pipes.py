@@ -28,7 +28,6 @@ from ..typing import (
 from ..typing.callables import (
     SeriesApply,
     SeriesFromDataFrame,
-    SeriesPipe,
 )
 from ..typing.interfaces import Many2One
 from ..rules import VALIDATIONS_PER_DAY_AND_USER_ID
@@ -74,8 +73,6 @@ class _Pipes(_Interface_Pipes):
                     )
                 )
             )
-            # Conversión de columna de nombres a categoría
-            .pipe(self._categorize_names)
         )
 
     def check_integrity(
@@ -431,34 +428,6 @@ class _Pipes(_Interface_Pipes):
             .assign(**renamed_permission_types)
             # Asignación de tipos de datos para reasignar el tipo de dato como categoría
             .pipe(self._main._processing.assign_dtypes)
-        )
-
-    def _categorize_names(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Categorizar nombres
-        Esta función reasigna la columna de nombre de usuario como tipo de categoría en
-        base a los valores provistos a la memoria de usuarios.
-
-        :param data DataFrame: Datos entrantes.
-        """
-
-        # Definición de función para reasignar o no nombres de categorías
-        if self._main._names.categories:
-            fn: SeriesPipe = lambda s: s.cat.set_categories(self._main._names.categories)
-        else:
-            fn: SeriesPipe = lambda s: s
-
-        # Función para reasignar nombres como categorías
-        reassign_names_as_categories: ColumnAssignation = {
-            COLUMN.NAME: data[COLUMN.NAME].pipe(fn)
-        }
-
-        return (
-            data
-            .assign(**reassign_names_as_categories)
         )
 
     def _define_allowed_start_and_end_time(

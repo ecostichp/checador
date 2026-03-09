@@ -83,8 +83,6 @@ class _Data(_Interface_Data):
                 COLUMN.PAY_FREQUENCY,
                 COLUMN.JOB,
             ]]
-            # Registro de los nombres
-            .pipe(self._main._names.register_names)
             # Procesamiento de datos de almacén
             .pipe(self._main._pipes.get_warehouse_name)
             # Procesamiento de datos de puesto de trabajo

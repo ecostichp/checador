@@ -51,15 +51,6 @@ Ejemplo:
 >>>     ...
 """
 
-SeriesPipe = Callable[[pd.Series], pd.Series]
-"""
-### Pipe para Pandas Series
-Este tipo de dato es una función.
-
-Esta función debe ser llamada por medio del método pipe de una Pandas Series
-siendo ésta función provista en el argumento requerido del método
-"""
-
 ConnFunction = Callable[[Connection], _T]
 """
 Función ejecutable dentro de una conexión a base de datos.

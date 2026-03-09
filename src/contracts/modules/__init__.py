@@ -2,7 +2,6 @@ from ._apply import _Interface_Apply
 from ._data import _Interface_Data
 from ._date_schemas import _Interface_DateSchemas
 from ._factory import _Interface_Factory
-from ._names import _Interface_Names
 from ._pipes import _Interface_Pipes
 from ._processing import _Interface_Processing
 from ._report import _Interface_Report

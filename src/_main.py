@@ -11,7 +11,6 @@ from .modules import (
     _DateSchemas,
     _Data,
     _Factory,
-    _Names,
     _Pipes,
     _Processing,
     _Report,
@@ -38,8 +37,6 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Inicialización de servicios
         self._services = Services()
 
-        # Inicialización de módulo de nombres
-        self._names = _Names()
         # Inicialización de módulo de datos
         self._data = _Data(self)
         # Inicialización de módulo de reportes

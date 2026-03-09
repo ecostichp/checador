@@ -4,5 +4,4 @@ from ._structures.callables import (
     DataFramePipe,
     SeriesApply,
     SeriesFromDataFrame,
-    SeriesPipe,
 )
