@@ -3,6 +3,7 @@ from ..constants import (
     REGISTRY_TYPE,
     VALIDATION,
 )
+from ..domain_data import USERS_TO_DISCARD
 from ..typing import (
     ColumnAssignation,
     DataFramePipe,
@@ -10,24 +11,11 @@ from ..typing import (
 
 GLOBAL_FILTERS: DataFramePipe = lambda df: (
     df[
-        ~( df[COLUMN.USER_ID].isin([1,]) )
+        ~( df[COLUMN.USER_ID].isin(USERS_TO_DISCARD) )
     ]
 )
 """
 `DataFramePipe` Filtros globales.
-"""
-
-CHECK_SPECIFIC_DAY: DataFramePipe = lambda df: (
-    df[
-        # Columna default para dar verdadero siempre si la condición de abajo se comenta
-        (df[COLUMN.USER_ID] == df[COLUMN.USER_ID])
-        # Comentar esta línea para no filtrar por día
-        # ✨ Se puede usar date.today() o la fecha que se requiera revisar
-        # & ( df[COLUMN.DATE] == '2026-01-05' )
-    ]
-)
-"""
-`DataFramePipe` Revisión por día específico.
 """
 
 VALIDATIONS_PER_DAY_AND_USER_ID: ColumnAssignation = {

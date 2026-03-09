@@ -66,3 +66,7 @@ class VISUALIZATIONS_FILE:
 class WAREHOUSE_IDS:
     CSL = 2
     SJC = 3
+
+USERS_TO_DISCARD = [
+    1,
+]

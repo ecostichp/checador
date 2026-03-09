@@ -31,10 +31,7 @@ from ..typing.callables import (
     SeriesPipe,
 )
 from ..typing.interfaces import Many2One
-from ..rules import (
-    CHECK_SPECIFIC_DAY,
-    VALIDATIONS_PER_DAY_AND_USER_ID,
-)
+from ..rules import VALIDATIONS_PER_DAY_AND_USER_ID
 from ..settings import CONFIG
 
 class _Pipes(_Interface_Pipes):
@@ -113,8 +110,6 @@ class _Pipes(_Interface_Pipes):
             .pipe(lambda df: df[ ~df[COLUMN.IS_CURRENT_DAY_CHECKIN] ])
             # Se descartan todos los registros que contengan alguna validación no aprobada
             .pipe( self._main._factory.filter_by_validity(by= 'invalid') )
-            # Se selecciona un día específico en caso de existir algún valor para éste
-            .pipe(CHECK_SPECIFIC_DAY)
         )
 
         # Si existen registros a validar...
