@@ -6,10 +6,10 @@ from sqlalchemy import (
     text,
 )
 from .utils import path_from_dropbox
-from .settings import SELECTED_DATABASE
+from .settings import CONFIG
 
 # Se define la ruta para los datos en Dropbox
-_db_file = f'{SELECTED_DATABASE}.db'
+_db_file = f'{CONFIG.SELECTED_DATABASE}.db'
 _db_file_path_str = path_from_dropbox(_db_file)
 
 # Se crea el objeto engine para trabajarlo con los metodos de pandas

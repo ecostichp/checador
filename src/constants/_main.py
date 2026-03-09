@@ -9,6 +9,8 @@ class ENV_VARIABLE:
     """`CONST` Nombres de variables de entornos."""
     TODAY = 'TODAY'
     """`Literal` Día en curso."""
+    SELECTED_DATABASE = 'DATABASE'
+    """`Literal` Base de datos a utilizar."""
 
 class COLUMN:
     """

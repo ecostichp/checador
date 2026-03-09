@@ -35,7 +35,7 @@ from ..rules import (
     CHECK_SPECIFIC_DAY,
     VALIDATIONS_PER_DAY_AND_USER_ID,
 )
-from ..settings import LUNCH_DURATION_LIMIT
+from ..settings import CONFIG
 
 class _Pipes(_Interface_Pipes):
 
@@ -719,12 +719,12 @@ class _Pipes(_Interface_Pipes):
                 lambda pivoted_df: (
                     (
                         pivoted_df[_LUNCH_CUMMULATED_INTERVAL]
-                        - LUNCH_DURATION_LIMIT
+                        - CONFIG.LUNCH_DURATION_LIMIT
                     )
                     .where(
                         (
                             pivoted_df[_LUNCH_CUMMULATED_INTERVAL]
-                            > LUNCH_DURATION_LIMIT
+                            > CONFIG.LUNCH_DURATION_LIMIT
                         ),
                         TIME_DELTA_ON_ZERO,
                     )
