@@ -1,4 +1,5 @@
 import pandas as pd
+from ...typing.misc import DataTypeOrNone
 
 class _Interface_Pipes:
     """
@@ -17,6 +18,19 @@ class _Interface_Pipes:
         """
         ...
 
+    def check_integrity(
+        self,
+    ) -> DataTypeOrNone[pd.DataFrame]:
+        """
+        ### Revisión de integridad de datos
+        Este método revisa los datos cargados y comprueba que no tienen inconsistencia
+        que puedan ser conflictivas con los posteriores cálculos basados en éstos
+        datos.
+
+        :param data DataFrame: Datos entrantes.
+        """
+        ...
+
     def common_operations(
         self,
         data: pd.DataFrame,
@@ -25,19 +39,6 @@ class _Interface_Pipes:
         ### Operaciones comunes
         Operaciones comunes que todos los DataFrames generados necesitan
         ejecutar.
-
-        :param data DataFrame: Datos entrantes.
-        """
-        ...
-
-    def check_integrity(
-        self,
-    ) -> pd.DataFrame | None:
-        """
-        ### Revisión de integridad de datos
-        Este método revisa los datos cargados y comprueba que no tienen inconsistencia
-        que puedan ser conflictivas con los posteriores cálculos basados en éstos
-        datos.
 
         :param data DataFrame: Datos entrantes.
         """

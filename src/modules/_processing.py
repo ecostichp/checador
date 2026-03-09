@@ -20,15 +20,6 @@ from ..typing.dicts import ColumnAssignation
 
 class _Processing(_Interface_Processing):
 
-    _DIFF = '_diff'
-    """
-    Columna para cálculos temporales.
-    """
-    _validations: pd.DataFrame | None
-    """
-    `DataFrame | None` Datos para validaciones.
-    """
-
     def __init__(
         self,
         main: _CoreRegistryProcessing,
@@ -43,12 +34,6 @@ class _Processing(_Interface_Processing):
         self,
         data: pd.DataFrame,
     ) -> pd.DataFrame:
-        """
-        ### Asignación de tipos de datos
-        Esta función asigna los tipos de datos establecidos para las columnas de
-        un DataFrame y ordena los tipos de registro en caso de existir la
-        columna de éstos.
-        """
 
         # Generación del mapa de tipos de datos
         existing_dtypes = {
@@ -123,19 +108,6 @@ class _Processing(_Interface_Processing):
         self,
         data: pd.DataFrame,
     ) -> pd.DataFrame:
-        """
-        ### Asignación de tipo de registro (ordenado)
-        Esta función convierte la columna de tipo de registro en un tipo categórico
-        ordenado.
-
-        1. Identifica los tipos de registro presentes en el DataFrame.
-        2. Se filtra según un orden ORDERED_REGISTRY_TYPE.
-        3. Reasigna la columna como categoría y aplica ese orden.
-
-        Esto permite trabajar con los tipos de registro de manera consistente,
-        facilitando comparaciones, ordenamientos y cualquier proceso que 
-        dependa del orden lógico de los eventos.
-        """
 
         # Obtención de los valores categóricos encontrados en el DataFrame
         available_values = data[COLUMN.REGISTRY_TYPE].cat.categories

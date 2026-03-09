@@ -6,11 +6,11 @@ class _Interface_DateSchemas:
 
     _today: date
     """
-    `date` Fecha de hoy.
+    Fecha de hoy.
     """
     _most_recent_available_date: date
     """
-    `date` Fecha más reciente disponible.
+    Fecha más reciente disponible.
     """
 
     def min_date(

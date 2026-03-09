@@ -1,4 +1,5 @@
 import pandas as pd
+from ...typing.interfaces import HorizontalSeries
 
 class _Interface_Apply:
     """
@@ -7,7 +8,7 @@ class _Interface_Apply:
 
     def count_rest_days(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
         """
         ### Conteo de días de descanso
@@ -17,13 +18,13 @@ class _Interface_Apply:
         los días de descanso existentes en este rango de fecha en base al usuario y sus
         días de descanso asignados.
 
-        :param Series record_row: Pandas Series en formato horizontal.
+        :param HorizontalSeries record_row: Pandas Series en formato horizontal.
         """
         ...
 
     def count_holidays(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
         """
         ### Conteo de días festivos
@@ -32,13 +33,13 @@ class _Interface_Apply:
         Obtiene la fecha de inicio y la fecha de término y calcula los días festivos
         existentes en este rango de fecha.
 
-        :param Series record_row: Pandas Series en formato horizontal.
+        :param HorizontalSeries record_row: Pandas Series en formato horizontal.
         """
         ...
 
     def count_vacation_days(
         self,
-        record_row: pd.Series,
+        record_row: HorizontalSeries,
     ) -> int:
         """
         ### Conteo de días de vacaciones
@@ -48,6 +49,6 @@ class _Interface_Apply:
         y conteo de días festivos y calcula los días de vacaciones existentes en este
         rango de fecha y restando los conteos de días de descanso y días festivos.
 
-        :param Series record_row: Pandas Series en formato horizontal.
+        :param HorizontalSeries record_row: Pandas Series en formato horizontal.
         """
         ...

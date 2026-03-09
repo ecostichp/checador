@@ -8,6 +8,7 @@ from ..resources import DataToSave
 from ..typing.callables import SeriesApply
 from ..typing.dicts import ColumnAssignation
 from ..typing.literals import Devices
+from ..typing.misc import DataTypeOrNone
 
 class _Attendance(_Contract_Attendance):
 
@@ -27,7 +28,7 @@ class _Attendance(_Contract_Attendance):
         self,
         warehouse_name: str,
         last_date_saved: datetime,
-    ) -> DataToSave | None:
+    ) -> DataTypeOrNone[DataToSave]:
 
         # Obtención de los datos desde la API
         data_i = self._get_from_api(last_date_saved, warehouse_name)

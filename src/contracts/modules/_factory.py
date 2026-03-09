@@ -52,6 +52,7 @@ class _Interface_Factory:
         en base a cómo se configura.
 
         :param by ValidityOptions: Opciones de validación.
+        :param keep_today_check_in bool: Mantener los registros `checkIn` de hoy.
         """
         ...
 
@@ -95,5 +96,8 @@ class _Interface_Factory:
         >>> # 2  2026-01-03  2026-01-25
         >>> # 3  2026-01-10  2026-01-16
         >>> # 4  2026-01-13  2026-01-25
+
+        :param start_date date: Fecha de inicio.
+        :param end_date date: Fecha de fin.
         """
         ...

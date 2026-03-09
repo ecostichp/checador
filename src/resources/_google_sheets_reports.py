@@ -1,13 +1,12 @@
 import pandas as pd
 from ..contracts.resources import _Contract_ReportsToUpload
 from ..settings import OUTPUT
-from ..typing.dicts import ReportsFromInstance
 from ..typing.interfaces import Interface_RegistryProcessing
 
 class GoogleSheetsReports(_Contract_ReportsToUpload):
 
     # Registro de reportes
-    _reports_to_get: ReportsFromInstance[Interface_RegistryProcessing] = {
+    _reports_to_get = {
         # Usuarios
         OUTPUT.FILE.VISUALIZATIONS.SHEET.USERS: (
             lambda main: (

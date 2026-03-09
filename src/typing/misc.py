@@ -1,1 +1,4 @@
-from ._structures.misc import RecordsLastDates
+from ._structures.misc import (
+    RecordsLastDates,
+    DataTypeOrNone,
+)

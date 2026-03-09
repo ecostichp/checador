@@ -10,12 +10,14 @@ class _Interface_Names:
 
     def register_names(
         self,
-        data: pd.DataFrame,
+        users: pd.DataFrame,
     ) -> pd.DataFrame:
         """
         ### Registrar nombres
         Este método toma los nombres de usuarios encontrados en los registros de
         usuarios y los almacena para ser usados posteriormente como valores categóricos
         en conversión de tipos de dato.
+
+        :param users DataFrame: DataFrame de usuarios.
         """
         ...

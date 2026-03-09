@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import Literal
 import pandas as pd
-from ...typing.aliases import DatetimeStr
 from ...typing.callables import ConnFunction
-from ...typing.literals import Devices
 from ...typing.generics import _T
 from ...typing.misc import RecordsLastDates
 

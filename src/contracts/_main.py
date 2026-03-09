@@ -54,6 +54,7 @@ class _CoreRegistryProcessing:
     """
 
     _services: _Contract_ServicesMain
+    """Servicios de la clase principal."""
 
     def report(
         self,

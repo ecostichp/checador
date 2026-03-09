@@ -27,11 +27,6 @@ class _Interface_DateSchema():
     current: bool
     """El esquema pertenece al día en curso."""
 
-    def __repr__(
-        self,
-    ) -> str:
-        ...
-
     def __contains__(
         self,
         date_value: str | date,

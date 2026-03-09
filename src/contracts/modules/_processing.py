@@ -21,8 +21,6 @@ class _Interface_Processing:
     dtypes: PermissionOptionGenericMap[AstypeArg]
     # Función asignable para obtener la diferencia en el rango de fechas de cada permiso
     range_diff: PermissionOptionGenericMap[ColumnAssignation]
-    # Datos de validaciones
-    _validations: pd.DataFrame | None
 
     def assign_dtypes(
         self,
@@ -47,7 +45,7 @@ class _Interface_Processing:
         ordenado.
 
         1. Identifica los tipos de registro presentes en el DataFrame.
-        2. Se filtra según un orden ORDERED_REGISTRY_TYPE.
+        2. Se filtra según un orden predeterminado.
         3. Reasigna la columna como categoría y aplica ese orden.
 
         Esto permite trabajar con los tipos de registro de manera consistente,
@@ -59,7 +57,7 @@ class _Interface_Processing:
         ...
 
     def format_permission_date_strings(
-        cls,
+        self,
         data: pd.DataFrame,
     ) -> pd.DataFrame:
         """
@@ -72,7 +70,7 @@ class _Interface_Processing:
         ...
 
     def add_registry_time(
-        cls,
+        self,
         data: pd.DataFrame,
     ) -> pd.DataFrame:
         """

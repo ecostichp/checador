@@ -4,8 +4,6 @@ from ..contracts import _Interface_Names
 
 class _Names(_Interface_Names):
 
-    categories: list[str] = []
-
     def __init__(
         self,
     ) -> None:
@@ -13,19 +11,19 @@ class _Names(_Interface_Names):
 
     def register_names(
         self,
-        data: pd.DataFrame,
+        users: pd.DataFrame,
     ) -> pd.DataFrame:
 
         # Obtención de los nombres de los usuarios
         names: list[str] = (
-            data
+            users
             [COLUMN.NAME]
             .to_list()
         )
         # Registro de los nombres para usarse como categorías
         self._update(names)
 
-        return data
+        return users
 
     def _update(
         self,

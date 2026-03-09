@@ -28,6 +28,7 @@ from ..typing.callables import (
     SeriesPipe,
 )
 from ..typing.interfaces import Many2One
+from ..typing.misc import DataTypeOrNone
 from ..rules import (
     CHECK_SPECIFIC_DAY,
     VALIDATIONS_PER_DAY_AND_USER_ID,
@@ -80,7 +81,7 @@ class _Pipes(_Interface_Pipes):
 
     def check_integrity(
         self,
-    ) -> pd.DataFrame | None:
+    ) -> DataTypeOrNone[pd.DataFrame]:
 
         validations = (
             # Obtención de los registros
@@ -802,7 +803,6 @@ class _Pipes(_Interface_Pipes):
                     COLUMN.EXCEEDING_LUNCH_TIME: 'timedelta64[ns]',
                 })
             )
-
 
     def _discard_duplicated(
         self,

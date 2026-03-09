@@ -20,7 +20,7 @@ class DateService(_Contract_Date):
         self.current_year = self.most_recent_available_date.year
         self.current_month = self.most_recent_available_date.month
         ( self.month_start_date, self.month_end_date ) = self._compute_month_start_and_end_dates()
-        ( self.first_week_end_date, self.first_week_start_date ) = self._compute_first_week_start_and_end_dates()
+        ( self.first_week_start_date, self.first_week_end_date ) = self._compute_first_week_start_and_end_dates()
 
     def _compute_month_start_and_end_dates(
         self,
@@ -66,9 +66,9 @@ class DateService(_Contract_Date):
         days_difference = WEEK_PERIOD_END - weekday
 
         # Cálculo del último día de la semana
-        week_last_date = self.month_start_date + timedelta(days= days_difference + offset)
+        first_week_end_date = self.month_start_date + timedelta(days= days_difference + offset)
 
         # Obtención del primer día del ciclo semanal
-        week_first_date = week_last_date - timedelta(days= 6)
+        first_week_start_date = first_week_end_date - timedelta(days= 6)
 
-        return (week_last_date, week_first_date)
+        return (first_week_start_date, first_week_end_date)

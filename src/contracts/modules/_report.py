@@ -17,6 +17,11 @@ class _Interface_Report:
     def complete_general_summary(
         self,
     ) -> pd.DataFrame:
+        """
+        ### Resumen completo
+        Este método genera los datos del resumen completo utilizado para cálculos más
+        específicos.
+        """
         ...
 
     def lunch_summary(
