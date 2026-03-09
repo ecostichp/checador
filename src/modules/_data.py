@@ -5,13 +5,13 @@ from ..utils import path_from_dropbox
 from ..constants import (
     ARGS,
     COLUMN,
-    DATABASE,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Data,
 )
 from ..mapping import ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
+from ..settings import DATABASE
 from ..templates.files import (
     EXCEL_FILE,
     SPREADSHEET,

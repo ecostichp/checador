@@ -5,7 +5,6 @@ from ..constants import (
     COLUMN,
     PERMISSION_NAME,
     REGISTRY_TYPE,
-    REPORT,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
 )
@@ -19,6 +18,7 @@ from ..mapping import (
     PERMISSION_TYPE_REASSIGNATION_NAMES,
     WAREHOUSE_RENAME,
 )
+from ..settings import REPORT
 from ..templates.messages import MESSAGE
 from ..typing import (
     ColumnAssignation,

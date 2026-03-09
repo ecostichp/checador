@@ -3,7 +3,6 @@ import numpy as np
 from datetime import timedelta
 from ..constants import (
     COLUMN,
-    REPORT,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
 )
@@ -12,6 +11,7 @@ from ..contracts import (
     _Interface_Report,
 )
 from ..resources import _DateSchema
+from ..settings import REPORT
 from ..typing import (
     ColumnAssignation,
     DataFramePipe,

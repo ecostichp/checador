@@ -40,3 +40,46 @@ class OUTPUT:
 class DATA:
     class IDS:
         WAREHOUSE = WAREHOUSE_IDS
+
+class REPORT:
+    """
+    `CONST` Nombres de reportes que se generan en Excel.
+    """
+    class VERIFICATION:
+        """`CONST` Valores de reporte de verificaciones en Excel."""
+        NAME = 'verification'
+
+    class SUMMARY:
+        """`CONST` Valores de reporte general en Excel."""
+        NAME = 'resumen_de_registros'
+
+        class SHEET:
+            COMPLETE = 'Datos completos'
+            '`Literal` Hoja de datos completos.'
+            CUMMULATED_SUMMARY = 'Resumen'
+            '`Literal` Hoja de resumen de acumulados.'
+            JUSTIFICATIONS = 'Justificaciones'
+            '`Literal` Hoja de resumen de incidencias.'
+            MONTHLY_JUSTIFICATIONS = 'Incidencias del mes'
+            '`Literal` Hoja de historial de incidencias.'
+            USERS = 'Usuarios'
+            '`Literal` Hoja de usuarios.'
+
+class DATABASE:
+    """
+    `CONST` Nombres en base de datos.
+    """
+    class TABLE:
+        """
+        `CONST` Nombres de tablas en la base de datos.
+        """
+        ASSISTANCE_RECORDS = 'assistance_records'
+        """`Literal` Tabla de registros de asistencia."""
+        HOLIDAYS = 'holidays'
+        """`Literal` Tabla de días festivos."""
+        SCHEDULES = 'schedules'
+        """`Literal` Tabla de horarios."""
+        SCHEDULE_OFFSETS = 'schedule_offsets'
+        """`Literal` Tabla de desfases de horarios."""
+        LAST_UPDATE_DATES = 'last_update_dates'
+        """`Literal` Tabla de última de hora de actualización en datos."""

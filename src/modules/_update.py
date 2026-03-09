@@ -1,13 +1,13 @@
 import pandas as pd
 from ..constants import (
     COLUMN,
-    DATABASE,
     WAREHOUSES,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
+from ..settings import DATABASE
 from ..typing import ColumnAssignation
 from ..typing.callables import SeriesApply
 from ..typing.misc import RecordsLastDates

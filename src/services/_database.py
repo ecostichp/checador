@@ -5,9 +5,8 @@ from datetime import (
 import pandas as pd
 from typing import Literal
 from ..contracts.services import _Contract_Database
-from ..typing.aliases import DatetimeStr
+from ..settings import DATABASE
 from ..typing.callables import ConnFunction
-from ..typing.literals import Devices
 from ..typing.generics import _T
 from ..typing.misc import RecordsLastDates
 from ..sql import (
@@ -15,10 +14,7 @@ from ..sql import (
     get_value,
     engine,
 )
-from ..constants import (
-    DATABASE,
-    ARGS,
-)
+from ..constants import ARGS
 from ..templates.queries import QUERY
 
 class _Database(_Contract_Database):
