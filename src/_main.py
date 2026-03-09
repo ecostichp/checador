@@ -19,8 +19,8 @@ from .modules import (
 )
 from .services import Services
 from .templates.messages import MESSAGE
+from .typing import ColumnAssignation
 from .typing.aliases import UserID
-from .typing.dicts import ColumnAssignation
 from .typing.literals import NumericWeekday
 
 class RegistryProcessing(_CoreRegistryProcessing):

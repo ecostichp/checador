@@ -12,9 +12,11 @@ from ..contracts import (
     _Interface_Report,
 )
 from ..resources import _DateSchema
+from ..typing import (
+    ColumnAssignation,
+    DataFramePipe,
+)
 from ..typing.aliases import DatetimeStr
-from ..typing.callables import DataFramePipe
-from ..typing.dicts import ColumnAssignation
 
 class _Report(_Interface_Report):
 

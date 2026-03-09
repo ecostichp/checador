@@ -18,7 +18,7 @@ from ..templates.files import (
 )
 from ..templates.messages import MESSAGE
 from ..templates.queries import QUERY
-from ..typing.dicts import ColumnAssignation
+from ..typing import ColumnAssignation
 from ..sql import load_from_database
 
 class _Data(_Interface_Data):

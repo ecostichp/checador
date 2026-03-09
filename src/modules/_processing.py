@@ -11,12 +11,14 @@ from ..mapping import (
     ORDERED_REGISTRY_TYPE,
     TIME_PERMISSIONS,
 )
-from ..typing.callables import (
+from ..typing import (
+    ColumnAssignation,
     DataFramePipe,
+)
+from ..typing.callables import (
     SeriesApply,
     SeriesFromDataFrame,
 )
-from ..typing.dicts import ColumnAssignation
 
 class _Processing(_Interface_Processing):
 

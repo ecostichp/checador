@@ -1,6 +1,6 @@
 from datetime import date
 from ...resources import _DateSchema
-from ...typing.callables import DataFramePipe
+from ...typing import DataFramePipe
 from ...typing.literals import (
     PermissionTypeOption,
     ValidityOptions,

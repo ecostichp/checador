@@ -1,9 +1,7 @@
 import pandas as pd
 from pandas._typing import AstypeArg
-from ...typing.dicts import (
-    ColumnAssignation,
-    PermissionOptionGenericMap,
-)
+from ...typing import ColumnAssignation
+from ...typing.dicts import PermissionOptionGenericMap
 
 class _Interface_Processing:
     """

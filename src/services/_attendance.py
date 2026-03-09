@@ -5,10 +5,12 @@ from ..constants import COLUMN
 from ..contracts.services import _Contract_Attendance
 from ..domain_data import DEVICE_SERIAL_NUMBER
 from ..resources import DataToSave
+from ..typing import (
+    ColumnAssignation,
+    DataTypeOrNone,
+)
 from ..typing.callables import SeriesApply
-from ..typing.dicts import ColumnAssignation
 from ..typing.literals import Devices
-from ..typing.misc import DataTypeOrNone
 
 class _Attendance(_Contract_Attendance):
 

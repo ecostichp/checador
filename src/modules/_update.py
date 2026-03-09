@@ -8,8 +8,8 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
+from ..typing import ColumnAssignation
 from ..typing.callables import SeriesApply
-from ..typing.dicts import ColumnAssignation
 from ..typing.misc import RecordsLastDates
 
 class _Update(_Interface_Update):

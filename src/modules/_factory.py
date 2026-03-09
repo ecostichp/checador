@@ -14,8 +14,10 @@ from ..rules import (
     GLOBAL_FILTERS,
     VALIDATIONS_PER_DAY_AND_USER_ID,
 )
-from ..typing.callables import DataFramePipe
-from ..typing.dicts import ColumnAssignation
+from ..typing import (
+    ColumnAssignation,
+    DataFramePipe,
+)
 from ..typing.literals import (
     PermissionTypeOption,
     ValidityOptions,

@@ -1,5 +1,5 @@
 import pandas as pd
-from ...typing.misc import DataTypeOrNone
+from ...typing import DataTypeOrNone
 
 class _Interface_Pipes:
     """

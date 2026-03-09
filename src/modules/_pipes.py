@@ -20,15 +20,17 @@ from ..mapping import (
     WAREHOUSE_RENAME,
 )
 from ..templates.messages import MESSAGE
-from ..typing.dicts import ColumnAssignation
-from ..typing.callables import (
+from ..typing import (
+    ColumnAssignation,
     DataFramePipe,
+    DataTypeOrNone,
+)
+from ..typing.callables import (
     SeriesApply,
     SeriesFromDataFrame,
     SeriesPipe,
 )
 from ..typing.interfaces import Many2One
-from ..typing.misc import DataTypeOrNone
 from ..rules import (
     CHECK_SPECIFIC_DAY,
     VALIDATIONS_PER_DAY_AND_USER_ID,
