@@ -1,3 +1,4 @@
+from typing import Callable
 import pandas as pd
 import numpy as np
 from datetime import timedelta
@@ -42,55 +43,33 @@ class _Report(_Interface_Report):
         # Construcción del nombre del archivo de Excel
         file_name = f'{string_date}_{REPORT.SUMMARY.NAME}.xlsx'
 
+        # Reportes a exportar
+        reports_to_export: dict[str, pd.DataFrame] = {
+            # Usuarios
+            REPORT.SUMMARY.SHEET.USERS: self._main._data.users,
+            # Datos completos verificados
+            REPORT.SUMMARY.SHEET.COMPLETE: self.complete_general_summary(),
+            # Historial de incidencias
+            REPORT.SUMMARY.SHEET.MONTHLY_JUSTIFICATIONS: self._main._data.justifications,
+            # Resumen de acumulados
+            REPORT.SUMMARY.SHEET.CUMMULATED_SUMMARY: self.lunch_summary(),
+            # Incidencias
+            REPORT.SUMMARY.SHEET.JUSTIFICATIONS: self.justfications_summmary(),
+        }
+
         # Inicio de generación del archivo
         with pd.ExcelWriter(file_name, engine='openpyxl') as writer:
-
-            # Usuarios
-            (
-                self._main._data.users
-                # Exportación a Excel
-                .to_excel(
-                    writer,
-                    sheet_name= REPORT.SUMMARY.SHEET.USERS,
-                    index= False,
+            # Iteración por cada reporte a exportar
+            for ( sheet_name, report ) in reports_to_export.items():
+                # Exportación de reporte
+                (
+                    report
+                    .to_excel(
+                        writer,
+                        sheet_name= sheet_name,
+                        index= False,
+                    )
                 )
-            )
-
-            # Datos completos verificados
-            (
-                self.complete_general_summary()
-                # Exportación del archivo a Excel
-                .to_excel(
-                    writer,
-                    sheet_name= REPORT.SUMMARY.SHEET.COMPLETE,
-                    index= False,
-                )
-            )
-
-            # Incidencias del mes
-            (
-                self._main._data.justifications
-                # Exportación del archivo a Excel
-                .to_excel(
-                    writer,
-                    sheet_name= REPORT.SUMMARY.SHEET.MONTHLY_JUSTIFICATIONS,
-                    index= False,
-                )
-            )
-
-            # Resumen acumulado
-            (
-                self.lunch_summary()
-                # Exportación del archivo a Excel
-                .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.CUMMULATED_SUMMARY, index=False)
-            )
-
-            # Incidencias
-            (
-                self.justfications_summmary()
-                # Exportación del archivo a Excel
-                .to_excel(writer, sheet_name= REPORT.SUMMARY.SHEET.JUSTIFICATIONS, index=False)
-            )
 
     def complete_general_summary(
         self,
@@ -130,27 +109,13 @@ class _Report(_Interface_Report):
         self,
     ) -> pd.DataFrame:
 
-        return (
-            pd.concat(
-                [
-                    self._cummulated_summary(schema_i)
-                    for schema_i in self._main._schemas
-                ]
-            )
-        )
+        return self._reports_by_schemas( self._cummulated_summary )
 
     def justfications_summmary(
         self,
     ) -> pd.DataFrame:
 
-        return (
-            pd.concat(
-                [
-                    self._justification_counts(schema_i)
-                    for schema_i in self._main._schemas
-                ]
-            )
-        )
+        return self._reports_by_schemas( self._justification_counts )
 
     def _cummulated_summary(
         self,
@@ -177,7 +142,8 @@ class _Report(_Interface_Report):
             COLUMN.WORKED_DAYS: self._worked_days(schema),
         }
 
-        def fn(data: pd.DataFrame) -> pd.DataFrame:
+        # Función para unir los reportes
+        def merge_reports(data: pd.DataFrame) -> pd.DataFrame:
 
             # Iteración por cada par <llave, valor>
             for ( column_name, report ) in reports.items():
@@ -212,17 +178,9 @@ class _Report(_Interface_Report):
                 COLUMN.NAME,
             ]]
             # Se unen los reportes
-            .pipe(fn)
+            .pipe(merge_reports)
             # Ejecución dentro de una función para utilizar el estado desde aquí
-            .pipe(
-                lambda df: (
-                    df
-                    # Se asigna una columna para capturar el esquema actual
-                    .assign(**{COLUMN.SCHEMA: schema.name})
-                    # Reordenamiento de columnas
-                    [ [COLUMN.SCHEMA] + df.columns.tolist() ]
-                )
-            )
+            .pipe( self._assign_schema_name(schema) )
         )
 
     def _justification_counts(
@@ -247,15 +205,7 @@ class _Report(_Interface_Report):
                 )
             )
             # Ejecución dentro de una función para utilizar el estado desde aquí
-            .pipe(
-                lambda df: (
-                    df
-                    # Se asigna una columna para capturar el esquema actual
-                    .assign(**{COLUMN.SCHEMA: schema.name})
-                    # Reordenamiento de columnas
-                    [ [COLUMN.SCHEMA] + df.columns.tolist() ]
-                )
-            )
+            .pipe( self._assign_schema_name(schema) )
         )
 
     def _late_start(
@@ -479,3 +429,38 @@ class _Report(_Interface_Report):
             )
 
             return fn
+
+    def _assign_schema_name(
+        self,
+        schema: _DateSchema,
+    ) -> DataFramePipe:
+
+        # Lambda de asignación de nombre de esquema
+        assign_schema_name: DataFramePipe = (
+            lambda df: (
+                df
+                # Se asigna una columna para capturar el esquema actual
+                .assign(**{COLUMN.SCHEMA: schema.name})
+                # Reordenamiento de columnas
+                [ [COLUMN.SCHEMA] + df.columns.tolist() ]
+            )
+        )
+
+        return assign_schema_name
+
+    def _reports_by_schemas(
+        self,
+        fn: Callable[[_DateSchema]],
+    ) -> pd.DataFrame:
+
+        # Construcción de DataFrame a partir de concatenaciones
+        data = (
+            pd.concat(
+                [
+                    fn(schema_i) for schema_i
+                    in self._main._schemas
+                ]
+            )
+        )
+
+        return data
