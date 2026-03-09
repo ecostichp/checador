@@ -1,7 +1,11 @@
-import pandas as pd
+from datetime import datetime
 from typing import Literal
+import pandas as pd
+from ...typing.aliases import DatetimeStr
 from ...typing.callables import ConnFunction
+from ...typing.literals import Devices
 from ...typing.generics import _T
+from ...typing.misc import RecordsLastDates
 
 class _Contract_Database:
 
@@ -16,6 +20,18 @@ class _Contract_Database:
         data: pd.DataFrame,
         table_name: str,
         if_exists: Literal['fail', 'replace', 'append'],
+    ) -> None:
+        ...
+
+    def get_records_last_date_saved(
+        self,
+        warehouse_name: str,
+    ) -> datetime:
+        ...
+
+    def update_last_update_dates(
+        self,
+        max_dates: RecordsLastDates,
     ) -> None:
         ...
 

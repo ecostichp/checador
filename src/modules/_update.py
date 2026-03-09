@@ -3,22 +3,22 @@ from datetime import (
     datetime,
     timedelta,
 )
-from attendance_registry import Assistance
 from ..constants import (
     ARGS,
     COLUMN,
     DATABASE,
     WAREHOUSES,
 )
-from ..domain_data import DEVICE_SERIAL_NUMBER
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
 from ..templates.queries import QUERY
+from ..typing.aliases import DatetimeStr
 from ..typing.callables import SeriesApply
 from ..typing.dicts import ColumnAssignation
 from ..typing.literals import Devices
+from ..typing.misc import RecordsLastDates
 from ..sql import (
     execute_query,
     get_value,
@@ -34,65 +34,101 @@ class _Update(_Interface_Update):
         # Asignación de instancia principal
         self._main = main
 
-        # Creación de instancia
-        self._registry = Assistance[Devices](
-            {
-                'csl': DEVICE_SERIAL_NUMBER.CSL,
-                'sjc': DEVICE_SERIAL_NUMBER.SJC,
-            }
-        )
-
         # Actualización de registros
-        self._update_records()
+        self.update_records()
 
-    def _update_records(
+    def update_records(
         self,
     ) -> None:
 
-        # Inicialización de lista de DataFrames de datos obtenidos desde la API
-        all_data_from_api: list[pd.DataFrame] = []
-        # Inicialización de última fecha y hora de registros por almacén obtenidos desde la API
-        records_last_dates: list[tuple[str, str]] = []
+        # Inicialización de lista de datos a guardar en la base de datos
+        all_data: list[pd.DataFrame] = []
+        # Valores de fechas a actualizar
+        date_values_to_update: RecordsLastDates = []
 
+        # Iteración por cada almacén
         for warehouse_i in WAREHOUSES:
-            # Obtención de la última fecha de actualización de los datos
-            last_date_saved = (
-                datetime.fromisoformat(
-                    get_value(
-                        DATABASE.TABLE.LAST_UPDATE_DATES,
-                        'date',
-                        f"name = '{warehouse_i}'",
-                    )
-                )
-                # Se incrementa 1 segundo para evitar obtener nuevamente el último resultado ya guardado
-                + timedelta(seconds= 1)
+            # Obtención del valor de última fecha de actualización
+            last_date_saved = self._main._services.database.get_records_last_date_saved(warehouse_i)
+
+            # Obtención de los datos obtenidos desde la API
+            data_to_save = self._main._services.attendance.get_warehouse_records_from_api(
+                warehouse_i,
+                last_date_saved,
             )
-            # Obtención de los datos desde la API
-            data_i = self._get_from_api(last_date_saved, warehouse_i)
 
-            # Si existen datos obtenidos del dispositivo desde la API...
-            if len(data_i):
-                # Obtención de la fecha más actual de los nuevos datos del dispositivo
-                max_found_datetime = self.get_datetime_from_last_recent_record(data_i)
-                # Se añade el valor junto con el nombre del almacén para guardarse
-                records_last_dates.append( (warehouse_i, max_found_datetime) )
+            # Si existen datos a guardar...
+            if data_to_save:
+                # Se añade el DataFrame de datos
+                all_data.append(data_to_save.data)
+                # Se añade la fecha a actualizar en el registro de almacén
+                date_values_to_update.append(
+                    (data_to_save.warehouse_name, data_to_save.max_found_datetime)
+                )
 
-                # Se añaden éstos a los datos totales
-                all_data_from_api.append(data_i)
-
-        # Si existen datos obtenidos desde la API...
-        if all_data_from_api:
-            # Construcción de los datos a guardar
-            data_to_save = (
-                # Concatenación de todos los DataFrames
-                pd.concat(all_data_from_api)
+        # Si existen datos a guardar en la base de datos...
+        if all_data:
+            # Obtención del DataFrame total de datos
+            all_data_to_save = (
+                # Concatenación de DataFrames
+                pd.concat(all_data)
                 # Se ordenan los datos por fecha y hora de registro
                 .sort_values(COLUMN.REGISTRY_TIME)
             )
+
             # Se guardan los datos en la base de datos
-            self._save_on_database(data_to_save)
+            self._save_on_database(all_data_to_save)
             # Actualización de fechas guardadas
-            self._update_last_update_dates(records_last_dates)
+            self._main._services.database.update_last_update_dates(date_values_to_update)
+
+    # def _update_records__(
+    #     self,
+    # ) -> None:
+
+    #     # Inicialización de lista de DataFrames de datos obtenidos desde la API
+    #     all_data_from_api: list[pd.DataFrame] = []
+    #     # Inicialización de última fecha y hora de registros por almacén obtenidos desde la API
+    #     records_last_dates: list[tuple[str, str]] = []
+
+    #     for warehouse_i in WAREHOUSES:
+    #         # Obtención de la última fecha de actualización de los datos
+    #         last_date_saved = (
+    #             datetime.fromisoformat(
+    #                 get_value(
+    #                     DATABASE.TABLE.LAST_UPDATE_DATES,
+    #                     'date',
+    #                     f"name = '{warehouse_i}'",
+    #                 )
+    #             )
+    #             # Se incrementa 1 segundo para evitar obtener nuevamente el último resultado ya guardado
+    #             + timedelta(seconds= 1)
+    #         )
+    #         # Obtención de los datos desde la API
+    #         data_i = self._get_from_api(last_date_saved, warehouse_i)
+
+    #         # Si existen datos obtenidos del dispositivo desde la API...
+    #         if len(data_i):
+    #             # Obtención de la fecha más actual de los nuevos datos del dispositivo
+    #             max_found_datetime = self.get_datetime_from_last_recent_record(data_i)
+    #             # Se añade el valor junto con el nombre del almacén para guardarse
+    #             records_last_dates.append( (warehouse_i, max_found_datetime) )
+
+    #             # Se añaden éstos a los datos totales
+    #             all_data_from_api.append(data_i)
+
+    #     # Si existen datos obtenidos desde la API...
+    #     if all_data_from_api:
+    #         # Construcción de los datos a guardar
+    #         data_to_save = (
+    #             # Concatenación de todos los DataFrames
+    #             pd.concat(all_data_from_api)
+    #             # Se ordenan los datos por fecha y hora de registro
+    #             .sort_values(COLUMN.REGISTRY_TIME)
+    #         )
+    #         # Se guardan los datos en la base de datos
+    #         self._save_on_database(data_to_save)
+    #         # Actualización de fechas guardadas
+    #         self._update_last_update_dates(records_last_dates)
 
     def _update_last_update_dates(
         self,
