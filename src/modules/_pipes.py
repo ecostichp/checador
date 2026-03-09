@@ -1238,27 +1238,47 @@ class _Pipes(_Interface_Pipes):
             ),
         }
 
-        return (
-            # Se concatenan los registros y las correcciones
-            pd.concat(
-                [
-                    data,
-                    (
-                        self._main._data.corrections
-                        # Se toman los resultados dentro del rango de fechas de los registros
-                        .pipe(
-                            lambda df: (
-                                df[
-                                    (
-                                        ( df[COLUMN.DATE] >= data[COLUMN.DATE].min() )
-                                        & ( df[COLUMN.DATE] <= data[COLUMN.DATE].max() )
-                                    )
-                                ]
-                            )
+        # Asignación de columnas en falso
+        add_missing_columns_from_corrections: ColumnAssignation = {
+            COLUMN.IS_CORRECTION: False,
+            COLUMN.IS_DUPLICATED: False,
+        }
+
+        # Obtención de DataFrame de correcciones filtrado
+        filtered_corrections: pd.DataFrame = (
+            self._main._data.corrections
+            # Se toman los resultados dentro del rango de fechas de los registros
+            .pipe(
+                lambda df: (
+                    df[
+                        (
+                            ( df[COLUMN.DATE] >= data[COLUMN.DATE].min() )
+                            & ( df[COLUMN.DATE] <= data[COLUMN.DATE].max() )
                         )
-                    ),
-                ]
+                    ]
+                )
             )
+        )
+
+        # Si el DataFrame de correcciones no está vacío...
+        if not filtered_corrections.empty:
+            # Se concatenan los registros y las correcciones
+            data_to_process = (
+                pd.concat([data, filtered_corrections])
+                # Se forza el tipo de dato a booleano en indicadores de "es corrección" y "es duplicado"
+                .assign(**force_booleans)
+            )
+        # Si el DataFrame de correcciones está vacío...
+        else:
+            # Se usan los datos sin correcciones por añadir
+            data_to_process = (
+                data
+                # Asignación de columnas faltantes en falso
+                .assign(**add_missing_columns_from_corrections)
+            )
+
+        return (
+            data_to_process
             # Se forza el tipo de dato a booleano en indicadores de "es corrección" y "es duplicado"
             .assign(**force_booleans)
             # Asignación de tipos de datos
