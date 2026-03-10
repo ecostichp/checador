@@ -2,11 +2,17 @@ import pandas as pd
 from ..constants import COLUMN
 from ..contracts import (
     _CoreRegistryProcessing,
-    _Interface_Apply,
+    _Interface_Schedules,
 )
+from ..domain_data import (
+    REST_DAYS,
+    USER_DEFAULT_REST_DAYS,
+)
+from ..typing.aliases import UserID
 from ..typing.interfaces import HorizontalSeries
+from ..typing.literals import NumericWeekday
 
-class _Apply(_Interface_Apply):
+class _Schedules(_Interface_Schedules):
 
     def __init__(
         self,
@@ -79,3 +85,19 @@ class _Apply(_Interface_Apply):
         total = len(date_range) - rest_days - holidays
 
         return total
+
+    def _get_user_rest_days(
+        self,
+        user_id: UserID,
+    ) -> list[NumericWeekday]:
+        """
+        ### Obtención de días de descanso
+        Este método obtiene los días de decanso de un usuario en base a su ID provista.
+        En caso de no encontrarse un dato especificado para este usuario se utiliza un
+        valor prestablecido.
+        """
+
+        # Obtención de los datos de días de descanso
+        rest_days = REST_DAYS.get(user_id, USER_DEFAULT_REST_DAYS)
+
+        return rest_days

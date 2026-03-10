@@ -391,9 +391,9 @@ class _Pipes(_Interface_Pipes):
 
         # Funciones de conteo de tipos de día y obtención de total de días de vacaciones
         day_assignations: ColumnAssignation = {
-            COLUMN.REST_DAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_rest_days, axis= 1, result_type= 'reduce') ),
-            COLUMN.HOLIDAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_holidays, axis= 1, result_type= 'reduce') ),
-            COLUMN.VACATION_DAYS_COUNT: ( lambda df: df.apply(self._main._apply.count_vacation_days, axis= 1, result_type= 'reduce') ),
+            COLUMN.REST_DAYS_COUNT: ( lambda df: df.apply(self._main._schedules.count_rest_days, axis= 1, result_type= 'reduce') ),
+            COLUMN.HOLIDAYS_COUNT: ( lambda df: df.apply(self._main._schedules.count_holidays, axis= 1, result_type= 'reduce') ),
+            COLUMN.VACATION_DAYS_COUNT: ( lambda df: df.apply(self._main._schedules.count_vacation_days, axis= 1, result_type= 'reduce') ),
         }
 
         return (

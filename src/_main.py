@@ -7,13 +7,13 @@ from .domain_data import (
     USER_DEFAULT_REST_DAYS,
 )
 from .modules import (
-    _Apply,
     _DateSchemas,
     _Data,
     _Factory,
     _Pipes,
     _Processing,
     _Report,
+    _Schedules,
     _Update,
 )
 from .services import Services
@@ -29,7 +29,6 @@ class RegistryProcessing(_CoreRegistryProcessing):
     ) -> None:
 
         # Inicialización de submódulos de funciones
-        self._apply = _Apply(self)
         self._pipes = _Pipes(self)
         self._factory = _Factory(self)
         self._processing = _Processing(self)
@@ -41,6 +40,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._data = _Data(self)
         # Inicialización de módulo de reportes
         self._report = _Report(self)
+        # Inicialización de funciones de horarios
+        self._schedules = _Schedules(self)
         # Inicialización de esquemas computados
         self._schemas = _DateSchemas(self)
         # Inicialización de módulo de actualización de datos

@@ -1,12 +1,12 @@
 import pandas as pd
 from .modules import (
-    _Interface_Apply,
     _Interface_Data,
     _Interface_DateSchemas,
     _Interface_Factory,
     _Interface_Pipes,
     _Interface_Processing,
     _Interface_Report,
+    _Interface_Schedules,
     _Interface_Update,
 )
 from .services import _Contract_ServicesMain
@@ -18,10 +18,6 @@ class _CoreRegistryProcessing:
     _schemas: _Interface_DateSchemas
     """
     Esquemas de tiempo creados dinámicamente para generar reportes.
-    """
-    _apply: _Interface_Apply
-    """
-    `[Submódulo]` Funciones de aplicación en columnas de DataFrame.
     """
     _data: _Interface_Data
     """
@@ -46,6 +42,10 @@ class _CoreRegistryProcessing:
     _report: _Interface_Report
     """
     `[Submódulo]` Funciones de generación de reportes.
+    """
+    _schedules: _Interface_Schedules
+    """
+    `[Submódulo]` Funciones de horarios y fechas.
     """
 
     _services: _Contract_ServicesMain

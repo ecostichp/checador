@@ -245,7 +245,7 @@ class _Processing(_Interface_Processing):
             lambda df: (
                 df
                 .apply(
-                    self._main._apply.count_rest_days,
+                    self._main._schedules.count_rest_days,
                     axis= 1,
                     result_type= 'reduce',
                 )
