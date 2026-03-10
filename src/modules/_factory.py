@@ -12,10 +12,7 @@ from ..rules import (
     GLOBAL_FILTERS,
     VALIDATIONS_PER_DAY_AND_USER_ID,
 )
-from ..typing import (
-    ColumnAssignation,
-    DataFramePipe,
-)
+from ..typing import DataFramePipe
 from ..typing.literals import (
     PermissionTypeOption,
     ValidityOptions,
@@ -55,7 +52,7 @@ class _Factory(_Interface_Factory):
                 # Se cortan los rangos de fechas para contar desde la fecha inicial del rango asignado
                 .pipe( self._main._schedules.cut_justifications_date_ranges(schema) )
                 # Reasgnación de categorías para evitar pérdida de información en pivoteos de DataFrane
-                .pipe( self._reassign_registry_type_categories(assigned_categories) )
+                .pipe( self._main._transformation.reassign_registry_type_categories(assigned_categories) )
                 # Cálculo de diferencia en rango de fechas
                 .assign(**assigned_range_diff)
                 # Agrupamiento por nombre y tipo de registro
@@ -157,44 +154,3 @@ class _Factory(_Interface_Factory):
             )
 
         return evaluate_pivot_validations
-
-    def _reassign_registry_type_categories(
-        self,
-        categories: list[str],
-    ) -> DataFramePipe:
-        """
-        ### Reasignar categorías de tipo de registro
-        Este método fabrica una función que reasigna las categorías de tipos de
-        registro en base a los valores disponibles en el DataFrame provisto. De esta
-        manera las agrupaciones y pivoteos de tabla se mantienen consistentes.
-
-        :param categories list[str]: Lista completa de categorías de tipo de registro.
-        """
-
-        # Función para establecer las categorías disponibles en la columna
-        set_categories: ColumnAssignation = {
-            COLUMN.PERMISSION_TYPE: (
-                lambda df: (
-                    # Se usa la columna de tipo de permiso
-                    df[COLUMN.PERMISSION_TYPE]
-                    # Se asignan las categorías provistas
-                    .cat.set_categories(categories)
-                )
-            )
-        }
-
-        def fn(data: pd.DataFrame) -> pd.DataFrame:
-
-            return (
-                data
-                # Se filtran los registros por las categorías provistas
-                .pipe(
-                    lambda df: (
-                        df[ df[COLUMN.PERMISSION_TYPE].isin(categories) ]
-                    )
-                )
-                # Se asignan las categorías provistas
-                .assign(**set_categories)
-            )
-
-        return fn

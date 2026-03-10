@@ -7,6 +7,7 @@ from .modules import (
     _Interface_Processing,
     _Interface_Report,
     _Interface_Schedules,
+    _Interface_Transformation,
     _Interface_Update,
 )
 from .services import _Contract_ServicesMain
@@ -46,6 +47,10 @@ class _CoreRegistryProcessing:
     _schedules: _Interface_Schedules
     """
     `[Submódulo]` Funciones de horarios y fechas.
+    """
+    _transformation: _Interface_Transformation
+    """
+    `[Submódulo]` Funciones de transformación de datos.
     """
 
     _services: _Contract_ServicesMain

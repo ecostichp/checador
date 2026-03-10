@@ -5,4 +5,5 @@ from ._pipes import _Interface_Pipes
 from ._processing import _Interface_Processing
 from ._report import _Interface_Report
 from ._schedules import _Interface_Schedules
+from ._transformation import _Interface_Transformation
 from ._update import _Interface_Update

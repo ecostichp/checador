@@ -14,6 +14,7 @@ from .modules import (
     _Processing,
     _Report,
     _Schedules,
+    _Transformation,
     _Update,
 )
 from .services import Services
@@ -44,6 +45,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._schedules = _Schedules(self)
         # Inicialización de esquemas computados
         self._schemas = _DateSchemas(self)
+        # Inicialización de funciones de transformación de datos
+        self._transformation = _Transformation(self)
         # Inicialización de módulo de actualización de datos
         self._update = _Update(self)
 
