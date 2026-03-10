@@ -9,7 +9,6 @@ from .domain_data import (
 from .modules import (
     _DateSchemas,
     _Data,
-    _Factory,
     _Pipes,
     _Processing,
     _Report,
@@ -32,7 +31,6 @@ class RegistryProcessing(_CoreRegistryProcessing):
 
         # Inicialización de submódulos de funciones
         self._pipes = _Pipes(self)
-        self._factory = _Factory(self)
         self._processing = _Processing(self)
 
         # Inicialización de servicios

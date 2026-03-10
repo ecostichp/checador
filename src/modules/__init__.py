@@ -1,6 +1,5 @@
 from ._data import _Data
 from ._date_schemas import _DateSchemas
-from ._factory import _Factory
 from ._pipes import _Pipes
 from ._processing import _Processing
 from ._report import _Report
