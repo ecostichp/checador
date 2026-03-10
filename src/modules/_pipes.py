@@ -162,6 +162,7 @@ class _Pipes(_Interface_Pipes):
 
                 COLUMN.REGISTRY_TIME,
                 COLUMN.IS_CORRECTION,
+                COLUMN.NULL_BY_JUSTIFICATION,
                 VALIDATION.COMPLETE,
                 VALIDATION.BREAK_PAIRS,
                 VALIDATION.UNIQUE_START_AND_END,
@@ -1202,12 +1203,22 @@ class _Pipes(_Interface_Pipes):
                     )
                 )
             ),
+            COLUMN.NULL_BY_JUSTIFICATION: (
+                lambda df: (
+                    ( df[COLUMN.NULL_BY_JUSTIFICATION] )
+                    .where(
+                        df[COLUMN.NULL_BY_JUSTIFICATION].isin([True, False]),
+                        False
+                    )
+                )
+            ),
         }
 
         # Asignación de columnas en falso
         add_missing_columns_from_corrections: ColumnAssignation = {
             COLUMN.IS_CORRECTION: False,
             COLUMN.IS_DUPLICATED: False,
+            COLUMN.NULL_BY_JUSTIFICATION: False,
         }
 
         # Obtención de DataFrame de correcciones filtrado

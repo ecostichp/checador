@@ -5,13 +5,17 @@ from ..utils import path_from_dropbox
 from ..constants import (
     ARGS,
     COLUMN,
+    REGISTRY_TYPE,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Data,
 )
 from ..mapping import ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
-from ..settings import DATABASE
+from ..settings import (
+    DATABASE,
+    INPUT,
+)
 from ..templates.files import (
     EXCEL_FILE,
     SPREADSHEET,
@@ -184,6 +188,15 @@ class _Data(_Interface_Data):
             )
         }
 
+        # Función para calificar descartados por incidencia
+        null_by_justification: ColumnAssignation = {
+            COLUMN.NULL_BY_JUSTIFICATION: (
+                lambda df: (
+                    df[COLUMN.REGISTRY_TYPE] == INPUT.VALUE.JUSTIFICATION
+                )
+            ),
+        }
+
         return (
             # Se cargan archivos de correcciones
             self._load_corrections_files()
@@ -193,6 +206,14 @@ class _Data(_Interface_Data):
             .pipe(lambda df: df[df[COLUMN.NAME].notna()])
             # Se convierte el tipo de dato de la columna de tiempo en cadena de texto para ser convertida a datetime64[ns]
             .assign(**time_first_to_string)
+            # Se identifican registros anulados por incidencia
+            .assign(**null_by_justification)
+            # Se reemplazan los valores indicados como nulos por incidencia
+            .replace({
+                COLUMN.REGISTRY_TYPE: {
+                    INPUT.VALUE.JUSTIFICATION: REGISTRY_TYPE.NULL,
+                }
+            })
             # Asignación de tipos de dato
             .pipe(self._main._processing.assign_dtypes)
             # Asignación de ordenamiento de valores de tipo de registro
@@ -211,6 +232,7 @@ class _Data(_Interface_Data):
                 COLUMN.DEVICE,
                 COLUMN.REGISTRY_TIME,
                 COLUMN.IS_CORRECTION,
+                COLUMN.NULL_BY_JUSTIFICATION,
             ]]
             # Ordenamiento de registros por fecha
             .sort_values(COLUMN.DATE)

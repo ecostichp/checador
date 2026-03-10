@@ -43,9 +43,6 @@ class _Validations(_Interface_Validations):
             # Construcción de condición
             validated_condition = filter_validity[by]
 
-            # Validación de si los registros no son anulados
-            is_not_null = data[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.NULL
-
             # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
             if keep_today_check_in:
                 # Construcción de validación de registros
@@ -58,9 +55,6 @@ class _Validations(_Interface_Validations):
                 date_is_not_current_day = data[COLUMN.DATE].dt.date != self._main._services.date.today
                 # Se añade la validación de si la fecha de registros es distinta al día en curso
                 validated_condition &= date_is_not_current_day
-
-            # Se añade la validación de registro no anulado
-            validated_condition &= is_not_null
 
             return (
                 data[validated_condition]

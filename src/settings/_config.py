@@ -32,6 +32,8 @@ class CONFIG:
 class INPUT:
     class FORM:
         PERMISSIONS = PERMISSIONS_VALUES
+    class VALUE:
+        JUSTIFICATION = 'Incidencia'
 
 class OUTPUT:
     class FILE:
