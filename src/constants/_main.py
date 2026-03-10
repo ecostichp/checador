@@ -61,6 +61,10 @@ class COLUMN:
     `bool` El tipo de registro representa un mismo evento pero se creó dos o más
     veces por el usuario en el mismo día
     ."""
+    NULL_BY_JUSTIFICATION = 'null_by_justification'
+    """
+    `bool` El registro fue anulado por una incidencia.
+    """
     USER_AND_DATE_INDEX = 'user_date_index'
     """
     `str` Columna computada para mapear validaciones a nivel día y usuario en

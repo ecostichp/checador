@@ -90,9 +90,9 @@ class _Report(_Interface_Report):
                 COLUMN.REGISTRY_TYPE,
                 COLUMN.DEVICE,
                 COLUMN.IS_DUPLICATED,
-
                 COLUMN.REGISTRY_TIME,
                 COLUMN.IS_CORRECTION,
+                COLUMN.NULL_BY_JUSTIFICATION,
                 VALIDATION.COMPLETE,
                 VALIDATION.BREAK_PAIRS,
                 VALIDATION.UNIQUE_START_AND_END,
