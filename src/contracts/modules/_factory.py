@@ -1,4 +1,3 @@
-from datetime import date
 from ...resources import _DateSchema
 from ...typing import DataFramePipe
 from ...typing.literals import (
@@ -10,19 +9,6 @@ class _Interface_Factory:
     """
     `[Submódulo]` Fábricas de funciones pipe para DataFrame.
     """
-
-    def vacation_days(
-        self,
-        schema: _DateSchema,
-    ) -> DataFramePipe:
-        """
-        ### Resumen de días de vacaciones
-        Este método fabrica una función que realiza un resumen de días de vacaciones
-        tomados por los usuarios seleccionados en el esquema de tiempo.
-
-        :param schema _DateSchema: Esquema de tiempo.
-        """
-        ...
 
     def get_permissions_summary(
         self,
@@ -53,51 +39,5 @@ class _Interface_Factory:
 
         :param by ValidityOptions: Opciones de validación.
         :param keep_today_check_in bool: Mantener los registros `checkIn` de hoy.
-        """
-        ...
-
-    def get_records_in_range(
-        self,
-        start_date: date,
-        end_date: date,
-    ) -> DataFramePipe:
-        """
-        ### Extraer rangos
-        Este método fabrica una función que extrae registros que cruzan dentro del
-        rango las fechas especificadas en el esquema de tiempo.
-
-        Para que se considere que un registro cruza el rango de fecha, su inicio o
-        término de fecha deben encontrarse dentro del rango de fecha del esquema de
-        tiempo provisto.
-
-        Ejemplo de entrada:
-        >>> data # DataFrame
-        >>> #         start         end
-        >>> # 0  2026-01-01  2026-01-08
-        >>> # 1  2026-01-01  2026-01-15
-        >>> # 2  2026-01-03  2026-01-25
-        >>> # 3  2026-01-10  2026-01-16
-        >>> # 4  2026-01-13  2026-01-25
-        >>> # 5  2026-01-21  2026-01-23
-        
-        Se etiquetan los registros, por ejemplo, con el rango provisto entre
-        `datetime(2026, 1, 10)` y `datetime(2026, 1, 20)`:
-        >>> #         start         end  crosses_range
-        >>> # 0  2026-01-01  2026-01-08          False
-        >>> # 1  2026-01-01  2026-01-15           True
-        >>> # 2  2026-01-03  2026-01-25           True
-        >>> # 3  2026-01-10  2026-01-16           True
-        >>> # 4  2026-01-13  2026-01-25           True
-        >>> # 5  2026-01-21  2026-01-23          False
-
-        Se filtran los registros en `True`:
-        >>> #         start         end
-        >>> # 1  2026-01-01  2026-01-15
-        >>> # 2  2026-01-03  2026-01-25
-        >>> # 3  2026-01-10  2026-01-16
-        >>> # 4  2026-01-13  2026-01-25
-
-        :param start_date date: Fecha de inicio.
-        :param end_date date: Fecha de fin.
         """
         ...

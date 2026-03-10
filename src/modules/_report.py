@@ -193,7 +193,7 @@ class _Report(_Interface_Report):
             # Se renombran los tipos de permiso
             .pipe(self._main._pipes.rename_permission_types)
             # Conteo de vacaciones dentro de las justificaciones
-            .pipe( self._main._factory.vacation_days(schema) )
+            .pipe( self._main._schedules.vacation_days(schema) )
             # Obtención de los conteos de justificaciones distintas a vacaciones
             .pipe(
                 lambda df: (

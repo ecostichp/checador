@@ -1,6 +1,4 @@
-from datetime import date
 import pandas as pd
-import numpy as np
 from ..constants import (
     COLUMN,
     REGISTRY_TYPE,
@@ -33,57 +31,6 @@ class _Factory(_Interface_Factory):
         # Asignación de instancia principal
         self._main = main
 
-    def vacation_days(
-        self,
-        schema: _DateSchema,
-    ) -> DataFramePipe:
-
-        def fn(data: pd.DataFrame):
-
-            return (
-                data
-                # Se filtran los registros que entran dentro del rango de fechas
-                .pipe( self.get_records_in_range(schema.start_date, schema.end_date) )
-                # Se conservan los registros que entren dentro del rango de fecha actual
-                .pipe( self._cut_ranges(schema.start_date, schema.end_date) )
-                # Obtención de días de vacaciones desde incidencias
-                .pipe(self._main._pipes.total_vacation_days)
-                # Agrupamiento por IDs de usuario
-                .groupby(COLUMN.USER_ID)
-                # Suma de los días de vacaciones
-                .agg({
-                    COLUMN.VACATION_DAYS_COUNT: 'sum',
-                })
-                # Reseteo de índice
-                .reset_index()
-                # Unión con el DataFrame de usuarios
-                .pipe(
-                    lambda df: (
-                        pd.merge(
-                            left= (
-                                self._main.data.users
-                                # Filtro por fechas
-                                .pipe( lambda df: df[ df[COLUMN.PAY_FREQUENCY] == schema.frequency ] )
-                                # Selección de columnas
-                                [[
-                                    COLUMN.USER_ID,
-                                    COLUMN.NAME,
-                                ]]
-                            ),
-                            right= df,
-                            on= COLUMN.USER_ID,
-                            how= 'left',
-                        )
-                    )
-                )
-                # Reemplazo de todos los valores np.NaN
-                .replace({ COLUMN.VACATION_DAYS_COUNT: {np.nan: 0} })
-                # Conversión del tipo de dato
-                .astype({ COLUMN.VACATION_DAYS_COUNT: 'uint8' })
-            )
-
-        return fn
-
     def get_permissions_summary(
         self,
         perm_type: PermissionTypeOption,
@@ -104,9 +51,9 @@ class _Factory(_Interface_Factory):
                 # Se renombran los tipos de permiso
                 .pipe(self._main._pipes.rename_permission_types)
                 # Se filtran los registros que entran dentro del rango de fechas
-                .pipe( self.get_records_in_range(schema.start_date, schema.end_date) )
+                .pipe( self._main._schedules.get_permissions_in_date_range(schema) )
                 # Se cortan los rangos de fechas para contar desde la fecha inicial del rango asignado
-                .pipe( self._cut_ranges(schema.start_date, schema.end_date) )
+                .pipe( self._main._schedules.cut_justifications_date_ranges(schema) )
                 # Reasgnación de categorías para evitar pérdida de información en pivoteos de DataFrane
                 .pipe( self._reassign_registry_type_categories(assigned_categories) )
                 # Cálculo de diferencia en rango de fechas
@@ -211,45 +158,6 @@ class _Factory(_Interface_Factory):
 
         return evaluate_pivot_validations
 
-    def get_records_in_range(
-        self,
-        start_date: date,
-        end_date: date,
-    ) -> DataFramePipe:
-
-        # Función para determinar si la fecha de inicio está dentro del rango
-        _start_date_in_range: DataFramePipe = lambda df: ( 
-            ( df[COLUMN.PERMISSION_START].dt.date >= start_date )
-            & ( df[COLUMN.PERMISSION_START].dt.date <= end_date )
-        )
-
-        # Función para determinar si la fecha de término está dentro del rango
-        _end_date_in_range: DataFramePipe = lambda df: (
-            ( df[COLUMN.PERMISSION_END].dt.date <= end_date )
-            & ( df[COLUMN.PERMISSION_END].dt.date >= start_date )
-        )
-
-        # Función para determinar si las fechas cruzan el rango desde afuera
-        _range_segment_in_range: DataFramePipe = lambda df: (
-            ( df[COLUMN.PERMISSION_START].dt.date < start_date )
-            & ( df[COLUMN.PERMISSION_END].dt.date > end_date )
-        )
-
-        # Función que evalúa si un registro entra dentro del rango de fecha proporcionado
-        def fn(data: pd.DataFrame) -> pd.DataFrame:
-            return (
-                data
-                [
-                    (
-                        _start_date_in_range(data)
-                        | _end_date_in_range(data)
-                        | _range_segment_in_range(data)
-                    )
-                ]
-            )
-
-        return fn
-
     def _reassign_registry_type_categories(
         self,
         categories: list[str],
@@ -287,83 +195,6 @@ class _Factory(_Interface_Factory):
                 )
                 # Se asignan las categorías provistas
                 .assign(**set_categories)
-            )
-
-        return fn
-
-    def _cut_ranges(
-        self,
-        start_date: date,
-        end_date: date,
-    ) -> DataFramePipe:
-        """
-        ### Cortar rangos
-        Este método fabrica una función que trunca las fechas que
-        se desbordan fuera del rango de fechas provisto.
-
-        Para que se considere que un registro cruza el rango de fecha, su inicio o
-        término de fecha deben encontrarse dentro del rango de fecha del esquema de
-        tiempo provisto.
-
-        Ejemplo de entrada:
-        >>> data # DataFrame
-        >>> #         start         end
-        >>> # 1  2026-01-01  2026-01-15
-        >>> # 2  2026-01-03  2026-01-25
-        >>> # 3  2026-01-10  2026-01-16
-        >>> # 4  2026-01-13  2026-01-25
-        
-        Se truncan los registros, por ejemplo, con el rango provisto entre
-        `datetime(2026, 1, 10)` y `datetime(2026, 1, 20)`:
-        >>> #         start         end
-        >>> # 1  2026-01-10  2026-01-15
-        >>> # 2  2026-01-10  2026-01-20
-        >>> # 3  2026-01-10  2026-01-16
-        >>> # 4  2026-01-13  2026-01-20
-        """
-
-        # Columna temporal
-        _START_DATE = '_start_date'
-        _END_DATE = '_end_date'
-
-        # Función para truncar fechas de inicio y fin que se desborden de los rangos provistos
-        cut_ranges : ColumnAssignation = {
-            COLUMN.PERMISSION_START: (
-                lambda df: (
-                    pd.to_datetime(
-                        df[_START_DATE]
-                        .where(
-                                df[COLUMN.PERMISSION_START].dt.date < start_date,
-                                df[COLUMN.PERMISSION_START]
-                        )
-                    )
-                )
-            ),
-            COLUMN.PERMISSION_END: (
-                lambda df: (
-                    pd.to_datetime(
-                        df[_END_DATE]
-                        .where(
-                                df[COLUMN.PERMISSION_END].dt.date > end_date,
-                                df[COLUMN.PERMISSION_END]
-                        )
-                    )
-                )
-            ),
-        }
-
-        def fn(
-            data: pd.DataFrame,
-        ) -> pd.DataFrame:
-
-            return (
-                data
-                # Columnas temporales de referencia
-                .assign( **{_START_DATE: start_date, _END_DATE:end_date} )
-                # Ajuste de fecha inicial en registros cuya fecha inicial se desborda del rango actual
-                .assign( **cut_ranges )
-                # Se conservan las columnas originales
-                [data.columns]
             )
 
         return fn
