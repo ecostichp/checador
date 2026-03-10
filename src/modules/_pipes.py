@@ -106,7 +106,7 @@ class _Pipes(_Interface_Pipes):
             # Se descartan todos los registros de entrada del día en curso
             .pipe(lambda df: df[ ~df[COLUMN.IS_CURRENT_DAY_CHECKIN] ])
             # Se descartan todos los registros que contengan alguna validación no aprobada
-            .pipe( self._main._factory.filter_by_validity(by= 'invalid') )
+            .pipe( self._main._validations.filter_by_validity(by= 'invalid') )
         )
 
         # Si existen registros a validar...
@@ -145,7 +145,7 @@ class _Pipes(_Interface_Pipes):
             # Validación de registros
             .pipe(self._validate_records)
             # Se filtran únicamente los registros correctos
-            .pipe( self._main._factory.filter_by_validity(by= 'valid', keep_today_check_in= True) )
+            .pipe( self._main._validations.filter_by_validity(by= 'valid', keep_today_check_in= True) )
             # Definición de inicio y finalización de tiempos permitidos para cada usuario
             .pipe(self._define_allowed_start_and_end_time)
             # Obtención de tiempo acumulado en entradas tardías y salidas anticipadas

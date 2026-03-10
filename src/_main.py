@@ -16,6 +16,7 @@ from .modules import (
     _Schedules,
     _Transformation,
     _Update,
+    _Validations,
 )
 from .services import Services
 from .templates.messages import MESSAGE
@@ -49,6 +50,8 @@ class RegistryProcessing(_CoreRegistryProcessing):
         self._transformation = _Transformation(self)
         # Inicialización de módulo de actualización de datos
         self._update = _Update(self)
+        # Inicialización de funciones de validación de datos
+        self._validations = _Validations(self)
 
         # Se cargan los datos iniciales
         self._data.load()

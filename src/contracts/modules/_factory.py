@@ -1,9 +1,6 @@
 from ...resources import _DateSchema
 from ...typing import DataFramePipe
-from ...typing.literals import (
-    PermissionTypeOption,
-    ValidityOptions,
-)
+from ...typing.literals import PermissionTypeOption
 
 class _Interface_Factory:
     """
@@ -22,22 +19,5 @@ class _Interface_Factory:
 
         :param perm_type PermissionTypeOption: Tipo de permisos.
         :param schema _DateSchema: Esquema de tiempo.
-        """
-        ...
-
-    def filter_by_validity(
-        self,
-        /,
-        by: ValidityOptions,
-        keep_today_check_in: bool = False,
-    ) -> DataFramePipe:
-        """
-        ### Mantener registros válidos/inválidos
-        Esta función filtra de manera rápida los registros que
-        contengan todas las validaciones aprobadas o no aprobadas
-        en base a cómo se configura.
-
-        :param by ValidityOptions: Opciones de validación.
-        :param keep_today_check_in bool: Mantener los registros `checkIn` de hoy.
         """
         ...

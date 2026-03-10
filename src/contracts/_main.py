@@ -9,6 +9,7 @@ from .modules import (
     _Interface_Schedules,
     _Interface_Transformation,
     _Interface_Update,
+    _Interface_Validations,
 )
 from .services import _Contract_ServicesMain
 from ..typing.aliases import UserID
@@ -51,6 +52,10 @@ class _CoreRegistryProcessing:
     _transformation: _Interface_Transformation
     """
     `[Submódulo]` Funciones de transformación de datos.
+    """
+    _validations: _Interface_Validations
+    """
+    `[Submódulo]` Funciones de validación de datos.
     """
 
     _services: _Contract_ServicesMain
