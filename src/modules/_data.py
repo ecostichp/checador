@@ -58,35 +58,7 @@ class _Data(_Interface_Data):
 
         return (
             # Obtención de la lista de empleados desde Odoo
-            self._main._services.odoo.search_read(
-                # Modelo de empleados
-                'hr.employee',
-                # Campos
-                fields= [
-                    'name',
-                    'x_pay_frequency',
-                    'x_warehouse_id',
-                    'job_id',
-                ],
-            )
-            # Reasignación de nombres de columnas
-            .rename(
-                columns= {
-                    'id': COLUMN.USER_ID,
-                    'name': COLUMN.NAME,
-                    'x_pay_frequency': COLUMN.PAY_FREQUENCY,
-                    'x_warehouse_id': COLUMN.WAREHOUSE,
-                    'job_id': COLUMN.JOB,
-                },
-            )
-            # Ordenamiento y selección de columnas de columnas
-            [[
-                COLUMN.USER_ID,
-                COLUMN.NAME,
-                COLUMN.WAREHOUSE,
-                COLUMN.PAY_FREQUENCY,
-                COLUMN.JOB,
-            ]]
+            self._main._services.odoo_api.get_users()
             # Procesamiento de datos de almacén
             .pipe(self._main._pipes.get_warehouse_name)
             # Procesamiento de datos de puesto de trabajo

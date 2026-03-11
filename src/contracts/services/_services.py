@@ -1,8 +1,8 @@
-from odoo_api_manager import OdooAPIManager
 from ._attendance import _Contract_Attendance
 from ._database import _Contract_Database
 from ._date import _Contract_Date
 from ._google_sheets import _Contract_GoogleSheets
+from ._odoo_api import _Contract_OdooAPI
 
 class _Contract_ServicesMain:
     attendance: _Contract_Attendance
@@ -13,5 +13,5 @@ class _Contract_ServicesMain:
     """`[Servicio]` Manejo de definición de dominio de fechas."""
     google_sheets: _Contract_GoogleSheets
     """`[Servicio]` Manejo de conexión con Hojas de Cálculo de Google."""
-    odoo: OdooAPIManager
+    odoo_api: _Contract_OdooAPI
     """`[Servicio]` Manejo de conexión con la API de Odoo."""
