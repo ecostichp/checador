@@ -3,5 +3,6 @@ from ._base.literals import (
     NumericWeekday,
     PayFrequency,
     PermissionTypeOption,
+    PipeValidationStage,
     ValidityOptions,
 )

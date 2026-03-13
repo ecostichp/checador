@@ -1,4 +1,4 @@
-from ..constants import ARGS
+from ..constants import COMMON_ARGS
 
 class EXCEL_FILE:
     """
@@ -8,7 +8,7 @@ class EXCEL_FILE:
         """
         `CONST` Archivo de correcciones de registros de asistencia.
         """
-        NAME = f'correcciones_{{{ARGS.YEAR}}}_prueba/correcciones_checador_{{{ARGS.MONTH}:02d}}_{{{ARGS.YEAR}}}'
+        NAME = f'correcciones_{{{COMMON_ARGS.YEAR}}}_prueba/correcciones_checador_{{{COMMON_ARGS.MONTH}:02d}}_{{{COMMON_ARGS.YEAR}}}'
         """
         `Literal` Nombre del archivo.
         """

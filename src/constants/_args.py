@@ -1,4 +1,4 @@
-class ARGS:
+class COMMON_ARGS:
     YEAR = 'year'
     """`Literal` Año."""
     MONTH = 'month'
@@ -19,3 +19,9 @@ class ARGS:
     """`Literal` Secuencia."""
     VALIDATIONS_ATTRIBUTE = 'validations'
     """`Literal` Nombre del atributo de validaciones."""
+
+class PIPE_VALIDATION_ERROR_MESSAGE_ARGS:
+    MISSING_COLUMNS = 'missing_columns'
+    """`Literal` Columnas faltantes."""
+    PIPE_NAME = 'pipe_name'
+    """`Literal` Nombre del pipe."""

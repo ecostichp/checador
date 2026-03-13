@@ -1,4 +1,4 @@
-from ..constants import ARGS
+from ..constants import COMMON_ARGS
 
 class QUERY:
     """
@@ -9,10 +9,10 @@ class QUERY:
         f"""
         SELECT
             *
-        FROM {{{ARGS.TABLE_NAME}}}
+        FROM {{{COMMON_ARGS.TABLE_NAME}}}
         WHERE (
-            DATE({{{ARGS.REGISTRY_TIME}}}) >= '{{{ARGS.START_DATE}}}'
-            AND DATE({{{ARGS.REGISTRY_TIME}}}) <= '{{{ARGS.END_DATE}}}'
+            DATE({{{COMMON_ARGS.REGISTRY_TIME}}}) >= '{{{COMMON_ARGS.START_DATE}}}'
+            AND DATE({{{COMMON_ARGS.REGISTRY_TIME}}}) <= '{{{COMMON_ARGS.END_DATE}}}'
         );
         """
     )
@@ -20,9 +20,9 @@ class QUERY:
 
     UPDATE_LAST_UPDATE_IN_RECORDS = (
         f"""
-        UPDATE {{{ARGS.TABLE_NAME}}}
-            SET 'date' = '{{{ARGS.DATE}}}'
-            WHERE name = '{{{ARGS.DEVICE_NAME}}}'
+        UPDATE {{{COMMON_ARGS.TABLE_NAME}}}
+            SET 'date' = '{{{COMMON_ARGS.DATE}}}'
+            WHERE name = '{{{COMMON_ARGS.DEVICE_NAME}}}'
         ;
         """
     )

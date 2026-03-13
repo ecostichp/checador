@@ -30,3 +30,8 @@ ValidityOptions = Literal['valid', 'invalid']
 """
 Opciones de validación.
 """
+
+PipeValidationStage = Literal['require', 'rename', 'select']
+"""
+Etapa de validación de pipe.
+"""

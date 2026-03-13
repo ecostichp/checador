@@ -79,3 +79,12 @@ por limitaciones de importación circular.
 >>> def fn(main: _CoreRegistryProcessing) -> pd.DataFrame:
 >>>     ...
 """
+
+PipeRegistryDecorator = Callable[[DataFramePipe], DataFramePipe]
+"""
+Decorador que registra una función de estructura Pipe.
+
+>>> # Estructura de un pipe
+>>> def pipe_transform_data(records: pd.DataFrame) -> pd.DataFrame:
+>>>     ...
+"""
