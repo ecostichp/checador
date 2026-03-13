@@ -451,7 +451,7 @@ class _Report(_Interface_Report):
 
     def _reports_by_schemas(
         self,
-        fn: Callable[[_DateSchema]],
+        fn: Callable[[_DateSchema], None],
     ) -> pd.DataFrame:
 
         # Construcción de DataFrame a partir de concatenaciones
