@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from ..constants import (
-    ARGS,
+    COMMON_ARGS,
     COLUMN,
     PERMISSION_NAME,
     REGISTRY_TYPE,
@@ -16,13 +16,11 @@ from ..mapping import (
     LUNCH_REGISTRY_TYPES,
     ORDERED_REGISTRY_TYPE,
     PERMISSION_TYPE_REASSIGNATION_NAMES,
-    WAREHOUSE_RENAME,
 )
 from ..settings import REPORT
 from ..templates.messages import MESSAGE
 from ..typing import (
     ColumnAssignation,
-    DataFramePipe,
     DataTypeOrNone,
 )
 from ..typing.callables import (
@@ -42,38 +40,6 @@ class _Pipes(_Interface_Pipes):
 
         # Asignación de instancia principal
         self._main = main
-
-    def get_user_names(
-        self,
-        records: pd.DataFrame,
-    ) -> pd.DataFrame:
-
-        # Función para descartar la columna de nombre del DataFrame
-        discard_name_column: DataFramePipe = (
-            lambda df: (
-                df
-                [
-                    [col for col in df.columns if col != COLUMN.NAME]
-                ]
-            )
-        )
-
-        return (
-            records
-            # Se descarta la columna de nombre desde los registros
-            .pipe(discard_name_column)
-            # Se usa la ID de usuarios para obtener nombre desde los datos de Odoo
-            .pipe(
-                lambda df: (
-                    pd.merge(
-                        left= self._main._data.users,
-                        right= df,
-                        on= COLUMN.USER_ID,
-                        how= 'right',
-                    )
-                )
-            )
-        )
 
     def check_integrity(
         self,
@@ -119,7 +85,7 @@ class _Pipes(_Interface_Pipes):
                 MESSAGE.HINT_VALIDATIONS
                 .format(
                     **{
-                        ARGS.VALIDATIONS_ATTRIBUTE: 'to_verify'
+                        COMMON_ARGS.VALIDATIONS_ATTRIBUTE: 'to_verify'
                     }
                 )
             )
@@ -256,37 +222,6 @@ class _Pipes(_Interface_Pipes):
                     )
                 )
             )
-        )
-
-    def get_warehouse_name(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-
-        # Función para extraer la ID del registro many2one de Odoo
-        extract_id: SeriesApply[Many2One] = (
-            lambda reference: reference[0]
-        )
-
-        # Función para asignar nombre a la ID de almacén
-        rename_id: SeriesApply[int] = (
-            lambda warehouse_id: WAREHOUSE_RENAME[warehouse_id]
-        )
-
-        # Función para extraer y renombrar la información de ID de almacén
-        process_warehouse_data: ColumnAssignation = {
-            COLUMN.WAREHOUSE: (
-                lambda df: (
-                    df[COLUMN.WAREHOUSE]
-                    .apply(extract_id)
-                    .apply(rename_id)
-                )
-            )
-        }
-
-        return (
-            data
-            .assign(**process_warehouse_data)
         )
 
     def get_job_name(

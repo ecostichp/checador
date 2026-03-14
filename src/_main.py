@@ -17,6 +17,7 @@ from .modules import (
     _Update,
     _Validations,
 )
+from .pipes import PipeMethods
 from .services import Services
 from .templates.messages import MESSAGE
 from .typing import ColumnAssignation
@@ -35,6 +36,9 @@ class RegistryProcessing(_CoreRegistryProcessing):
 
         # Inicialización de servicios
         self._services = Services()
+
+        # Inicialización de métodos tipo pipes
+        self._pipe_methods = PipeMethods(self)
 
         # Inicialización de módulo de datos
         self._data = _Data(self)

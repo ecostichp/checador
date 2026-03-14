@@ -15,10 +15,7 @@ from ..typing import (
     ColumnAssignation,
     DataFramePipe,
 )
-from ..typing.callables import (
-    SeriesApply,
-    SeriesFromDataFrame,
-)
+from ..typing.callables import SeriesApply
 
 class _Processing(_Interface_Processing):
 
@@ -136,82 +133,6 @@ class _Processing(_Interface_Processing):
             data
             # Reasignación de columna
             .assign(**categorized_registry_type_assignation)
-        )
-
-    def format_permission_date_strings(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-
-        # Asignación de columnas a formatear
-        formatted_days: ColumnAssignation = {
-            col: (
-                    lambda df, closure_col= col: (
-                    pd.to_datetime(
-                        df[closure_col],
-                        dayfirst= True,
-                    )
-                )
-            ) for col in [
-                COLUMN.PERMISSION_START,
-                COLUMN.PERMISSION_END,
-            ]
-        }
-
-        return (
-            data
-            # Formateo de fechas provenientes de los documentos de Google Sheets
-            .assign(**formatted_days)
-        )
-
-    def add_registry_time(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Asignación de fecha y hora de registro
-        Esta función concatena fecha y hora  en base a las columnas `'date'` y
-        `'time'` de los registros.
-        """
-
-        # Función para extraer los datos de hora desde un texto
-        extract_time_from_string: SeriesApply[str] = (
-            lambda dt: (
-                dt.split(' ')[2]
-            )
-        )
-        # Función para convertir delta de tiempo en texto
-        from_timedelta_to_string_time: SeriesFromDataFrame = (
-            lambda df: (
-                df[COLUMN.TIME]
-                .astype('string')
-                .apply(extract_time_from_string)
-            )
-        )
-
-        # Columna de fecha y hora de registro
-        string_registry_time: ColumnAssignation = {
-            COLUMN.REGISTRY_TIME: (
-                lambda df: (
-                    pd.to_datetime(
-                        (
-                            df
-                            [COLUMN.DATE]
-                            .astype('string[python]')
-                        )
-                        + ' '
-                        + from_timedelta_to_string_time(df)
-                    )
-                )
-            )
-        }
-
-        return (
-            data
-            # Se asigna la columna de fecha y hora de registro
-            .assign(**string_registry_time)
-            # Asignación de tipos de datos
-            .pipe(self.assign_dtypes)
         )
 
     def _initialize_functions(

@@ -6,18 +6,6 @@ class _Interface_Pipes:
     `[Submódulo]` Funciones pipe para DataFrame.
     """
 
-    def get_user_names(
-        self,
-        records: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Obtención de nombres de usuarios
-        Este método obtiene los nombres de los usuarios en base a su ID de usuario.
-
-        :param records DataFrame: Registros entrantes.
-        """
-        ...
-
     def check_integrity(
         self,
     ) -> DataTypeOrNone[pd.DataFrame]:
@@ -65,20 +53,6 @@ class _Interface_Pipes:
         ### Obtención de ID de usuario
         Esta función se ejecuta para crear un pipe que asigna la ID de
         usuario a los registros del DataFrame provisto.
-
-        :param data DataFrame: Datos entrantes.
-        """
-        ...
-
-    def get_warehouse_name(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Obtención de nombre de almacén
-        Este método procesa los datos retornados por la API de Odoo y extrae y renombra
-        el valor de almacén designado de los usuarios activos encontrados, desde un
-        valor de tipo *many2one*.
 
         :param data DataFrame: Datos entrantes.
         """

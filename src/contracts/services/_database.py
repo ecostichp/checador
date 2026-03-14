@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import (
+    date,
+    datetime,
+)
 from typing import Literal
 import pandas as pd
 from ...typing.callables import ConnFunction
@@ -6,6 +9,28 @@ from ...typing.generics import _T
 from ...typing.misc import RecordsLastDates
 
 class _Contract_Database:
+
+    def load_assistance_records(
+        self,
+        start_date: date,
+        end_date: date,
+    ) -> pd.DataFrame:
+        ...
+
+    def load_holidays(
+        self,
+    ) -> pd.DataFrame:
+        ...
+
+    def load_schedules(
+        self,
+    ) -> pd.DataFrame:
+        ...
+
+    def load_schedule_offsets(
+        self,
+    ) -> pd.DataFrame:
+        ...
 
     def load_data_from_query(
         self,

@@ -270,3 +270,175 @@ TIME_DELTA_ON_ZERO = timedelta()
 """
 `timedelta(00:00:00)` Valor de delta de tiempo en ceros.
 """
+
+class PIPE:
+    class DATA:
+        class USERS:
+            GET_WAREHOUSE_NAME = 'get_warehouse_name'
+            """
+            ### Obtención de nombre de almacén
+            Este pipe procesa los datos retornados por la API de Odoo y extrae y renombra
+            el valor de almacén designado de los usuarios activos encontrados, desde un
+            valor de tipo *many2one*.
+
+            :param records DataFrame: Datos entrantes.
+            """
+            GET_JOB_NAME = 'get_job_name'
+            """
+            ### Obtención de nombre de puesto de trabajo
+            Este pipe procesa los datos retornados por la API de Odoo y extrae el nombre
+            del puesto de trabajo, desde un valor de tipo *many2one*.
+
+            :param records DataFrame: Datos entrantes.
+            """
+        class CORRECTIONS:
+            ADD_CORRECTION_TAG = 'add_correction_tag'
+            """
+            ### Adición de etiqueta de corrección
+            Este pipe añade una columna booleana en `True` que indica que todos los
+            registros del DataFrame entrante son correcciones.
+
+            :param records DataFrame: Datos entrantes.
+            """
+            SORT_BY_DATE = 'sort_by_date'
+            """
+            ### Ordenamiento por fecha
+            Este pipe ordena los datos del DataFrame por su columna de fecha.
+
+            :param records DataFrame: Datos entrantes.
+            """
+        class JUSTIFICATIONS:
+            RENAME_COLUMNS = 'rename_justifications_columns'
+            """
+            ### Reasignación de nombres de columnas en incidencias
+            Este pipe reasigna nombres de columnas al DataFrame entrante.
+
+            :param records DataFrame: Datos entrantes.
+            """
+    class PROCESSING:
+        ASSIGN_DTYPES = 'assign_dtypes'
+        """
+        ### Asignación de tipos de datos
+        Esta función asigna los tipos de datos establecidos para las columnas de un
+        DataFrame y ordena los tipos de registro en caso de existir la columna de éstos.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        GET_USER_NAMES = 'get_user_names'
+        """
+        ### Obtención de nombres de usuarios
+        Este pipe obtiene los nombres de los usuarios en base a su ID de usuario.
+
+        :param records DataFrame: Registros entrantes.
+        """
+        TIME_FIRST_TO_STRING = 'time_first_to_string'
+        """
+        ### Conversión de hora a cadena de texto
+        Este pipe convierte la columna de hora en cadena de texto.
+
+        :param records DataFrame: Registros entrantes.
+        """
+        NULL_BY_JUSTIFICATION = 'null_by_justification'
+        """
+        ### Anulado por incidencia
+        Este pipe añade una columna que indica si el registro fue anulado por
+        incidencia en base a si el tipo de registro fue descrito como incidencia. Además,
+        convierte este tipo de registro en `'null'` para desacoplar correctamente la
+        información y conservar la integridad de los datos.
+
+        :param records DataFrame: Registros entrantes.
+        """
+        ASSIGN_ORDERED_REGISTRY_TYPE = 'assign_ordered_registry_type'
+        """
+        ### Asignación de tipo de registro (ordenado)
+        Esta función convierte la columna de tipo de registro en un tipo categórico
+        ordenado.
+
+        1. Identifica los tipos de registro presentes en el DataFrame.
+        2. Filtra según un orden ORDERED_REGISTRY_TYPE.
+        3. Reasigna la columna como categoría y aplica ese orden.
+
+        Esto permite trabajar con los tipos de registro de manera consistente,
+        facilitando comparaciones, ordenamientos y cualquier proceso que 
+        dependa del orden lógico de los eventos.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        ADD_REGISTRY_TIME = 'add_registry_time'
+        """
+        ### Asignación de fecha y hora de registro
+        Esta función concatena fecha y hora  en base a las columnas `'date'` y
+        `'time'` de los registros.
+        """
+        class RECORDS:
+            ADD_DATE_AND_TIME = 'add_date_and_time'
+            """
+            ### Agregar fecha y hora
+            Este pipe agrega columnas de fecha y de hora al DataFrame entrante.
+
+            :param records DataFrame: Registros entrantes.
+            """
+            PROCESS_BEFORE_SAVE_IN_DATABASE = 'process_before_save_in_database'
+            """
+            ### Procesamiento antes de guardar en base de datos
+            Este pipe reasigna nombres de columnas del DataFrame entrante para
+            acondicionarlo para ser guardado en la base de datos y le crea una columna de
+            ID de registro en la base de datos en base a la fecha, hora y el disposivo
+            fuente de los registros.
+
+            :param records DataFrame: Datos entrantes.
+            """
+        class JUSTIFICATIONS:
+            GET_AND_KEEP_BY_USER_ID = 'get_and_keep_by_user_id'
+            """
+            ### Obtención de IDs de usuario
+            Este pipe obtiene las IDs de los usuarios y filtra por todos los registros cuya
+            ID de usuario fue hallada.
+
+            :param records DataFrame: Datos entrantes.
+            """
+            FORMAT_PERMISSION_DATE_STRINGS = 'format_permission_date_strings'
+            """
+            ### Formateo de fechas de incidencias
+            Este método convierte los valores de cadena de texto de las columnas de fecha
+            de permiso en valores de tipo fecha.
+
+            :param records DataFrame: Datos entrantes.
+            """
+    class COLUMNS_SELECTION:
+        ASSISTANCE_RECORDS = 'select_columns_assistance_records'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        CORRECTIONS = 'select_columns_corrections'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        JUSTIFICATIONS = 'select_columns_justifications'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        ASSISTANCE_RECORDS_UPDATE = 'select_columns_assistance_records_update'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """

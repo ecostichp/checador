@@ -1,8 +1,5 @@
 import pandas as pd
-from ..constants import (
-    COLUMN,
-    REGISTRY_TYPE,
-)
+from ..constants import COLUMN
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Validations,

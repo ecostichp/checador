@@ -3,7 +3,7 @@ from datetime import (
     timedelta,
 )
 from typing import Iterator
-from ..constants import ARGS
+from ..constants import COMMON_ARGS
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_DateSchemas,
@@ -50,6 +50,60 @@ class _DateSchemas(_Interface_DateSchemas):
         max_end_date = max(end_dates)
 
         return max_end_date
+
+    @property
+    def start_month(
+        self,
+    ) -> int:
+
+        return (
+            self
+            .min_date()
+            .month
+        )
+
+    @property
+    def end_month(
+        self,
+    ) -> int:
+
+        return (
+            self._main._services.date
+            .most_recent_available_date
+            .month
+        )
+
+    @property
+    def start_year(
+        self,
+    ) -> int:
+
+        return (
+            self
+            .min_date()
+            .year
+        )
+
+    @property
+    def end_year(
+        self,
+    ) -> int:
+
+        return (
+            self._main._services.date
+            .most_recent_available_date
+            .year
+        )
+
+    @property
+    def cross_months(
+        self,
+    ) -> bool:
+
+        # Evaluación de condición
+        result = self.start_month != self.end_month
+
+        return result
 
     def __iter__(
         self,
@@ -144,7 +198,7 @@ class _DateSchemas(_Interface_DateSchemas):
             frequency= 'biweekly',
             start_date= start_date,
             end_date= end_date,
-            name= SCHEMA.BIWEEKLY.format(**{ARGS.N: 1}),
+            name= SCHEMA.BIWEEKLY.format(**{COMMON_ARGS.N: 1}),
             current= current,
         )
 
@@ -173,7 +227,7 @@ class _DateSchemas(_Interface_DateSchemas):
             frequency= 'biweekly',
             start_date= start_date,
             end_date= end_date,
-            name= SCHEMA.BIWEEKLY.format(**{ARGS.N: 2}),
+            name= SCHEMA.BIWEEKLY.format(**{COMMON_ARGS.N: 2}),
             current= True,
         )
 
@@ -233,7 +287,7 @@ class _DateSchemas(_Interface_DateSchemas):
                 frequency= 'weekly',
                 start_date= start_date,
                 end_date= end_date,
-                name= SCHEMA.WEEKLY.format(**{ARGS.N: weeks_counter}),
+                name= SCHEMA.WEEKLY.format(**{COMMON_ARGS.N: weeks_counter}),
                 current= week_i_is_current,
             )
             # Se añade el esquema

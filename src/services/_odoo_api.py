@@ -39,6 +39,8 @@ class OdooAPI(_Contract_OdooAPI):
                     'job_id': COLUMN.JOB,
                 },
             )
+            # Ordenamiento de valores por ID de usuario
+            .sort_values(COLUMN.USER_ID)
             # Ordenamiento y selección de columnas de columnas
             [[
                 COLUMN.USER_ID,

@@ -1,29 +1,10 @@
 import pandas as pd
-from datetime import timedelta
-from ccc_utils import spreadsheet
-from ..utils import path_from_dropbox
-from ..constants import (
-    ARGS,
-    COLUMN,
-    REGISTRY_TYPE,
-)
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Data,
 )
-from ..mapping import ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
-from ..settings import (
-    DATABASE,
-    INPUT,
-)
-from ..templates.files import (
-    EXCEL_FILE,
-    SPREADSHEET,
-)
-from ..templates.messages import MESSAGE
-from ..templates.queries import QUERY
-from ..typing import ColumnAssignation
-from ..sql import load_from_database
+from ..tools import PipelineHub
+from ..rules import PIPELINE
 
 class _Data(_Interface_Data):
 
@@ -56,92 +37,26 @@ class _Data(_Interface_Data):
         Este método carga los datos de usuarios y los almacena en un DataFrame.
         """
 
-        return (
-            # Obtención de la lista de empleados desde Odoo
-            self._main._services.odoo_api.get_users()
-            # Procesamiento de datos de almacén
-            .pipe(self._main._pipes.get_warehouse_name)
-            # Procesamiento de datos de puesto de trabajo
-            .pipe(self._main._pipes.get_job_name)
-            # Ordenamiento de valores por ID de usuario
-            .sort_values(COLUMN.USER_ID)
-            # Asignación de tipos de datos
-            .pipe(self._main._processing.assign_dtypes)
-        )
+        # Obtención de la lista de empleados desde Odoo
+        users = self._main._services.odoo_api.get_users()
+        # Procesamiento por medio de pipe
+        processed_data = PipelineHub.run_pipe_flow(users, PIPELINE.GET_USERS)
+
+        return processed_data
 
     def _load_records(
         self,
     ) -> pd.DataFrame:
 
-        # Construcción del query para leer la tabla
-        query = (
-            QUERY.GET_RECORDS_IN_DATE_RANGE
-            .format(
-                **{
-                    ARGS.TABLE_NAME: DATABASE.TABLE.ASSISTANCE_RECORDS,
-                    ARGS.REGISTRY_TIME: COLUMN.REGISTRY_TIME,
-                    ARGS.START_DATE: self._main._schemas.min_date(),
-                    ARGS.END_DATE: self._main._services.date.today
-                }
-            )
-        )
-
-        # Función para convertir cadena de texto en delta de tiempo
-        def string_to_timedelta(value: str) -> timedelta:
-            # Obtención de los valores
-            [ hour, minute, second ] = value.split(':')
-            # Inicialización del objeto de delta de tiempo
-            value = timedelta(
-                hours= int(hour),
-                minutes= int(minute),
-                seconds= int(second),
-            )
-            return value
-
-        # Asignación de columnas de fecha y tiempo
-        date_and_time: ColumnAssignation = {
-            COLUMN.DATE: (
-                lambda df: (
-                    df[COLUMN.REGISTRY_TIME]
-                    .dt.date
-                )
-            ),
-            COLUMN.TIME: (
-                lambda df: (
-                    df[COLUMN.REGISTRY_TIME]
-                    .dt.time
-                    .astype('string')
-                    .apply(string_to_timedelta)
-                )
-            ),
-        }
-
         # Obtención de los datos desde la tabla de la base de datos
-        data = self._main._services.database.load_data_from_query(query)
-
-        return (
-            data
-            # Obtención de los nombres de empleados
-            .pipe(self._main._pipes.get_user_names)
-            # Se filtran los registros con nombres vacíos
-            .pipe(lambda df: df[df[COLUMN.NAME].notna()])
-            # Asignación de tipos de datos
-            .pipe(self._main._processing.assign_dtypes)
-            # Asignación de columnas de fecha y hora
-            .assign(**date_and_time)
-            # Asignación de tipos de datos
-            .pipe(self._main._processing.assign_dtypes)
-            # Selección de columnas
-            [[
-                COLUMN.USER_ID,
-                COLUMN.NAME,
-                COLUMN.REGISTRY_TIME,
-                COLUMN.DATE,
-                COLUMN.TIME,
-                COLUMN.REGISTRY_TYPE,
-                COLUMN.DEVICE,
-            ]]
+        records = self._main._services.database.load_assistance_records(
+            self._main._schemas.min_date(),
+            self._main._services.date.today,
         )
+        # Procesamiento por medio de pipe
+        processed_data = PipelineHub.run_pipe_flow(records, PIPELINE.GET_RECORDS)
+
+        return processed_data
 
     def _load_corrections(
         self,
@@ -151,64 +66,12 @@ class _Data(_Interface_Data):
         Este método carga los datos de correcciones y los almacena en un DataFrame.
         """
 
-        # Función para convertir la columna de tiempo en texto antes de asignar dtype
-        time_first_to_string: ColumnAssignation = {
-            COLUMN.TIME: (
-                lambda df: (
-                    df[COLUMN.TIME].astype('string')
-                )
-            )
-        }
+        # Obtención de datos de correcciones
+        corrections = self._load_corrections_files()
+        # Procesamiento por medio de pipe
+        processed_data = PipelineHub.run_pipe_flow(corrections, PIPELINE.GET_CORRECTIONS)
 
-        # Función para calificar descartados por incidencia
-        null_by_justification: ColumnAssignation = {
-            COLUMN.NULL_BY_JUSTIFICATION: (
-                lambda df: (
-                    df[COLUMN.REGISTRY_TYPE] == INPUT.VALUE.JUSTIFICATION
-                )
-            ),
-        }
-
-        return (
-            # Se cargan archivos de correcciones
-            self._load_corrections_files()
-            # Obtención de los nombres de empleados
-            .pipe(self._main._pipes.get_user_names)
-            # Se filtran los registros con nombres vacíos
-            .pipe(lambda df: df[df[COLUMN.NAME].notna()])
-            # Se convierte el tipo de dato de la columna de tiempo en cadena de texto para ser convertida a datetime64[ns]
-            .assign(**time_first_to_string)
-            # Se identifican registros anulados por incidencia
-            .assign(**null_by_justification)
-            # Se reemplazan los valores indicados como nulos por incidencia
-            .replace({
-                COLUMN.REGISTRY_TYPE: {
-                    INPUT.VALUE.JUSTIFICATION: REGISTRY_TYPE.NULL,
-                }
-            })
-            # Asignación de tipos de dato
-            .pipe(self._main._processing.assign_dtypes)
-            # Asignación de ordenamiento de valores de tipo de registro
-            .pipe(self._main._pipes.assign_ordered_registry_type)
-            # Se asigna la columna de fecha y hora de registro
-            .pipe(self._main._processing.add_registry_time)
-            # Se añade la columna de indicador de corrección con valor en True
-            .assign(**{COLUMN.IS_CORRECTION: True})
-            # Selección de columnas
-            [[
-                COLUMN.USER_ID,
-                COLUMN.NAME,
-                COLUMN.TIME,
-                COLUMN.DATE,
-                COLUMN.REGISTRY_TYPE,
-                COLUMN.DEVICE,
-                COLUMN.REGISTRY_TIME,
-                COLUMN.IS_CORRECTION,
-                COLUMN.NULL_BY_JUSTIFICATION,
-            ]]
-            # Ordenamiento de registros por fecha
-            .sort_values(COLUMN.DATE)
-        )
+        return processed_data
 
     def _load_justifications(
         self,
@@ -218,126 +81,39 @@ class _Data(_Interface_Data):
         Este método carga los datos de justificaciones y los almacena en un DataFrame.
         """
 
-        # Obtención de categorías de nombres
-        user_names_categories = (
-            self.users
-            [COLUMN.NAME]
-            .unique()
-            .tolist()
-        )
+        # Obtención de datos de incidencias
+        justifications = self._main._services.google_sheets.load_justifications()
+        # Procesamiento por medio de pipe
+        result = PipelineHub.run_pipe_flow(justifications, PIPELINE.GET_JUSTIFICATIONS)
 
-        # Función para reasignar nombres como categorías
-        reassign_name_categories: ColumnAssignation = {
-            COLUMN.NAME: (
-                lambda df: (
-                    df
-                    [COLUMN.NAME]
-                    .cat.set_categories(user_names_categories)
-                )
-            )
-        }
-
-        # Declaración de diccionario de reasignación de nombres de columnas
-        columns_to_rename = ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES
-        # Construcción de iterable de columnas seleccionadas
-        selected_columns = ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES.values()
-
-        return (
-            (
-                # Se cargan los datos desde los documentos de Hojas de Cálculo
-                pd.concat(
-                    [
-                        (
-                            spreadsheet.load(
-                                SPREADSHEET.JUSTIFICATIONS.NAME,
-                                sheet_name,
-                            )
-                        )
-                        for sheet_name in SPREADSHEET.JUSTIFICATIONS.SHEETS
-                    ]
-                )
-            )
-            # Reasignación de nombres de columnas
-            .rename(columns= columns_to_rename)
-            # Selección de columnas
-            [selected_columns]
-            # Obtención de la ID de usuario
-            .pipe(
-                lambda df: (
-                    pd.merge(
-                        left= (
-                            # Uso de los datos de usuarios
-                            self.users
-                            # Selección de columnas
-                            [[COLUMN.USER_ID, COLUMN.NAME]]
-                        ),
-                        right= df,
-                        on= COLUMN.NAME,
-                        how= 'right'
-                    )
-                )
-            )
-            # Se descartan los usuarios cuya ID no fue encontrada ya que están inactivos
-            .pipe(lambda df: df[df[COLUMN.USER_ID].notna()])
-            # Formateo de fechas provenientes de los documentos de Google Sheets
-            .pipe(self._main._processing.format_permission_date_strings)
-            # Asignación de tipos de datos
-            .pipe(self._main._processing.assign_dtypes)
-            # Se reasignan los nombres como categorías
-            .assign(**reassign_name_categories)
-            # Se ordenan los datos por término de fecha de pérmiso
-            .sort_values(COLUMN.PERMISSION_END)
-        )
+        return result
 
     def _load_holidays(
         self,
     ) -> pd.DataFrame:
 
-        return (
-            # Se cargan los datos desde la base de datos
-            load_from_database(
-                DATABASE.TABLE.HOLIDAYS,
-                {
-                    COLUMN.HOLIDAY_NAME: 'string[python]',
-                    COLUMN.HOLIDAY_DATE: 'datetime64[ns]',
-                }
-            )
-        )
+        # Se cargan los datos desde la base de datos
+        holidays = self._main._services.database.load_holidays()
+
+        return holidays
 
     def _load_schedules(
         self,
     ) -> pd.DataFrame:
 
-        return (
-            # Se cargan los datos desde la base de datos
-            load_from_database(
-                DATABASE.TABLE.SCHEDULES,
-                # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
-                {
-                    COLUMN.WEEKDAY: 'uint8',
-                    COLUMN.START_SCHEDULE: 'timedelta64[ns]',
-                    COLUMN.END_SCHEDULE: 'timedelta64[ns]',
-                }
-            )
-        )
+        # Se cargan los datos desde la base de datos
+        schedules = self._main._services.database.load_schedules()
+
+        return schedules
 
     def _load_schedule_offsets(
         self,
     ) -> pd.DataFrame:
 
-        return (
-            # Se cargan los datos desde la base de datos
-            load_from_database(
-                DATABASE.TABLE.SCHEDULE_OFFSETS,
-                # Conversión de tipos de dato ya que SQLite no soporta INTERVAL
-                {
-                    COLUMN.USER_ID: 'uint16',
-                    COLUMN.WEEKDAY: 'uint8',
-                    COLUMN.START_OFFSET: 'timedelta64[ns]',
-                    COLUMN.END_OFFSET: 'timedelta64[ns]',
-                }
-            )
-        )
+        # Se cargan los datos desde la base de datos
+        schedule_offsets = self._main._services.database.load_schedule_offsets()
+
+        return schedule_offsets
 
     def _load_corrections_files(
         self,
@@ -345,108 +121,21 @@ class _Data(_Interface_Data):
         """
         ### Cargar archivos de correcciones
         Este método se encarga de evaluar si se requiere cargar uno o dos libros de
-        datos de diferentes meses en base a la fecha inicial y final de los datos
-        requeridos y carga los libros en DataFrames que retorna concatenados.
+        datos de diferentes meses en base a los datos de los esquemas y carga los
+        libros en DataFrames que retorna concatenados.
         """
 
-        # Mes de inicio
-        start_month = (
-            self._main._schemas
-            .min_date()
-            .month
-        )
-        # Mes de fin
-        end_month = (
-            self._main._services.date
-            .most_recent_available_date
-            .month
-        )
-
         # Si el mes de inicio es distinto al mes de fin...
-        if start_month != end_month:
-            # Año de inicio
-            start_year = (
-                self._main._schemas
-                .min_date()
-                .year
-            )
-            # Año de fin
-            end_year = (
-                self._main._services.date
-                .most_recent_available_date
-                .year
-            )
-            # Parámetros para iterar
-            params = [
-                (start_year, start_month),
-                (end_year, end_month),
-            ]
-
-            # Inicialización de lista de DataFrames
-            corrections_in_required_dates: list[pd.DataFrame] = []
-
-            # Carga de dos meses
-            for ( year, month ) in params:
-                # Se intenta cargar un libro de correcciones
-                try:
-                    # Obtención de los datos desde un archivo de Excel
-                    corrections_per_month = self._load_corrections_book(year, month)
-                    # Se añade el DataFrame a la lista
-                    corrections_in_required_dates.append(corrections_per_month)
-                # Si no fue encontrado...
-                except FileNotFoundError:
-                    # Se indica el error y se continúa con el siguiente libro
-                    print(
-                        MESSAGE.CORRECTIONS_FILE_NOT_FOUND
-                        .format(
-                            **{
-                                ARGS.YEAR: year,
-                                ARGS.MONTH: month,
-                            }
-                        )
-                    )
-
-            # Concatenación de DataFrames
-            corrections = pd.concat(corrections_in_required_dates)
+        if self._main._schemas.cross_months:
+            # Obtención de correcciones desde más de un libro de Excel
+            corrections = self._main._services.excel.load_corrections_books(self._main._schemas)
 
         # Si el mes de inicio es igual al mes de fin...
         else:
             # Carga del archivo
-            corrections = self._load_corrections_book(
+            corrections = self._main._services.excel.load_corrections_book(
                 self._main._services.date.current_year,
                 self._main._services.date.current_month,
             )
 
         return corrections
-
-    def _load_corrections_book(
-        self,
-        year: int,
-        month: int,
-    ) -> pd.DataFrame:
-        """
-        ### Cargar correcciones desde Excel
-        Este método carga los datos de un Excel en base a los parámetros
-        proporcionados.
-        """
-
-        # Generación de nombre de archivo a buscar
-        file_name = (
-            EXCEL_FILE.CORRECTIONS.NAME
-            .format(
-                **{
-                    ARGS.YEAR: year,
-                    ARGS.MONTH: month,
-                }
-            )
-        )
-        # Obtención de la ruta del archivo
-        file_path = path_from_dropbox(f'{file_name}.xlsx')
-
-        # Obtención de los datos desde un archivo de Excel
-        data = pd.read_excel(
-            file_path,
-            keep_default_na= False,
-        )
-
-        return data

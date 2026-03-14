@@ -10,9 +10,10 @@ from .modules import (
     _Interface_Update,
     _Interface_Validations,
 )
-from .services import _Contract_ServicesMain
 from ..typing.aliases import UserID
 from ..typing.literals import NumericWeekday
+from .pipes import _Contract_PipeMethods
+from .services import _Contract_ServicesMain
 
 class _CoreRegistryProcessing:
 
@@ -55,6 +56,11 @@ class _CoreRegistryProcessing:
 
     _services: _Contract_ServicesMain
     """Servicios de la clase principal."""
+
+    _pipe_methods: _Contract_PipeMethods
+    """
+    `[Pipes]` Pipes para procesamientos de Pandas DataFrames.
+    """
 
     def report(
         self,

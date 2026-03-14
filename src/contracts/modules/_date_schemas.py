@@ -31,6 +31,36 @@ class _Interface_DateSchemas:
         """
         ...
 
+    @property
+    def start_month(
+        self,
+    ) -> int:
+        ...
+
+    @property
+    def end_month(
+        self,
+    ) -> int:
+        ...
+
+    @property
+    def start_year(
+        self,
+    ) -> int:
+        ...
+
+    @property
+    def end_year(
+        self,
+    ) -> int:
+        ...
+
+    @property
+    def cross_months(
+        self,
+    ) -> bool:
+        ...
+
     def __iter__(
         self,
     ) -> Iterator[_DateSchema]:

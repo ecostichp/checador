@@ -7,9 +7,9 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
+from ..rules import PIPELINE
 from ..settings import DATABASE
-from ..typing import ColumnAssignation
-from ..typing.callables import SeriesApply
+from ..tools import PipelineHub
 from ..typing.misc import RecordsLastDates
 
 class _Update(_Interface_Update):
@@ -74,58 +74,8 @@ class _Update(_Interface_Update):
         data: pd.DataFrame,
     ) -> None:
 
-        # Conversión de fecha a código
-        to_code: SeriesApply[str] = (
-            lambda value: (
-                value
-                .replace('-', '')
-                .replace(' ', '')
-                .replace(':', '')
-            )
-        )
-
-        # Asignación de columna de ID
-        id_assignation: ColumnAssignation = {
-            COLUMN.ID: (
-                lambda df: (
-                    (
-                        df[COLUMN.DEVICE]
-                        .astype(str)
-                    ) + (
-                        df[COLUMN.REGISTRY_TIME]
-                        .astype(str)
-                        .apply(to_code)
-                    )
-                )
-            )
-        }
-
-        data_to_save = (
-            data
-            # Reasignación de nombres de columnas
-            .rename(
-                columns= {
-                    'user_id': COLUMN.USER_ID,
-                    'name': COLUMN.NAME,
-                    'time': COLUMN.REGISTRY_TIME,
-                    'status': COLUMN.REGISTRY_TYPE,
-                    'device': COLUMN.DEVICE,
-                }
-            )
-            # Asignación de columna de ID
-            .assign(**id_assignation)
-            # Asignación de tipos de dato
-            .pipe(self._main._processing.assign_dtypes)
-            # Selección de columnas
-            [[
-                COLUMN.ID,
-                COLUMN.USER_ID,
-                COLUMN.NAME,
-                COLUMN.REGISTRY_TIME,
-                COLUMN.REGISTRY_TYPE,
-                COLUMN.DEVICE,
-            ]]
-        )
+        # Procesamiento de los datos para ser guardados
+        data_to_save = PipelineHub.run_pipe_flow(data, PIPELINE.UPDATE_DATABASE)
 
         # Se guardan los datos en la tabla de la base de datos local
         self._save_records(data_to_save)

@@ -53,29 +53,3 @@ class _Interface_Processing:
         :param data DataFrame: Datos entrantes.
         """
         ...
-
-    def format_permission_date_strings(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Formateo de fechas de justificaciones
-        Este método convierte los valores de cadena de texto de las columnas de fecha
-        de permiso en valores de tipo fecha.
-
-        :param data DataFrame: Datos entrantes.
-        """
-        ...
-
-    def add_registry_time(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Asignación de fecha y hora de registro
-        Esta función concatena fecha y hora  en base a las columnas `'date'` y `'time'`
-        de los registros.
-
-        :param data DataFrame: Datos entrantes.
-        """
-        ...
