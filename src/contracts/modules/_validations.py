@@ -1,12 +1,12 @@
 from ...typing import DataFramePipe
-from ...typing.literals import ValidityOptions
+from ...typing.literals import ViewOptions
 
 class _Interface_Validations:
 
-    def filter_by_validity(
+    def filter_for_view(
         self,
         /,
-        by: ValidityOptions,
+        view: ViewOptions,
         keep_today_check_in: bool = False,
     ) -> DataFramePipe:
         ...

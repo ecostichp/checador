@@ -3,5 +3,5 @@ from ._base.literals import (
     NumericWeekday,
     PayFrequency,
     PermissionTypeOption,
-    ValidityOptions,
+    ViewOptions,
 )

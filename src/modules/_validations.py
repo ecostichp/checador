@@ -12,7 +12,7 @@ from ..rules import (
     VALIDATIONS_PER_DAY_AND_USER_ID,
 )
 from ..typing import DataFramePipe
-from ..typing.literals import ValidityOptions
+from ..typing.literals import ViewOptions
 
 class _Validations(_Interface_Validations):
 
@@ -24,10 +24,10 @@ class _Validations(_Interface_Validations):
         # Asignación de instancia principal
         self._main = main
 
-    def filter_by_validity(
+    def filter_for_view(
         self,
         /,
-        by: ValidityOptions,
+        view: ViewOptions,
         keep_today_check_in: bool = False,
     ) -> DataFramePipe:
 
@@ -35,13 +35,15 @@ class _Validations(_Interface_Validations):
         def filter_records(data: pd.DataFrame) -> pd.Series:
 
             # Condiciones para filtrar por validez de integridad de datos completos
-            filter_validity: dict[ValidityOptions, pd.Series] = {
-                'valid': data[COLUMN.IS_CLOSED_CORRECT],
-                'invalid': ~data[COLUMN.IS_CLOSED_CORRECT],
+            filter_validity: dict[ViewOptions, pd.Series] = {
+                # Filtro por los datos cuyo día sea cerrado y correcto
+                'report': data[COLUMN.IS_CLOSED_CORRECT],
+                # Filtro por los datos cuyo día sea cerrado e incorrecto y además que el tipo de registro sea diferente a [null]
+                'verifications': ~data[COLUMN.IS_CLOSED_CORRECT] & (data[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.NULL),
             }
 
             # Construcción de condición
-            validated_condition = filter_validity[by]
+            validated_condition = filter_validity[view]
 
             # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
             if keep_today_check_in:
