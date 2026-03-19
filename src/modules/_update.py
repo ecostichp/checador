@@ -7,9 +7,9 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Update,
 )
+from ..core import pipeline_hub
 from ..rules import PIPELINE
 from ..settings import DATABASE
-from ..tools import PipelineHub
 from ..typing.misc import RecordsLastDates
 
 class _Update(_Interface_Update):
@@ -75,7 +75,7 @@ class _Update(_Interface_Update):
     ) -> None:
 
         # Procesamiento de los datos para ser guardados
-        data_to_save = PipelineHub.run_pipe_flow(data, PIPELINE.UPDATE_DATABASE)
+        data_to_save = pipeline_hub.run_pipe_flow(data, PIPELINE.UPDATE_DATABASE)
 
         # Se guardan los datos en la tabla de la base de datos local
         self._save_records(data_to_save)

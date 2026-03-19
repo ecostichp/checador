@@ -7,7 +7,6 @@ from ._main import (
     ENV_VARIABLE,
     ENV_VAR_PREFIX,
     PERMISSION_NAME,
-    PIPE,
     REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
@@ -15,3 +14,4 @@ from ._main import (
     WAREHOUSES,
     WEEKDAY,
 )
+from ._pipeline import PIPE

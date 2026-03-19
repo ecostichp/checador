@@ -1,15 +1,26 @@
 import pandas as pd
-from ..constants import COLUMN
+from ..constants import (
+    COLUMN,
+    VALIDATION,
+)
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Validations,
 )
+from ..core import pipeline_hub
 from ..rules import (
     GLOBAL_FILTERS,
+    PIPELINE,
     VALIDATIONS_PER_DAY_AND_USER_ID,
+)
+from ..settings import REPORT
+from ..templates.messages import (
+    COMMON_ARGS,
+    MESSAGE,
 )
 from ..typing import DataFramePipe
 from ..typing.literals import ValidityOptions
+from ..typing.misc import DataTypeOrNone
 
 class _Validations(_Interface_Validations):
 
@@ -20,6 +31,58 @@ class _Validations(_Interface_Validations):
 
         # Asignación de instancia principal
         self._main = main
+
+    def check_integrity(
+        self,
+    ) -> DataTypeOrNone[pd.DataFrame]:
+
+        # Función para filtrar por registros inválidos
+        filter_by_invalid_fn = self.filter_by_validity(by= 'invalid')
+
+        validations = (
+            self._main._validations.base_records_for_report()
+            # Se descartan todos los registros de entrada del día en curso
+            .pipe(lambda df: df[ ~df[COLUMN.IS_CURRENT_DAY_CHECKIN] ])
+            # Se descartan todos los registros que contengan alguna validación no aprobada
+            .pipe(filter_by_invalid_fn)
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.TIME,
+                COLUMN.DATE,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DEVICE,
+                COLUMN.IS_DUPLICATED,
+                COLUMN.IS_CORRECTION,
+                VALIDATION.COMPLETE,
+                VALIDATION.BREAK_PAIRS,
+                VALIDATION.UNIQUE_START_AND_END,
+                COLUMN.IS_CURRENT_DAY_CHECKIN,
+            ]]
+        )
+
+        # Si existen registros a validar...
+        if len(validations):
+            # Se genera el archivo Excel con los registros a validar
+            validations.to_excel(f'{REPORT.VERIFICATION.NAME}.xlsx', index= False)
+            # Se indica al usuario que hay registros que requieren ser corregidos
+            print(MESSAGE.RECORDS_TO_FIX_WERE_FOUND)
+            print(
+                MESSAGE.HINT_VALIDATIONS
+                .format(
+                    **{
+                        COMMON_ARGS.VALIDATIONS_ATTRIBUTE: 'to_verify'
+                    }
+                )
+            )
+            # Se retorna el DataFrame
+            return validations
+
+        # Si no existen registros a validar...
+        else:
+            # Se indica que todo está correcto
+            print(MESSAGE.ALL_OK)
 
     def filter_by_validity(
         self,
@@ -81,3 +144,48 @@ class _Validations(_Interface_Validations):
             )
 
         return evaluate_pivot_validations
+
+    def records_for_report(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención de registros base para reporte
+        base_records_for_report = self.base_records_for_report()
+        # Función para filtrar por registros válidos
+        filter_by_valid_fn = self.filter_by_validity(by= 'valid', keep_today_check_in= True)
+        # Filtro por registros válidos
+        filtered_records = filter_by_valid_fn(base_records_for_report)
+        # Evaluación de fechas y horas de registro
+        records_for_report = pipeline_hub.run_pipe_flow(filtered_records, PIPELINE.EVALUATE_REGISTRY_TIMES)
+
+        return records_for_report
+
+    def base_records_for_report(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención de registros del dispositivo
+        records = self._main.data.records
+
+        # Obtención de registros corregidos
+        corrected_records = pipeline_hub.run_pipe_flow(records, PIPELINE.CORRECT_RECORDS)
+        # Validación de registros
+        validated_records = pipeline_hub.run_pipe_flow(corrected_records, PIPELINE.VALIDATE_RECORDS)
+
+        # Obtención de los registros completos para reportes
+        base_records_for_report = (
+            pd.merge(
+                left= validated_records,
+                right= corrected_records,
+                left_on= COLUMN.USER_AND_DATE_INDEX,
+                right_on= COLUMN.USER_AND_DATE_INDEX,
+                how= 'left',
+            )
+            # Se ordenan los datos por fecha y hora de registro
+            .sort_values(COLUMN.REGISTRY_TIME)
+        )
+
+        # Se etiquetan las entradas del día en curso
+        base_records_for_report = pipeline_hub.run_pipe_flow(base_records_for_report, PIPELINE.VALIDATE_TODAY_CHECKIN)
+
+        return base_records_for_report

@@ -1,10 +1,13 @@
 import pandas as pd
+import numpy as np
 from datetime import timedelta
 from attendance_registry._constants import COLUMN as ATTENDANCE_COLUMN
 from ..constants import (
     COLUMN,
     PIPE,
     REGISTRY_TYPE,
+    TIME_DELTA_ON_ZERO,
+    VALIDATION,
 )
 from ..contracts import _CoreRegistryProcessing
 from ..contracts.pipes import _Contract_PipeMethods
@@ -14,8 +17,9 @@ from ..mapping import (
     ORDERED_REGISTRY_TYPE,
     WAREHOUSE_RENAME,
 )
+from ..rules import VALIDATIONS_PER_DAY_AND_USER_ID
 from ..settings import INPUT
-from ..tools import PipelineHub
+from ..core import pipeline_hub
 from ..typing import ColumnAssignation
 from ..typing.callables import (
     DataFramePipe,
@@ -24,16 +28,12 @@ from ..typing.callables import (
 )
 from ..typing.interfaces import Many2One
 
-class _Submodule(PipelineHub.Owner):
+class _BasePipeMethods():
+    _main: _CoreRegistryProcessing
 
-    def __init__(
-        self,
-        pipes_m: 'PipeMethods'
-    ) -> None:
-        self._pipes_m = pipes_m
-        self._initialize_pipes()
+_Submodule = pipeline_hub.PipesOwner(_BasePipeMethods)
 
-class PipeMethods(_Contract_PipeMethods):
+class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
 
     def __init__(
         self,
@@ -46,11 +46,12 @@ class PipeMethods(_Contract_PipeMethods):
         # Inicialización de submódulos de pipes
         self._data = self.Data(self)
         self._processing = self.Processing(self)
+        self._processing_pivot = self.Processing.Pivoted(self)
         self._format = self.Format(self)
 
     class Data(_Submodule):
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.DATA.USERS.GET_WAREHOUSE_NAME,
             requires= {
                 COLUMN.WAREHOUSE,
@@ -95,7 +96,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**process_warehouse_data)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.DATA.USERS.GET_JOB_NAME,
             requires= {
                 COLUMN.JOB,
@@ -133,7 +134,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**reassign_value)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.DATA.CORRECTIONS.ADD_CORRECTION_TAG,
             creates= {
                 COLUMN.IS_CORRECTION,
@@ -157,8 +158,11 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**{COLUMN.IS_CORRECTION: True})
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.DATA.CORRECTIONS.SORT_BY_DATE,
+            requires= {
+                COLUMN.DATE,
+            },
         )
         def sort_by_date(
             self: PipeMethods.Data,
@@ -177,7 +181,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .sort_values(COLUMN.DATE)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.DATA.JUSTIFICATIONS.RENAME_COLUMNS,
             renames= ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES,
             selects= set( ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES.values() ),
@@ -208,7 +212,7 @@ class PipeMethods(_Contract_PipeMethods):
 
     class Processing(_Submodule):
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.ASSIGN_DTYPES,
         )
         def assign_dtypes(
@@ -292,7 +296,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .pipe(reorder_weekdays)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.GET_USER_NAMES,
             requires= {
                 COLUMN.USER_ID,
@@ -344,7 +348,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .pipe(lambda df: df[df[COLUMN.NAME].notna()])
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.RECORDS.ADD_DATE_AND_TIME,
             requires= {
                 COLUMN.REGISTRY_TIME,
@@ -401,7 +405,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**date_and_time)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.TIME_FIRST_TO_STRING,
             requires= {
                 COLUMN.TIME,
@@ -436,7 +440,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**time_first_to_string)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.NULL_BY_JUSTIFICATION,
             requires= {
                 COLUMN.REGISTRY_TYPE,
@@ -480,7 +484,7 @@ class PipeMethods(_Contract_PipeMethods):
                 })
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.ASSIGN_ORDERED_REGISTRY_TYPE,
             requires= {
                 COLUMN.REGISTRY_TYPE,
@@ -568,7 +572,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**categorized_registry_type_assignation)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.ADD_REGISTRY_TIME,
             requires= {
                 COLUMN.DATE,
@@ -628,7 +632,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**string_registry_time)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.JUSTIFICATIONS.GET_AND_KEEP_BY_USER_ID,
             requires= {
                 COLUMN.NAME,
@@ -693,7 +697,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**reassign_name_categories)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.JUSTIFICATIONS.FORMAT_PERMISSION_DATE_STRINGS,
             requires= {
                 COLUMN.PERMISSION_START,
@@ -735,7 +739,7 @@ class PipeMethods(_Contract_PipeMethods):
                 .sort_values(COLUMN.PERMISSION_END)
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.RECORDS.PROCESS_BEFORE_SAVE_IN_DATABASE,
             renames= {
                 ATTENDANCE_COLUMN.USER_ID: COLUMN.USER_ID,
@@ -802,13 +806,709 @@ class PipeMethods(_Contract_PipeMethods):
                 .assign(**id_assignation)
             )
 
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.DISCARD_DUPLICATED,
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.DATE,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.TIME,
+            },
+            creates= {
+                COLUMN.IS_DUPLICATED,
+            },
+        )
+        def discard_duplicated(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Descartar duplicados
+            Este pipe evalúa registros duplicados en base a la ID de usuario, fecha de
+            registro y tipo de registro y etiqueta registros duplicados:
+            - Se etiquetan todos los registros de inicio de jornada después del primero
+            como duplicado
+            - Se etiquetan todos los registros de fin de jordana antes del último como
+            duplicado.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Columnas temporales
+            _CHECK_IN_DUPLICATED = '_check_in_duplicated'
+            _CHECK_OUT_DUPLICATED = '_check_out_duplicated'
+
+            # Columna que etiqueta todo tipo de registros duplicados con los criterios indicados
+            is_duplicated: SeriesFromDataFrame = (
+                lambda df: (
+                    df
+                    # Selección de columnas
+                    [[
+                        COLUMN.USER_ID,
+                        COLUMN.DATE,
+                        COLUMN.REGISTRY_TYPE,
+                    ]]
+                    # Se etiquetan registros duplicados
+                    .duplicated()
+                )
+            )
+            # El registro es inicio de jornada
+            is_check_in: SeriesFromDataFrame = (
+                lambda df: (
+                    df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN
+                )
+            )
+            # El registro es fin de jornada
+            is_check_out: SeriesFromDataFrame = (
+                lambda df: (
+                    df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_OUT
+                )
+            )
+
+            # Asignación de duplicados
+            tag_duplicated: ColumnAssignation = {
+                COLUMN.IS_DUPLICATED: (
+                    lambda df: (
+                        df[_CHECK_IN_DUPLICATED] | df[_CHECK_OUT_DUPLICATED]
+                    )
+                )
+            }
+
+            # Función para ordenar inicio de jornada duplicado
+            def tag_check_in(data: pd.DataFrame) -> pd.DataFrame:
+
+                # Asignación de etiqueta de inicio de jornada duplicado
+                check_in_duplicated: ColumnAssignation = {
+                    _CHECK_IN_DUPLICATED: (
+                        lambda df: (
+                            is_duplicated(df) & is_check_in(df)
+                        )
+                    )
+                }
+
+                return (
+                    data
+                    # Ordenamiento de registros
+                    .sort_values(
+                        [COLUMN.DATE, COLUMN.TIME],
+                        ascending= [True, True],
+                    )
+                    # Asignación de etiqueta
+                    .assign(**check_in_duplicated)
+                )
+
+            def tag_check_out(data: pd.DataFrame) -> pd.DataFrame:
+
+                # Asignación de etiqueta de fin de jornada duplicado
+                check_out_duplicated: ColumnAssignation = {
+                    _CHECK_OUT_DUPLICATED: (
+                        lambda df: (
+                            is_duplicated(df) & is_check_out(df)
+                        )
+                    )
+                }
+
+                return (
+                    data
+                    # Ordenamiento de registros
+                    .sort_values(
+                        [COLUMN.DATE, COLUMN.TIME],
+                        ascending= [True, False],
+                    )
+                    # Asignación de etiqueta
+                    .assign(**check_out_duplicated)
+                )
+
+            # Columnas seleccionadas
+            selected_columns = list(records.columns) + [COLUMN.IS_DUPLICATED]
+
+            return (
+                records
+                # Se etiquetan los registros duplicados
+                .pipe(tag_check_in)
+                .pipe(tag_check_out)
+                # Asignación de etiqueta de duplicados con todas las evaluaciones
+                .assign(**tag_duplicated)
+                # Se descartan todos los registros duplicados
+                .pipe(lambda df: df[~df[COLUMN.IS_DUPLICATED]])
+                # Se ordenan los registros
+                .sort_values(
+                    [COLUMN.DATE, COLUMN.TIME],
+                    ascending= [True, True],
+                )
+                # Se conservan las columnas originales
+                [selected_columns]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.DISCARD_CORRECTED_RECORDS,
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.DATE,
+                COLUMN.TIME,
+            }
+        )
+        def discard_corrected_records_from_original_data(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Descartar registros corregidos
+            Este pipe elimina del conjunto original de registros aquellos elementos que ya
+            fueron corregidos. Para ello, realiza una concatenación entre el DataFrame de
+            registros originales y el DataFrame de correcciones utilizando como claves el
+            identificador de usuario, la fecha y la hora. Los registros presentes en el
+            DataFrame de correcciones se marcan mediante una columna auxiliar y
+            posteriormente se descartan. El resultado es un DataFrame que conserva
+            únicamente los registros originales que no han sido reemplazados o corregidos.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Literal de indicador para descartar registros
+            _TO_DROP = '_to_drop'
+
+            return (
+                records
+                .pipe(
+                    lambda records_: (
+                        # Se unen los DataFrames de registros y correcciones
+                        pd.merge(
+                            left= records_,
+                            right= (
+                                self._pipes_m._main._data.corrections
+                                # Se asigna la columna indicadora de eliminación
+                                .assign(**{_TO_DROP: True})
+                                # Selección de columnas
+                                [[
+                                    COLUMN.USER_ID,
+                                    COLUMN.DATE,
+                                    COLUMN.TIME,
+                                    _TO_DROP,
+                                ]]
+                            ),
+                            # Para coincidir, los registros deben ser iguales en ID de usuario, fecha y hora
+                            left_on= [COLUMN.USER_ID, COLUMN.DATE, COLUMN.TIME],
+                            right_on= [COLUMN.USER_ID, COLUMN.DATE, COLUMN.TIME],
+                            how= 'left',
+                        )
+                        # Se descartan todos los registros que no aparecen reasignados en correcciones
+                        .pipe(lambda merged_df: merged_df[ merged_df[_TO_DROP].isna() ] )
+                        # Selección de las columnas originales del DataFrame de registros
+                        [records_.columns]
+                    )
+                )
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.CONCAT_CORRECTIONS,
+            creates= {
+                COLUMN.IS_CORRECTION,
+                COLUMN.IS_DUPLICATED,
+                COLUMN.NULL_BY_JUSTIFICATION,
+                COLUMN.DATE,
+            },
+        )
+        def concat_corrections(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Concatenación de correcciones
+            Este pipe toma el conjunto depurado, una vez filtrados los registros descartados
+            por correcciones, y lo fusiona con el DataFrame que contiene las correcciones
+            válidas. El propósito es reconstruir una secuencia completa donde registros
+            originales y correcciones coexisten en un mismo flujo preparado para análisis
+            posteriores.
+
+            Durante la concatenación:
+            - Se normaliza el indicador de "es corrección" para garantizar que todos los
+            valores sean estrictamente booleanos, eliminando cualquier ambigüedad
+            proveniente de valores nulos.
+            - Se aplica ordenamiento de valores de tipo de registro para reestablecer el
+            orden lógico entre tipos de registro, asegurando una estructura coherente.
+            - Se ordenan todos los valores por tiempo de registro, lo que produce una línea
+            temporal continua.
+            - Se restaura el tipo categórico de la columna de dispositivo para preservar su
+            semántica y eficiencia.
+
+            El resultado es un DataFrame final que refleja con fidelidad la secuencia
+            corregida de eventos, ya depurada y ordenada, listo para cualquier etapa
+            posterior de procesamiento o análisis.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Asignación para convertir los valores np.nan a booleano
+            force_booleans: ColumnAssignation = {
+                COLUMN.IS_CORRECTION: (
+                    lambda df: (
+                        ( df[COLUMN.IS_CORRECTION] )
+                        .where(
+                            df[COLUMN.IS_CORRECTION].isin([True, False]),
+                            False
+                        )
+                    )
+                ),
+                COLUMN.IS_DUPLICATED: (
+                    lambda df: (
+                        ( df[COLUMN.IS_DUPLICATED] )
+                        .where(
+                            df[COLUMN.IS_DUPLICATED].isin([True, False]),
+                            False
+                        )
+                    )
+                ),
+                COLUMN.NULL_BY_JUSTIFICATION: (
+                    lambda df: (
+                        ( df[COLUMN.NULL_BY_JUSTIFICATION] )
+                        .where(
+                            df[COLUMN.NULL_BY_JUSTIFICATION].isin([True, False]),
+                            False
+                        )
+                    )
+                ),
+            }
+
+            # Asignación de columnas en falso
+            add_missing_columns_from_corrections: ColumnAssignation = {
+                COLUMN.IS_CORRECTION: False,
+                COLUMN.IS_DUPLICATED: False,
+                COLUMN.NULL_BY_JUSTIFICATION: False,
+            }
+
+            # Obtención de DataFrame de correcciones filtrado
+            filtered_corrections: pd.DataFrame = (
+                self._pipes_m._main._data.corrections
+                # Se toman los resultados dentro del rango de fechas de los registros
+                .pipe(
+                    lambda df: (
+                        df[
+                            (
+                                ( df[COLUMN.DATE] >= records[COLUMN.DATE].min() )
+                                & ( df[COLUMN.DATE] <= records[COLUMN.DATE].max() )
+                            )
+                        ]
+                    )
+                )
+            )
+
+            # Si el DataFrame de correcciones no está vacío...
+            if not filtered_corrections.empty:
+                # Se concatenan los registros y las correcciones
+                concatenated_records = (
+                    pd.concat([records, filtered_corrections])
+                    # Se forza el tipo de dato a booleano en indicadores de "es corrección" y "es duplicado"
+                    .assign(**force_booleans)
+                )
+            # Si el DataFrame de correcciones está vacío...
+            else:
+                # Se usan los datos sin correcciones por añadir
+                concatenated_records = (
+                    records
+                    # Asignación de columnas faltantes en falso
+                    .assign(**add_missing_columns_from_corrections)
+                )
+
+            return (
+                concatenated_records
+                # Ordenamiento por fecha de registro
+                .sort_values(COLUMN.REGISTRY_TIME)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.ASSIGN_DAY_AND_USER_INDEX,
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.DATE,
+            },
+            creates= {
+                COLUMN.USER_AND_DATE_INDEX,
+            }
+        )
+        def assign_day_and_user_id_index(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Asignación de índice por usuario y día de registro
+            Este pipe concatena los valores de ID de usuario y fecha de registro para
+            usarlos como índice.
+
+            Ejemplo:
+            >>> records # DataFrame
+            >>> #    user_id        date
+            >>> # 0        5  2025-11-24
+            >>> # 1        5  2025-11-24
+            >>> # 2        5  2025-11-24
+            >>> # 3        5  2025-11-24
+            >>> # 4        5  2025-11-25
+            >>> 
+            >>> records.pipe(assign_day_and_user_id)
+            >>> #    user_id        date  user_date_index
+            >>> # 0        5  2025-11-24     5|2025-11-24
+            >>> # 1        5  2025-11-24     5|2025-11-24
+            >>> # 2        5  2025-11-24     5|2025-11-24
+            >>> # 3        5  2025-11-24     5|2025-11-24
+            >>> # 4        5  2025-11-25     5|2025-11-25
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Conversión de tipos de dato a string
+            user_id_column_str: pd.Series = records[COLUMN.USER_ID].astype('string')
+            date_column_str: pd.Series = records[COLUMN.DATE].astype('string')
+
+            return (
+                records
+                .assign(
+                    **{
+                        COLUMN.USER_AND_DATE_INDEX: user_id_column_str + '|' + date_column_str
+                    }
+                )
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.VALIDATE_TODAY_CHECKIN,
+            requires= {
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DATE,
+            },
+            creates= {
+                COLUMN.IS_CURRENT_DAY_CHECKIN,
+            }
+        )
+        def validate_today_check_in(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            # Función para validar si un registro es entrada del día en curso
+            is_current_day_checkin: ColumnAssignation = {
+                COLUMN.IS_CURRENT_DAY_CHECKIN: (
+                    lambda df: (
+                        # El tipo de registro es inicio de jornada laboral
+                        ( df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN )
+                        # La fecha del registro es igual a la fecha del día en curso
+                        & ( df[COLUMN.DATE].dt.date == self._pipes_m._main._services.date.today )
+                    )
+                )
+            }
+
+            return (
+                records
+                # Validación de si es registro de entrada del día en curso
+                .assign(**is_current_day_checkin)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.GET_DAILY_SCHEDULES,
+            creates= {
+                COLUMN.WEEKDAY,
+                COLUMN.START_SCHEDULE,
+                COLUMN.END_SCHEDULE,
+            },
+        )
+        def get_daily_schedules(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de horarios laborales por día
+            Este pipe asigna los horarios laborales establecidos a los registros del
+            DataFrame entrante, en base al día de la semana de éstos.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Asignación de día de la semana
+            weekday_assignation: ColumnAssignation = {
+                COLUMN.WEEKDAY: (
+                    lambda df: (
+                        (
+                            # Se convierte el tipo de dato a fecha de Pandas
+                            pd.to_datetime( df[COLUMN.DATE] )
+                            # Obtención de valor numérico de día de la semana
+                            .dt.weekday
+                            # Conversión a tipo de dato categórico
+                            .astype('category')
+                        )
+                    )
+                )
+            }
+
+            return (
+                records
+                # Asignación de día de la semana
+                .assign(**weekday_assignation)
+                # Obtención de horarios laborales por día
+                .pipe(
+                    lambda df: (
+                        pd.merge(
+                            left= df,
+                            right= self._pipes_m._main._data.schedules,
+                            left_on= COLUMN.WEEKDAY,
+                            right_on= COLUMN.WEEKDAY,
+                            how= 'left',
+                        )
+                    )
+                )
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.GET_SCHEDULE_OFFSETS,
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.DATE,
+                COLUMN.WEEKDAY,
+            },
+            creates= {
+                COLUMN.START_OFFSET,
+                COLUMN.END_OFFSET,
+            },
+        )
+        def get_schedule_offsets(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de desfases de horarios para gerentes
+            Este pipe asigna los desfases de horarios para gerentes o un desfase en 0 para
+            el resto de los empleados.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+
+            return (
+                records
+                # Obtención de desfases de horarios para gerentes
+                .pipe(
+                    lambda df: (
+                        pd.merge(
+                            left= df,
+                            right= self._pipes_m._main._data.schedule_offsets,
+                            left_on= [COLUMN.USER_ID, COLUMN.WEEKDAY],
+                            right_on= [COLUMN.USER_ID, COLUMN.WEEKDAY],
+                            how= 'left',
+                        )
+                    )
+                )
+                # Los usuarios que no tienen desfases requieren que sus valores sean 0 y no np.nan
+                .replace({
+                    COLUMN.START_OFFSET: {np.nan: TIME_DELTA_ON_ZERO},
+                    COLUMN.END_OFFSET: {np.nan: TIME_DELTA_ON_ZERO},
+                })
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.ALLOWED_START_AND_END,
+            requires= {
+                COLUMN.DATE,
+                COLUMN.START_SCHEDULE,
+                COLUMN.END_SCHEDULE,
+                COLUMN.START_OFFSET,
+                COLUMN.END_OFFSET,
+            },
+            creates= {
+                COLUMN.ALLOWED_START,
+                COLUMN.ALLOWED_END,
+            },
+        )
+        def define_allowed_start_and_end_time(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Definición de horarios de inicio y fin permitidos
+            Este pipe combina la fecha del registro con los horarios base de cada día de la
+            semana y sus ajustes de desfase por usuario para producir los valores completos
+            de inicio y fin permitidos.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Asignación de tiempo permitido
+            allowed_time_assignation: ColumnAssignation = {
+                # Inicio de tiempo permitido
+                COLUMN.ALLOWED_START: (
+                    lambda df: (
+                        # Se convierte el tipo de dato a fecha de Pandas
+                        pd.to_datetime( df[COLUMN.DATE] )
+                        # Se suma el tiempo de inicio general de jornada laboral
+                        + df[COLUMN.START_SCHEDULE]
+                        # Se suma el tiempo de desfase asignado al usuario
+                        + df[COLUMN.START_OFFSET]
+                    )
+                ),
+                # Fin de tiempo permitido
+                COLUMN.ALLOWED_END: (
+                    lambda df: (
+                        # Se convierte el tipo de dato a fecha de Pandas
+                        pd.to_datetime(df[COLUMN.DATE])
+                        # Se suma el tiempo de fin general de jornada laboral
+                        + df[COLUMN.END_SCHEDULE]
+                        # Se suma el tiempo de desfase asignado al usuario
+                        # (Los valores diferentes a cero son negativos, por eso se suman)
+                        + df[COLUMN.END_OFFSET]
+                    )
+                ),
+            }
+
+            return (
+                records
+                # Asignación de tiempo permitido
+                .assign(**allowed_time_assignation)
+            )
+
+        @pipeline_hub.register_method(
+            'get_cummulated_time',
+            requires= {
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.REGISTRY_TIME,
+                COLUMN.ALLOWED_START,
+                COLUMN.ALLOWED_END,
+            },
+            creates= {
+                VALIDATION.IS_LATE_START,
+                VALIDATION.IS_EARLY_END,
+                COLUMN.LATE_TIME,
+                COLUMN.EARLY_TIME,
+            },
+        )
+        def get_cummulated_time(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de tiempo acumulado de entrada tardía o salida anticipada
+            Este pipe calcula para cada registro si hubo entrada tardía o salida
+            anticipada, y en esos casos determina cuántos minutos (o el intervalo
+            correspondiente) representan esa entrada tardía o salida anticipada.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Clasificación de entradas tardías y salidas anticipadas
+            is_late_or_early_start: ColumnAssignation = {
+                # Validación de entrada tardía
+                VALIDATION.IS_LATE_START: (
+                    lambda df: (
+                        ( df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN )
+                        & ( df[COLUMN.REGISTRY_TIME] > df[COLUMN.ALLOWED_START] )
+                    )
+                ),
+                # Validación de salida anticipada
+                VALIDATION.IS_EARLY_END: (
+                    lambda df: (
+                        ( df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_OUT )
+                        & ( df[COLUMN.REGISTRY_TIME] < df[COLUMN.ALLOWED_END] )
+                    )
+                ),
+            }
+
+            # Asignación de minutos de entrada tardía y salida anticipada
+            late_and_early_time: ColumnAssignation = {
+                # Obtención de minutos de entrada tardía
+                COLUMN.LATE_TIME: (
+                    lambda df: (
+                        ( df[COLUMN.REGISTRY_TIME] - df[COLUMN.ALLOWED_START] )
+                        .where(
+                            df[VALIDATION.IS_LATE_START],
+                            TIME_DELTA_ON_ZERO,
+                        )
+                    )
+                ),
+                # Obtención de minutos de salida anticipada
+                COLUMN.EARLY_TIME: (
+                    lambda df: (
+                        ( df[COLUMN.ALLOWED_END] - df[COLUMN.REGISTRY_TIME] )
+                        .where(
+                            df[VALIDATION.IS_EARLY_END],
+                            TIME_DELTA_ON_ZERO,
+                        )
+                    )
+                ),
+            }
+
+            return (
+                records
+                # Clasificación de entradas tardías y salidas anticipadas
+                .assign(**is_late_or_early_start)
+                # Asignación de minutos de entrada tardía y salida anticipada
+                .assign(**late_and_early_time)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.EVALUATE_REGISTRY_TIMES,
+            selects= {
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.TIME,
+                COLUMN.DATE,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DEVICE,
+                COLUMN.IS_DUPLICATED,
+
+                COLUMN.REGISTRY_TIME,
+                COLUMN.IS_CORRECTION,
+                COLUMN.NULL_BY_JUSTIFICATION,
+                VALIDATION.COMPLETE,
+                VALIDATION.BREAK_PAIRS,
+                VALIDATION.UNIQUE_START_AND_END,
+                COLUMN.WEEKDAY,
+                COLUMN.ALLOWED_START,
+                COLUMN.ALLOWED_END,
+                VALIDATION.IS_LATE_START,
+                VALIDATION.IS_EARLY_END,
+                COLUMN.IS_CURRENT_DAY_CHECKIN,
+                COLUMN.IS_CLOSED_CORRECT,
+                COLUMN.LATE_TIME,
+                COLUMN.EARLY_TIME,
+            },
+        )
+        def select_columns_evaluate_registry_times(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            return (
+                records
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.NAME,
+                    COLUMN.TIME,
+                    COLUMN.DATE,
+                    COLUMN.REGISTRY_TYPE,
+                    COLUMN.DEVICE,
+                    COLUMN.IS_DUPLICATED,
+
+                    COLUMN.REGISTRY_TIME,
+                    COLUMN.IS_CORRECTION,
+                    COLUMN.NULL_BY_JUSTIFICATION,
+                    VALIDATION.COMPLETE,
+                    VALIDATION.BREAK_PAIRS,
+                    VALIDATION.UNIQUE_START_AND_END,
+                    COLUMN.WEEKDAY,
+                    COLUMN.ALLOWED_START,
+                    COLUMN.ALLOWED_END,
+                    VALIDATION.IS_LATE_START,
+                    VALIDATION.IS_EARLY_END,
+                    COLUMN.IS_CURRENT_DAY_CHECKIN,
+                    COLUMN.IS_CLOSED_CORRECT,
+                    COLUMN.LATE_TIME,
+                    COLUMN.EARLY_TIME,
+                ]]
+            )
+
         def _assign_ordered_registry_type(
             self: PipeMethods.Processing,
-            data: pd.DataFrame,
+            records: pd.DataFrame,
         ) -> pd.DataFrame:
 
             # Obtención de los valores categóricos encontrados en el DataFrame
-            available_values = data[COLUMN.REGISTRY_TYPE].cat.categories
+            available_values = records[COLUMN.REGISTRY_TYPE].cat.categories
             # Generación de los elementos ordenados y filtrados a usar para reordenamiento
             items = [value for value in ORDERED_REGISTRY_TYPE if value in available_values]
 
@@ -829,14 +1529,176 @@ class PipeMethods(_Contract_PipeMethods):
             }
 
             return (
-                data
+                records
                 # Reasignación de columna
                 .assign(**categorized_registry_type_assignation)
             )
 
+        class Pivoted(_Submodule):
+
+            @pipeline_hub.register_method(
+                PIPE.PROCESSING.RECORDS.PIVOTED.COUNT_PER_REGISTRY_TYPE,
+                requires= {
+                    COLUMN.USER_AND_DATE_INDEX,
+                    COLUMN.REGISTRY_TYPE,
+                },
+                creates= {
+                    REGISTRY_TYPE.CHECK_IN,
+                    REGISTRY_TYPE.BREAK_OUT,
+                    REGISTRY_TYPE.BREAK_IN,
+                    REGISTRY_TYPE.CHECK_OUT,
+                },
+                selects= {
+                    COLUMN.USER_AND_DATE_INDEX,
+                    REGISTRY_TYPE.CHECK_IN,
+                    REGISTRY_TYPE.BREAK_OUT,
+                    REGISTRY_TYPE.BREAK_IN,
+                    REGISTRY_TYPE.CHECK_OUT,
+                },
+            )
+            def count_per_registry_type(
+                self: PipeMethods.Processing.Pivoted,
+                records: pd.DataFrame,
+            ) -> pd.DataFrame:
+                """
+                ### Conteo por tipo de registro
+                Este pipe realiza un pivoteo de tabla usando:
+
+                - Índice: Índice de ID de usuario/fecha.
+                - Columnas: Tipo de registro.
+                - Valores: Conteo de tipos de registro por índice de ID de usuario/fecha.
+
+                :param records DataFrame: Datos entrantes.
+                """
+
+                # Declaración de registros catalogados como inválidos
+                invalid_registry_types = [
+                    REGISTRY_TYPE.NULL,
+                    REGISTRY_TYPE.UNDEFINED,
+                ]
+
+                return (
+                    records
+                    .pipe(
+                        lambda df: (
+                            df
+                            # Agrupamiento por índice de ID de usuario/fecha y tipo de registro
+                            .groupby(
+                                [
+                                    COLUMN.USER_AND_DATE_INDEX,
+                                    COLUMN.REGISTRY_TYPE,
+                                ],
+                                observed= False,
+                            )
+                            # Conteo de registros por índice de ID de usuario/fecha
+                            .agg( {COLUMN.USER_AND_DATE_INDEX: COLUMN.COUNT} )
+                            # Se renombra la columna de índice de ID de usuario/fecha a 'conteo'
+                            .rename(
+                                columns= {COLUMN.USER_AND_DATE_INDEX: COLUMN.COUNT},
+                            )
+                            # Se restablece el índice del DataFrame
+                            .reset_index()
+                            # Se descartan todos los registros que no tengan tipo de registro especificado
+                            .pipe(
+                                lambda grouped_df: (
+                                    grouped_df[ ~grouped_df[COLUMN.REGISTRY_TYPE].isin(invalid_registry_types) ]
+                                )
+                            )
+                        )
+                    )
+                    # Pivoteo de tabla para obtención de conteos explícitos
+                    .pivot_table(
+                        index= COLUMN.USER_AND_DATE_INDEX,
+                        columns= COLUMN.REGISTRY_TYPE,
+                        values= COLUMN.COUNT,
+                        observed= False,
+                    )
+                    # Se restablece el índice del DataFrame
+                    .reset_index()
+                    # Se establecen a cero todos los np.nan
+                    .replace( {np.nan: 0} )
+                    # Se establecen los tipos de dato a entero de 8 bits
+                    .astype({
+                        REGISTRY_TYPE.CHECK_IN: 'uint8',
+                        REGISTRY_TYPE.BREAK_OUT: 'uint8',
+                        REGISTRY_TYPE.BREAK_IN: 'uint8',
+                        REGISTRY_TYPE.CHECK_OUT: 'uint8',
+                    })
+                )
+
+            @pipeline_hub.register_method(
+                PIPE.PROCESSING.RECORDS.PIVOTED.VALIDATE_RECORDS,
+                requires= {
+                    REGISTRY_TYPE.CHECK_IN,
+                    REGISTRY_TYPE.BREAK_OUT,
+                    REGISTRY_TYPE.BREAK_IN,
+                    REGISTRY_TYPE.CHECK_OUT,
+                },
+                creates= set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() ),
+            )
+            def validate_day_pivoted_records(
+                self: PipeMethods.Processing.Pivoted,
+                records: pd.DataFrame,
+            ) -> pd.DataFrame:
+                """
+                ### Validación de registros por usuario/día
+                Este pipe recibe un DataFrame pivote por usuario y día, y le inyecta
+                validaciones produciendo columnas booleanas que indican si cada día/usuario
+                pasa o no cada regla.
+
+                - Validación de que existen los cuatro registros
+                - Validación de que conteo de registros de comida son pares
+
+                :param records DataFrame: Datos entrantes.
+                """
+
+                return (
+                    records
+                    # Se asignan las validaciones por día/ID de usuario
+                    .assign(
+                        **VALIDATIONS_PER_DAY_AND_USER_ID
+                    )
+                )
+
+            @pipeline_hub.register_method(
+                PIPE.COLUMNS_SELECTION.PIVOTED.RECORDS,
+                requires= (
+                    {
+                        COLUMN.USER_AND_DATE_INDEX,
+                    }
+                    | set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
+                )
+            )
+            def select_columns_pivot_records(
+                self: PipeMethods.Processing.Pivoted,
+                records: pd.DataFrame,
+            ) -> pd.DataFrame:
+                """
+                ### Validación de registros por usuario/día
+                Esta función recibe un DataFrame pivote por usuario y día, y le inyecta
+                validaciones produciendo columnas booleanas que indican si cada día/usuario
+                pasa o no cada regla.
+
+                - Validación de que existen los cuatro registros
+                - Validación de que conteo de registros de comida son pares
+
+                :param records DataFrame: Datos entrantes.
+                """
+
+                # Obtención de los nombres de las validaciones en lista
+                validation_names = list( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
+                # Se usa el índice usuario/día y las columnas generadas por las validaciones
+                selected_columns = [COLUMN.USER_AND_DATE_INDEX] + validation_names
+
+                return (
+                    records
+                    # Selección de columnas
+                    [selected_columns]
+                )
+
     class Format(_Submodule):
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.ASSISTANCE_RECORDS,
             selects= {
                 COLUMN.USER_ID,
@@ -867,7 +1729,7 @@ class PipeMethods(_Contract_PipeMethods):
                 ]]
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.CORRECTIONS,
             selects= {
                 COLUMN.USER_ID,
@@ -902,7 +1764,7 @@ class PipeMethods(_Contract_PipeMethods):
                 ]]
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.JUSTIFICATIONS,
             selects= {
                 COLUMN.USER_ID,
@@ -929,7 +1791,7 @@ class PipeMethods(_Contract_PipeMethods):
                 ]]
             )
 
-        @PipelineHub.register_method(
+        @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.ASSISTANCE_RECORDS_UPDATE,
             selects= {
                 COLUMN.ID,
@@ -956,4 +1818,54 @@ class PipeMethods(_Contract_PipeMethods):
                     COLUMN.REGISTRY_TYPE,
                     COLUMN.DEVICE,
                 ]]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.VALIDATE_TODAY_CHECKIN,
+            requires= (
+                {
+                    COLUMN.USER_ID,
+                    COLUMN.NAME,
+                    COLUMN.REGISTRY_TIME,
+                    COLUMN.DATE,
+                    COLUMN.TIME,
+                    COLUMN.REGISTRY_TYPE,
+                    COLUMN.DEVICE,
+                    COLUMN.IS_DUPLICATED,
+                    COLUMN.IS_CORRECTION,
+                    COLUMN.NULL_BY_JUSTIFICATION,
+                }
+                | set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
+            )
+        )
+        def select_columns_validate_today_checkin(
+            self: PipeMethods.Format,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            # Obtención de los nombres de las validaciones en lista
+            validation_names = list( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
+
+            # Selección de columnas
+            selected_columns = (
+                [
+                    COLUMN.USER_ID,
+                    COLUMN.NAME,
+                    COLUMN.REGISTRY_TIME,
+                    COLUMN.DATE,
+                    COLUMN.TIME,
+                    COLUMN.REGISTRY_TYPE,
+                    COLUMN.DEVICE,
+                    COLUMN.IS_DUPLICATED,
+                    COLUMN.IS_CORRECTION,
+                    COLUMN.NULL_BY_JUSTIFICATION,
+                    COLUMN.IS_CURRENT_DAY_CHECKIN,
+                ]
+                + validation_names
+            )
+
+            return (
+                records
+                # Selección de columnas
+                [selected_columns]
             )

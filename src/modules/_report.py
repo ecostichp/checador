@@ -77,10 +77,8 @@ class _Report(_Interface_Report):
     ) -> pd.DataFrame:
 
         return (
-            # Obtención de los registros
-            self._main.data.records
-            # Se añaden las correcciones
-            .pipe(self._main._pipes.common_operations)
+            # Obtención de los registros base para reporte
+            self._main._records_for_report
             # Selección de columnas
             [[
                 COLUMN.USER_ID,

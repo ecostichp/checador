@@ -3,7 +3,7 @@ from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Data,
 )
-from ..tools import PipelineHub
+from ..core import pipeline_hub
 from ..rules import PIPELINE
 
 class _Data(_Interface_Data):
@@ -40,7 +40,7 @@ class _Data(_Interface_Data):
         # Obtención de la lista de empleados desde Odoo
         users = self._main._services.odoo_api.get_users()
         # Procesamiento por medio de pipe
-        processed_data = PipelineHub.run_pipe_flow(users, PIPELINE.GET_USERS)
+        processed_data = pipeline_hub.run_pipe_flow(users, PIPELINE.GET_USERS)
 
         return processed_data
 
@@ -54,7 +54,7 @@ class _Data(_Interface_Data):
             self._main._services.date.today,
         )
         # Procesamiento por medio de pipe
-        processed_data = PipelineHub.run_pipe_flow(records, PIPELINE.GET_RECORDS)
+        processed_data = pipeline_hub.run_pipe_flow(records, PIPELINE.GET_RECORDS)
 
         return processed_data
 
@@ -69,7 +69,7 @@ class _Data(_Interface_Data):
         # Obtención de datos de correcciones
         corrections = self._load_corrections_files()
         # Procesamiento por medio de pipe
-        processed_data = PipelineHub.run_pipe_flow(corrections, PIPELINE.GET_CORRECTIONS)
+        processed_data = pipeline_hub.run_pipe_flow(corrections, PIPELINE.GET_CORRECTIONS)
 
         return processed_data
 
@@ -84,7 +84,7 @@ class _Data(_Interface_Data):
         # Obtención de datos de incidencias
         justifications = self._main._services.google_sheets.load_justifications()
         # Procesamiento por medio de pipe
-        result = PipelineHub.run_pipe_flow(justifications, PIPELINE.GET_JUSTIFICATIONS)
+        result = pipeline_hub.run_pipe_flow(justifications, PIPELINE.GET_JUSTIFICATIONS)
 
         return result
 

@@ -58,7 +58,9 @@ class RegistryProcessing(_CoreRegistryProcessing):
         # Se cargan los datos iniciales
         self._data.load()
         # Revisión de integridad de los datos
-        self._to_verify = self._pipes.check_integrity()
+        self._to_verify = self._validations.check_integrity()
+        # Obtención de registros base para reporte
+        self._records_for_report = self._validations.records_for_report()
         # Revisión de días con apertura tardía
         self._check_late_open()
 

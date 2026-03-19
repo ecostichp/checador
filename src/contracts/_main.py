@@ -62,6 +62,9 @@ class _CoreRegistryProcessing:
     `[Pipes]` Pipes para procesamientos de Pandas DataFrames.
     """
 
+    _records_for_report: pd.DataFrame
+    """Registros para reporte."""
+
     def report(
         self,
     ) -> None:

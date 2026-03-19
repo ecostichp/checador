@@ -1,23 +1,9 @@
 import pandas as pd
-from ...typing import DataTypeOrNone
 
 class _Interface_Pipes:
     """
     `[Submódulo]` Funciones pipe para DataFrame.
     """
-
-    def check_integrity(
-        self,
-    ) -> DataTypeOrNone[pd.DataFrame]:
-        """
-        ### Revisión de integridad de datos
-        Este método revisa los datos cargados y comprueba que no tienen inconsistencia
-        que puedan ser conflictivas con los posteriores cálculos basados en éstos
-        datos.
-
-        :param data DataFrame: Datos entrantes.
-        """
-        ...
 
     def common_operations(
         self,
@@ -55,17 +41,6 @@ class _Interface_Pipes:
         usuario a los registros del DataFrame provisto.
 
         :param data DataFrame: Datos entrantes.
-        """
-        ...
-
-    def get_job_name(
-        self,
-        data: pd.DataFrame,
-    ) -> pd.DataFrame:
-        """
-        ### Obtención de nombre de puesto de trabajo
-        Este método procesa los datos retornados por la API de Odoo y extrae el nombre del
-        puesto de trabajo, desde un valor de tipo *many2one*.
         """
         ...
 
