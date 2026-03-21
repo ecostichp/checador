@@ -1,6 +1,6 @@
 import pandas as pd
 from ...typing import DataFramePipe
-from ...typing.literals import ValidityOptions
+from ...typing.literals import ViewOptions
 from ...typing.misc import DataTypeOrNone
 
 class _Interface_Validations:
@@ -13,7 +13,7 @@ class _Interface_Validations:
     def filter_by_validity(
         self,
         /,
-        by: ValidityOptions,
+        view: ViewOptions,
         keep_today_check_in: bool = False,
     ) -> DataFramePipe:
         ...

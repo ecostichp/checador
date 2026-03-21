@@ -1,6 +1,7 @@
 import pandas as pd
 from ..constants import (
     COLUMN,
+    REGISTRY_TYPE,
     VALIDATION,
 )
 from ..contracts import (
@@ -19,7 +20,7 @@ from ..templates.messages import (
     MESSAGE,
 )
 from ..typing import DataFramePipe
-from ..typing.literals import ValidityOptions
+from ..typing.literals import ViewOptions
 from ..typing.misc import DataTypeOrNone
 
 class _Validations(_Interface_Validations):
@@ -37,7 +38,7 @@ class _Validations(_Interface_Validations):
     ) -> DataTypeOrNone[pd.DataFrame]:
 
         # Función para filtrar por registros inválidos
-        filter_by_invalid_fn = self.filter_by_validity(by= 'invalid')
+        filter_by_invalid_fn = self.filter_by_validity(view= 'verifications')
 
         validations = (
             self._main._validations.base_records_for_report()
@@ -87,7 +88,7 @@ class _Validations(_Interface_Validations):
     def filter_by_validity(
         self,
         /,
-        by: ValidityOptions,
+        view: ViewOptions,
         keep_today_check_in: bool = False,
     ) -> DataFramePipe:
 
@@ -95,13 +96,15 @@ class _Validations(_Interface_Validations):
         def filter_records(data: pd.DataFrame) -> pd.Series:
 
             # Condiciones para filtrar por validez de integridad de datos completos
-            filter_validity: dict[ValidityOptions, pd.Series] = {
-                'valid': data[COLUMN.IS_CLOSED_CORRECT],
-                'invalid': ~data[COLUMN.IS_CLOSED_CORRECT],
+            filter_validity: dict[ViewOptions, pd.Series] = {
+                # Filtro por los datos cuyo día sea cerrado y correcto
+                'report': data[COLUMN.IS_CLOSED_CORRECT],
+                # Filtro por los datos cuyo día sea cerrado e incorrecto y además que el tipo de registro sea diferente a [null]
+                'verifications': ~data[COLUMN.IS_CLOSED_CORRECT] & (data[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.NULL),
             }
 
             # Construcción de condición
-            validated_condition = filter_validity[by]
+            validated_condition = filter_validity[view]
 
             # Si se especificó que se incluyeran los registros de inicio de jornada del día en curso...
             if keep_today_check_in:
@@ -152,7 +155,7 @@ class _Validations(_Interface_Validations):
         # Obtención de registros base para reporte
         base_records_for_report = self.base_records_for_report()
         # Función para filtrar por registros válidos
-        filter_by_valid_fn = self.filter_by_validity(by= 'valid', keep_today_check_in= True)
+        filter_by_valid_fn = self.filter_by_validity(view= 'report', keep_today_check_in= True)
         # Filtro por registros válidos
         filtered_records = filter_by_valid_fn(base_records_for_report)
         # Evaluación de fechas y horas de registro

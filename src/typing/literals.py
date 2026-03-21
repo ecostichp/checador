@@ -4,5 +4,5 @@ from ._base.literals import (
     PayFrequency,
     PermissionTypeOption,
     PipeValidationStage,
-    ValidityOptions,
+    ViewOptions,
 )

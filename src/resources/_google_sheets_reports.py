@@ -30,7 +30,7 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
                     COLUMN.REGISTRY_TYPE,
                     COLUMN.DEVICE,
                     COLUMN.IS_DUPLICATED,
-                    COLUMN.REGISTRY_TIME,
+                    COLUMN.NULL_BY_JUSTIFICATION,
                     COLUMN.IS_CORRECTION,
                     VALIDATION.COMPLETE,
                     VALIDATION.BREAK_PAIRS,

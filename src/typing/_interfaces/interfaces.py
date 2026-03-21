@@ -61,8 +61,8 @@ class HorizontalSeries(pd.Series):
     def __getitem__(self, key: Literal['end_range']) -> datetime: ...
 
 class Interface_RegistryProcessing:
-    _data: Data
-    _report: Report
+    _data: 'Data'
+    _report: 'Report'
 
     class Data:
         users: pd.DataFrame

@@ -26,7 +26,7 @@ PermissionTypeOption = Literal['time', 'days']
 Tipos de permiso.
 """
 
-ValidityOptions = Literal['valid', 'invalid']
+ViewOptions = Literal['report', 'verifications']
 """
 Opciones de validación.
 """
