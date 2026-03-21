@@ -1,13 +1,19 @@
 import pandas as pd
 import numpy as np
-from datetime import timedelta
+from datetime import (
+    date,
+    timedelta,
+)
 from attendance_registry._constants import COLUMN as ATTENDANCE_COLUMN
 from ..constants import (
     COLUMN,
+    PERMISSION_NAME,
     PIPE,
     REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
+    NAN_TO_ZERO,
+    NAN_TO_TIME_DELTA_ON_ZERO,
 )
 from ..contracts import _CoreRegistryProcessing
 from ..contracts.pipes import _Contract_PipeMethods
@@ -15,9 +21,14 @@ from ..mapping import (
     ASSIGNED_DTYPES,
     ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES,
     ORDERED_REGISTRY_TYPE,
+    PERMISSION_TYPE_REASSIGNATION_NAMES,
+    USERS_DATA_REASSIGNATION_NAMES,
     WAREHOUSE_RENAME,
 )
-from ..rules import VALIDATIONS_PER_DAY_AND_USER_ID
+from ..rules import (
+    INITIAL_DATE_FOR_HOLIDAYS,
+    VALIDATIONS_PER_DAY_AND_USER_ID,
+)
 from ..settings import INPUT
 from ..core import pipeline_hub
 from ..typing import ColumnAssignation
@@ -26,7 +37,10 @@ from ..typing.callables import (
     SeriesApply,
     SeriesFromDataFrame,
 )
-from ..typing.interfaces import Many2One
+from ..typing.interfaces import (
+    HorizontalSeries,
+    Many2One,
+)
 
 class _BasePipeMethods():
     _main: _CoreRegistryProcessing
@@ -48,6 +62,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
         self._processing = self.Processing(self)
         self._processing_pivot = self.Processing.Pivoted(self)
         self._format = self.Format(self)
+        self._report = self.Report(self)
 
     class Data(_Submodule):
 
@@ -208,6 +223,21 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 .rename(columns= columns_to_rename)
                 # Selección de columnas
                 [selected_columns]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.DATA.EMPLOYEES_DATA.RENAME_COLUMNS,
+            renames= USERS_DATA_REASSIGNATION_NAMES,
+        )
+        def rename_employees_data_columns(
+            self: PipeMethods.Data,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            return (
+                records
+                # Reasignación de nombres de columna
+                .rename(columns= USERS_DATA_REASSIGNATION_NAMES)
             )
 
     class Processing(_Submodule):
@@ -1296,8 +1326,8 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 )
                 # Los usuarios que no tienen desfases requieren que sus valores sean 0 y no np.nan
                 .replace({
-                    COLUMN.START_OFFSET: {np.nan: TIME_DELTA_ON_ZERO},
-                    COLUMN.END_OFFSET: {np.nan: TIME_DELTA_ON_ZERO},
+                    COLUMN.START_OFFSET: NAN_TO_TIME_DELTA_ON_ZERO,
+                    COLUMN.END_OFFSET: NAN_TO_TIME_DELTA_ON_ZERO,
                 })
             )
 
@@ -1502,6 +1532,142 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 ]]
             )
 
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RENAME_PERMISSION_NAMES,
+            requires= {
+                COLUMN.PERMISSION_TYPE,
+            },
+        )
+        def rename_permission_types(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            # Reasignación de columna con los nombres reemplazados
+            renamed_permission_types: ColumnAssignation = {
+                COLUMN.PERMISSION_TYPE: (
+                    lambda df: (
+                        # Uso de la columna de tipo de permiso
+                        df[COLUMN.PERMISSION_TYPE]
+                        # Se convierte el tipo de dato a cadena de texto para perder referencia en categorías
+                        .astype('string')
+                        # Reemplazo de valores
+                        .replace(PERMISSION_TYPE_REASSIGNATION_NAMES)
+                        # Reasignación de tipo de dato a categoría
+                        .astype('category')
+                    )
+                )
+            }
+
+            return (
+                records
+                # Reasignación de columna con los nombres reemplazados
+                .assign(**renamed_permission_types)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.GET_HOLIDAY_JUSTIFICATIONS,
+            requires= {
+                COLUMN.PERMISSION_TYPE,
+            },
+        )
+        def get_holiday_justifications(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de permisos relacionados a días festivos
+            Este pipe filtra los registros de incidencias para conservar únicamente los
+            registros que tengan permisos relacionados con días festivos.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                # Se filtran los registros que solo contengan incidencias relacionadas a días festivos
+                .pipe(
+                    lambda df: (
+                        df[
+                            df[COLUMN.PERMISSION_TYPE]
+                            .isin([
+                                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+                                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                            ])
+                        ]
+                    )
+                )
+                # Se forza el tipo de dato a string
+                .astype({
+                    COLUMN.PERMISSION_TYPE: 'string[python]',
+                })
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.COUNT_HOLIDAY_JUSTIFICATIONS_PER_EMPLOYEE,
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.PERMISSION_TYPE,
+            },
+            creates= {
+                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+            },
+            selects= {
+                COLUMN.USER_ID,
+                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+            },
+        )
+        def count_holiday_justifications_per_employee(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Contar incidencias de días festivos por empleado
+        
+            Este pipe toma las incidencias de días festivos, filtra desde los registros
+            posteriores a la fecha considerada inicio de conteo y cuenta las incidencias
+            existentes para cada empleado.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                .pipe(
+                    lambda df: (
+                        df[df[COLUMN.PERMISSION_START].dt.date >= INITIAL_DATE_FOR_HOLIDAYS]
+                    )
+                )
+                # Agrupamiento por ID de usuario y tipo de permiso para conteo
+                .groupby([
+                    COLUMN.USER_ID,
+                    COLUMN.PERMISSION_TYPE,
+                ])
+                .agg({
+                    COLUMN.NAME: 'count',
+                })
+                # Reseteo de índice
+                .reset_index()
+                # Pivoteo de tabla para obtener columnas con conteos por empleado
+                .pivot_table(
+                    values= COLUMN.NAME,
+                    index= COLUMN.USER_ID,
+                    columns= COLUMN.PERMISSION_TYPE,
+                )
+                # Reemplazo de valores nulos a 0
+                .replace(NAN_TO_ZERO)
+                # Conversión de tipos de dato
+                .astype({
+                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'int8',
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'int8',
+                })
+                # Reseteo de índice
+                .reset_index()
+            )
+
         def _assign_ordered_registry_type(
             self: PipeMethods.Processing,
             records: pd.DataFrame,
@@ -1616,7 +1782,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     # Se restablece el índice del DataFrame
                     .reset_index()
                     # Se establecen a cero todos los np.nan
-                    .replace( {np.nan: 0} )
+                    .replace(NAN_TO_ZERO)
                     # Se establecen los tipos de dato a entero de 8 bits
                     .astype({
                         REGISTRY_TYPE.CHECK_IN: 'uint8',
@@ -1695,6 +1861,190 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     # Selección de columnas
                     [selected_columns]
                 )
+
+    class Report(_Submodule):
+
+        @pipeline_hub.register_method(
+            PIPE.REPORT.GET_EMPLOYEE_DATA_FOR_USER,
+            requires= {
+                COLUMN.USER_ID,
+            },
+            creates= {
+                COLUMN.HIRE_DATE,
+                COLUMN.SALARY_BY_SCHEMA,
+            },
+        )
+        def get_employee_data_for_user(
+            self: PipeMethods.Report,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de datos de empleado
+            Este pipe obtiene los datos de empleado de los registros provistos, como la
+            fecha de ingreso.onteo y cuenta las incidencias
+            existentes para cada empleado.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                .merge(
+                    right= self._pipes_m._main.data.employees_data,
+                    on= COLUMN.USER_ID,
+                    how= 'left',
+                )
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.REPORT.COMPUTE_AVAILABLE_HOLIDAYS,
+            creates= {
+                COLUMN.INITIAL_DATE_FOR_HOLIDAYS,
+            },
+        )
+        def add_initial_date_for_holidays(
+            self: PipeMethods.Report,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de días festivos disponibles
+            Este pipe obtiene la fecha más reciente entre la fecha de ingreso o la fecha de
+            inicio de conteo de días festivos para hacer un correcto cálculo en los días
+            que un empleado puede tomar, según su fecha de ingreso y la fecha de inicio de
+            conteo y posteriormente realiza el conteo de éstos.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Diccionario para añadir la columna de fecha inicial para días festivos
+            initial_date_for_holidays: ColumnAssignation = {
+                COLUMN.INITIAL_DATE_FOR_HOLIDAYS: INITIAL_DATE_FOR_HOLIDAYS,
+            }
+
+            # Diccionario para añadir inicio y final de rango para buscar días festivos
+            add_range_dates: ColumnAssignation = {
+                COLUMN.START_RANGE: (
+                    lambda df: (
+                        df[[COLUMN.HIRE_DATE, COLUMN.INITIAL_DATE_FOR_HOLIDAYS]].max(axis= 1)
+                    )
+                ),
+                COLUMN.END_RANGE: date.today(),
+            }
+
+            def get_available_holidays_by_employee(s: HorizontalSeries) -> int:
+
+                # Obtención de valores correspondientes
+                start = s[COLUMN.START_RANGE].date()
+                end = s[COLUMN.END_RANGE].date()
+
+                # Obtención de lista de días festivos
+                total_available_holidays = (
+                    self._pipes_m._main._data.holidays
+                    # Se filtran los días festivos que se encuentren dentro del rango
+                    .pipe(
+                        lambda df: (
+                            df[
+                                (df[COLUMN.HOLIDAY_DATE].dt.date >= start)
+                                & (df[COLUMN.HOLIDAY_DATE].dt.date <= end)
+                            ]
+                        )
+                    )
+                    # Selección de la columna
+                    [COLUMN.HOLIDAY_DATE]
+                    # Conversión a lista
+                    .to_list()
+                )
+
+                return (
+                    # Construcción de rango de fechas
+                    pd.date_range(start, end)
+                    # Validación de qué días son festivos
+                    .isin(total_available_holidays)
+                    # Suma de días festivos encontrados
+                    .sum()
+                )
+
+            # Diccionario para asignar cantidad de días festivos disponibles para el empleado
+            available_holidays: ColumnAssignation = {
+                COLUMN.AVAILABLE_HOLIDAYS: (
+                    lambda df: (
+                        df[[COLUMN.START_RANGE, COLUMN.END_RANGE]]
+                        .apply(
+                            get_available_holidays_by_employee,
+                            axis= 1,
+                        )
+                    )
+                )
+            }
+
+            return (
+                records
+                # Se añade la columna de fecha inicial para días festivos
+                .assign(**initial_date_for_holidays)
+                # Asignación de tipo de dato
+                .astype({
+                    COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'datetime64[s]',
+                })
+                # Se añaden las fechas de inicio y final de rango para buscar días festivos
+                .assign(**add_range_dates)
+                # Asignación de tipo de dato
+                .astype({
+                    COLUMN.START_RANGE: 'datetime64[s]',
+                    COLUMN.END_RANGE: 'datetime64[s]',
+                })
+                
+                # Asignación de conteo de días festivos disponibles
+                .assign(**available_holidays)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.GET_REMAINING_HOLIDAYS,
+            requires= {
+                COLUMN.AVAILABLE_HOLIDAYS,
+                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+            },
+            creates= {
+                COLUMN.REMAINING_HOLIDAYS,
+            },
+        )
+        def get_remaining_holidays(
+            self: PipeMethods.Report,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de días festivos restantes
+            Este pipe computa los días festivos restantes para tomar por el empleado.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Función para calcular los días festivos restantes para tomar por el empleado
+            remaining_holidays: ColumnAssignation = {
+                COLUMN.REMAINING_HOLIDAYS: (
+                    lambda df: (
+                        df[COLUMN.AVAILABLE_HOLIDAYS]
+                        - df[PERMISSION_NAME.HOLIDAY_ABSENCE]
+                        - df[PERMISSION_NAME.HOLIDAY_COMPENSATION]
+                    )
+                )
+            }
+
+            return (
+                records
+                # Se reemplazan los np.nan por ceros
+                .replace({
+                    PERMISSION_NAME.HOLIDAY_ABSENCE: NAN_TO_ZERO,
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION: NAN_TO_ZERO,
+                })
+                # Corrección de tipos de dato
+                .astype({
+                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'int8',
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'int8',
+                })
+                # Cálculo los días festivos restantes para tomar por el empleado
+                .assign(**remaining_holidays)
+            )
 
     class Format(_Submodule):
 
@@ -1792,6 +2142,37 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             )
 
         @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.EMPLOYEES_DATA,
+            selects= {
+                COLUMN.USER_ID,
+                COLUMN.HIRE_DATE,
+                COLUMN.SALARY_BY_SCHEMA,
+            },
+        )
+        def select_column_employees_data(
+            self: PipeMethods.Format,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Selección de columnas
+            Este pipe selecciona las columnas indicadas para controlar la forma del
+            DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+            columna.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.HIRE_DATE,
+                    COLUMN.SALARY_BY_SCHEMA,
+                ]]
+            )
+
+        @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.ASSISTANCE_RECORDS_UPDATE,
             selects= {
                 COLUMN.ID,
@@ -1868,4 +2249,39 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 records
                 # Selección de columnas
                 [selected_columns]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.HOLIDAYS_SUMMARY,
+            selects= {
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.WAREHOUSE,
+                COLUMN.PAY_FREQUENCY,
+                COLUMN.HIRE_DATE,
+                COLUMN.AVAILABLE_HOLIDAYS,
+                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+                COLUMN.REMAINING_HOLIDAYS,
+            }
+        )
+        def select_columns_holidays_summary(
+            self: PipeMethods.Format,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            
+            return (
+                records
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.NAME,
+                    COLUMN.WAREHOUSE,
+                    COLUMN.PAY_FREQUENCY,
+                    COLUMN.HIRE_DATE,
+                    COLUMN.AVAILABLE_HOLIDAYS,
+                    PERMISSION_NAME.HOLIDAY_ABSENCE,
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION,
+                    COLUMN.REMAINING_HOLIDAYS,
+                ]]
             )

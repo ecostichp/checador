@@ -8,6 +8,20 @@ from ..utils import path_from_dropbox
 
 class Excel(_Contract_Excel):
 
+    def load_users_data(
+        self,
+    ) -> pd.DataFrame:
+
+        # Generación de nombre de archivo a buscar
+        file_name = EXCEL_FILE.USERS_DATA.NAME
+        # Obtención de la ruta del archivo
+        file_path = path_from_dropbox(f'{file_name}.xlsx')
+
+        # Obtención de los datos desde un archivo de Excel
+        data = pd.read_excel(file_path)
+
+        return data
+
     def load_corrections_books(
         self,
         schemas: _Interface_DateSchemas,

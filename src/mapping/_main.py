@@ -41,6 +41,9 @@ ASSIGNED_DTYPES: dict[str, AstypeArg] = {
     COLUMN.IS_CURRENT_DAY_CHECKIN: 'bool',
     COLUMN.WORKED_DAYS: 'uint8',
     COLUMN.NULL_BY_JUSTIFICATION: 'bool',
+    COLUMN.HIRE_DATE: 'datetime64[s]',
+    COLUMN.SALARY_BY_SCHEMA: 'float6',
+    COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'datetime64[s]',
 }
 """
 `dict[str, AstypeArg]` Tipos de dato asignados a las columnas de DataFrames.
@@ -128,3 +131,9 @@ WAREHOUSE_RENAME = {
 """
 Mapa de reasignación de nombres de almacenes provenientes de Odoo.
 """
+
+USERS_DATA_REASSIGNATION_NAMES = {
+    INPUT.FORM.USERS_DATA.COLUMN.USER_ID: COLUMN.USER_ID,
+    INPUT.FORM.USERS_DATA.COLUMN.HIRE_DATE: COLUMN.HIRE_DATE,
+    INPUT.FORM.USERS_DATA.COLUMN.SALARY_BY_SCHEMA: COLUMN.SALARY_BY_SCHEMA,
+}

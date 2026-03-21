@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import (
+    date,
+    datetime,
+)
 import pandas as pd
 from typing import (
     Literal,
@@ -52,6 +55,10 @@ class HorizontalSeries(pd.Series):
     def __getitem__(self, key: Literal['rest_days_count']) -> int: ...
     @overload
     def __getitem__(self, key: Literal['holidays_count']) -> int: ...
+    @overload
+    def __getitem__(self, key: Literal['start_range']) -> datetime: ...
+    @overload
+    def __getitem__(self, key: Literal['end_range']) -> datetime: ...
 
 class Interface_RegistryProcessing:
     _data: Data
@@ -64,6 +71,11 @@ class Interface_RegistryProcessing:
     class Report:
 
         def complete_general_summary(
+            self,
+        ) -> pd.DataFrame:
+            ...
+
+        def holidays_summary(
             self,
         ) -> pd.DataFrame:
             ...

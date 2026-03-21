@@ -6,6 +6,7 @@ from ._env import env
 from ..constants import ENV_VARIABLE
 from ..domain_data import (
     PERMISSIONS_VALUES,
+    USERS_DATA_VALUES,
     VISUALIZATIONS_FILE,
     WAREHOUSE_IDS,
 )
@@ -32,6 +33,7 @@ class CONFIG:
 class INPUT:
     class FORM:
         PERMISSIONS = PERMISSIONS_VALUES
+        USERS_DATA = USERS_DATA_VALUES
     class VALUE:
         JUSTIFICATION = 'Incidencia'
 

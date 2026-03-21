@@ -6,6 +6,8 @@ from ..constants import (
     COLUMN,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
+    PERMISSION_NAME,
+    NAN_TO_ZERO,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
@@ -19,6 +21,8 @@ from ..typing import (
 )
 from ..typing.aliases import DatetimeStr
 from ..typing.literals import PermissionTypeOption
+from ..core import pipeline_hub
+from ..rules import PIPELINE
 
 class _Report(_Interface_Report):
 
@@ -103,6 +107,33 @@ class _Report(_Interface_Report):
                 COLUMN.EARLY_TIME,
             ]]
         )
+
+    def holidays_summary(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención de los datos
+        users = self._main._data.users
+        justifications = self._main._data.justifications
+
+        # Procesamiento por medio de pipes
+        available_holidays_per_employee = pipeline_hub.run_pipe_flow(users, PIPELINE.GET_AVAILABLE_HOLIDAYS)
+        justification_counts = pipeline_hub.run_pipe_flow(justifications, PIPELINE.COUNT_HOLIDAYS_ON_JUSTIFICATIONS)
+
+        # Se unen los cómputos con los registros de empleados
+        d = (
+            available_holidays_per_employee
+            .merge(
+                right= justification_counts,
+                on= COLUMN.USER_ID,
+                how= 'left',
+            )
+        )
+
+        # Procesamiento por medio de pipe
+        summary = pipeline_hub.run_pipe_flow(d, PIPELINE.HOLIDAYS_SUMMARY)
+
+        return summary
 
     def lunch_summary(
         self,
@@ -221,11 +252,7 @@ class _Report(_Interface_Report):
 
         return (
             # Obtención de los registros
-            self._main.data.records
-            # Filtro por fechas usando lambda generada
-            .pipe( self._filter_by_schema_date(schema) )
-            # Se añaden las correcciones
-            .pipe(self._main._pipes.common_operations)
+            self._records_into_schema(schema)
             # Registros de entradas tardías con minutos acumulados
             .groupby(COLUMN.NAME, observed= True)
             .agg({
@@ -263,11 +290,7 @@ class _Report(_Interface_Report):
 
         return (
             # Obtención de los registros
-            self._main.data.records
-            # Filtro por fechas usando lambda generada
-            .pipe( self._filter_by_schema_date(schema) )
-            # Se añaden las correcciones
-            .pipe(self._main._pipes.common_operations)
+            self._records_into_schema(schema)
             # Registros de salidas anticipadas con minutos acumulados
             .groupby(COLUMN.NAME, observed= True)
             .agg({
@@ -305,11 +328,7 @@ class _Report(_Interface_Report):
 
         return (
             # Obtención de los registros
-            self._main.data.records
-            # Filtro por fechas usando lambda generada
-            .pipe( self._filter_by_schema_date(schema) )
-            # Se añaden las correcciones
-            .pipe(self._main._pipes.common_operations)
+            self._records_into_schema(schema)
             # Minutos extras en tiempo de comida
             .pipe(self._main._pipes.get_exceeding_lunch_time)
             # Agrupación por nombres de usuario para obtención de sumas
@@ -353,11 +372,7 @@ class _Report(_Interface_Report):
 
         return (
             # Obtención de los registros
-            self._main.data.records
-            # Filtro por fechas usando lambda generada
-            .pipe( self._filter_by_schema_date(schema) )
-            # Se añaden las correcciones
-            .pipe(self._main._pipes.common_operations)
+            self._records_into_schema(schema)
             # Selección de columnas
             [[
                 COLUMN.USER_ID,
@@ -414,20 +429,22 @@ class _Report(_Interface_Report):
             )
         )
 
-    def _filter_by_schema_date(
+    def _records_into_schema(
         self,
         schema: _DateSchema,
-    ) -> DataFramePipe:
+    ) -> pd.DataFrame:
 
-            # Lambda de filtro en base a las fechas provistas en el esquema de tiempo
-            fn: DataFramePipe = (
+        return (
+            # Obtención de registros para reportes
+            self._main._validations.records_for_report()
+            # Filtro por las fechas provistas en el esquema de tiempo
+            .pipe(
                 lambda df: df[
                     ( df[COLUMN.REGISTRY_TIME].dt.date >= schema.start_date )
                     & ( df[COLUMN.REGISTRY_TIME].dt.date <= schema.end_date )
                 ]
             )
-
-            return fn
+        )
 
     def _assign_schema_name(
         self,
@@ -449,7 +466,7 @@ class _Report(_Interface_Report):
 
     def _reports_by_schemas(
         self,
-        fn: Callable[[_DateSchema]],
+        fn: Callable[[_DateSchema], None],
     ) -> pd.DataFrame:
 
         # Construcción de DataFrame a partir de concatenaciones

@@ -24,6 +24,11 @@ class _Interface_Report:
         """
         ...
 
+    def holidays_summary(
+        self,
+    ) -> pd.DataFrame:
+        ...
+
     def lunch_summary(
         self,
     ) -> pd.DataFrame:

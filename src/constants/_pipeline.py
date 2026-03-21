@@ -42,6 +42,14 @@ class PIPE:
 
             :param records DataFrame: Datos entrantes.
             """
+        class EMPLOYEES_DATA:
+            RENAME_COLUMNS = 'rename_employees_data_columns'
+            """
+            ### Reasignación de nombres de columnas en datos de usuarios
+            Este pipe reasigna nombres de columnas al DataFrame entrante.
+
+            :param records DataFrame: Datos entrantes.
+            """
     class PROCESSING:
         ASSIGN_DTYPES = 'assign_dtypes'
         """
@@ -96,6 +104,38 @@ class PIPE:
         ### Asignación de fecha y hora de registro
         Esta función concatena fecha y hora  en base a las columnas `'date'` y
         `'time'` de los registros.
+        """
+        RENAME_PERMISSION_NAMES = 'rename_permission_types'
+        """
+        ### Reasignación de nombres de columnas en tipos de permiso
+        Este pipe reasigna nombres de columnas al DataFrame entrante.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        GET_HOLIDAY_JUSTIFICATIONS = 'get_holiday_justifications'
+        """
+        ### Obtención de permisos relacionados a días festivos
+        Este pipe filtra los registros de incidencias para conservar únicamente los
+        registros que tengan permisos relacionados con días festivos.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        COUNT_HOLIDAY_JUSTIFICATIONS_PER_EMPLOYEE = 'count_holiday_justifications_per_employee'
+        """
+        ### Contar incidencias de días festivos por empleado
+    
+        Este pipe toma las incidencias de días festivos, filtra desde los registros
+        posteriores a la fecha considerada inicio de conteo y cuenta las incidencias
+        existentes para cada empleado.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        GET_REMAINING_HOLIDAYS = 'get_remaining_holidays'
+        """
+        ### Obtención de días festivos restantes
+        Este pipe computa los días festivos restantes para tomar por el empleado.
+
+        :param records DataFrame: Datos entrantes.
         """
         class RECORDS:
             ADD_DATE_AND_TIME = 'add_date_and_time'
@@ -251,6 +291,7 @@ class PIPE:
 
                 :param records DataFrame: Datos entrantes.
                 """
+
         class JUSTIFICATIONS:
             GET_AND_KEEP_BY_USER_ID = 'get_and_keep_by_user_id'
             """
@@ -268,6 +309,28 @@ class PIPE:
 
             :param records DataFrame: Datos entrantes.
             """
+
+    class REPORT:
+        GET_EMPLOYEE_DATA_FOR_USER = 'get_employee_data_for_user'
+        """
+        ### Obtención de datos de empleado
+        Este pipe obtiene los datos de empleado de los registros provistos, como la
+        fecha de ingreso.onteo y cuenta las incidencias
+        existentes para cada empleado.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        COMPUTE_AVAILABLE_HOLIDAYS = 'compute_available_holidays'
+        """
+        ### Obtención de días festivos disponibles
+        Este pipe obtiene la fecha más reciente entre la fecha de ingreso o la fecha de
+        inicio de conteo de días festivos para hacer un correcto cálculo en los días
+        que un empleado puede tomar, según su fecha de ingreso y la fecha de inicio de
+        conteo y posteriormente realiza el conteo de éstos.
+
+        :param records DataFrame: Datos entrantes.
+        """
+
     class COLUMNS_SELECTION:
         ASSISTANCE_RECORDS = 'select_columns_assistance_records'
         """
@@ -296,6 +359,15 @@ class PIPE:
 
         :param records DataFrame: Datos entrantes.
         """
+        EMPLOYEES_DATA = 'select_column_employees_data'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
         ASSISTANCE_RECORDS_UPDATE = 'select_columns_assistance_records_update'
         """
         ### Selección de columnas
@@ -315,6 +387,15 @@ class PIPE:
         :param records DataFrame: Datos entrantes.
         """
         EVALUATE_REGISTRY_TIMES = 'select_columns_evaluate_registry_times'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        HOLIDAYS_SUMMARY = 'select_columns_holidays_summary'
         """
         ### Selección de columnas
         Este pipe selecciona las columnas indicadas para controlar la forma del

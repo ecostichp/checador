@@ -54,8 +54,14 @@ class PERMISSIONS_VALUES:
         PERMISSION_START = 'Ingresa fecha de inicio'
         PERMISSION_END = 'Ingresa fecha final'
 
+class USERS_DATA_VALUES:
+    class COLUMN:
+        USER_ID = 'user_id'
+        HIRE_DATE = 'Fecha de ingreso'
+        SALARY_BY_SCHEMA = 'Salario'
+
 class VISUALIZATIONS_FILE:
-    NAME = 'Checador_visualizaciones'
+    NAME = 'checador_visualizaciones_prueba'
     class SHEET:
         USERS = 'Usuarios'
         COMPLETE_GENERAL_SUMMARY = 'datos'

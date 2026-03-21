@@ -1,3 +1,4 @@
+from datetime import date
 from ..constants import (
     COLUMN,
     REGISTRY_TYPE,
@@ -68,4 +69,10 @@ al menos un registro por cada tipo de registro:
 - `UNIQUE_START_AND_END` Validación de registro diario por empleado donde los
 registros de inicio de jornada laboral y fin de jornada laboral son únicos
 para cada uno de éstos.
+"""
+
+INITIAL_DATE_FOR_HOLIDAYS = date(2026, 1, 2)
+"""
+Fecha inicial para considerar los días festivos ocurridos hasta el día en
+curso.
 """

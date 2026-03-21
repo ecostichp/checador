@@ -6,6 +6,8 @@ from ._main import (
     COLUMN,
     ENV_VARIABLE,
     ENV_VAR_PREFIX,
+    NAN_TO_ZERO,
+    NAN_TO_TIME_DELTA_ON_ZERO,
     PERMISSION_NAME,
     REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,

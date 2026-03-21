@@ -14,7 +14,7 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
         # Usuarios
         OUTPUT.FILE.VISUALIZATIONS.SHEET.USERS: (
             lambda main: (
-                main._data.users,
+                main._report.holidays_summary()
             )
         ),
         # Resumen general completo

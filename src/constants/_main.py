@@ -1,4 +1,5 @@
 from datetime import timedelta
+from numpy import nan
 
 ENV_VAR_PREFIX = 'CHECADOR_'
 """
@@ -151,6 +152,21 @@ class COLUMN:
     WORKED_DAYS = 'worked_days'
     """`uint8` Días laborados dentro del esquema de tiempo."""
 
+    HIRE_DATE = 'hire_date'
+    """`datetime64[s]` Fecha de ingreso del empleado."""
+    SALARY_BY_SCHEMA = 'salary_by_schema'
+    """`float64` Salario por esquema."""
+    INITIAL_DATE_FOR_HOLIDAYS = 'initial_date_for_holidays'
+    """`datetime64[s]` Fecha inicial para días festivos."""
+    START_RANGE = 'start_range'
+    """`datetime64[s]` Fecha de inicio de rango."""
+    END_RANGE = 'end_range'
+    """`datetime64[s]` Fecha de fin de rango."""
+    AVAILABLE_HOLIDAYS = 'available_holidays'
+    """`int8` Cantidad de días festivos disponibles para el empleado."""
+    REMAINING_HOLIDAYS = 'remaining_holidays'
+    """`int8` Cantidad de días festivos restantes para tomar por el empleado."""
+
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
     CHECK_IN = 'checkIn'
@@ -269,4 +285,13 @@ WAREHOUSES = [
 TIME_DELTA_ON_ZERO = timedelta()
 """
 `timedelta(00:00:00)` Valor de delta de tiempo en ceros.
+"""
+
+NAN_TO_ZERO = {nan: 0}
+"""
+`np.nan` a `0`.
+"""
+NAN_TO_TIME_DELTA_ON_ZERO = {nan: TIME_DELTA_ON_ZERO}
+"""
+`NaT` a `00:00:00`.
 """

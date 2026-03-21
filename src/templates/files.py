@@ -12,6 +12,14 @@ class EXCEL_FILE:
         """
         `Literal` Nombre del archivo.
         """
+    class USERS_DATA:
+        """
+        `CONST` Archivo de datos de usuarios.
+        """
+        NAME = 'data/datos_usuarios'
+        """
+        `Literal` Nombre del archivo.
+        """
 
 class SPREADSHEET:
     """

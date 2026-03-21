@@ -5,6 +5,11 @@ class _Interface_DateSchemas:
 
 class _Contract_Excel:
 
+    def load_users_data(
+        self,
+    ) -> pd.DataFrame:
+        ...
+
     def load_corrections_books(
         self,
         schemas: _Interface_DateSchemas,
