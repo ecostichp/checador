@@ -42,7 +42,7 @@ ASSIGNED_DTYPES: dict[str, AstypeArg] = {
     COLUMN.WORKED_DAYS: 'uint8',
     COLUMN.NULL_BY_JUSTIFICATION: 'bool',
     COLUMN.HIRE_DATE: 'datetime64[s]',
-    COLUMN.SALARY_BY_SCHEMA: 'float6',
+    COLUMN.SALARY_BY_SCHEMA: 'float64',
     COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'datetime64[s]',
 }
 """
