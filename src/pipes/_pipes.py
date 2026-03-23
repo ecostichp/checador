@@ -1661,8 +1661,8 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 .replace(NAN_TO_ZERO)
                 # Conversión de tipos de dato
                 .astype({
-                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'int8',
-                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'int8',
+                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'uint8',
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'uint8',
                 })
                 # Reseteo de índice
                 .reset_index()
@@ -2039,8 +2039,8 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 })
                 # Corrección de tipos de dato
                 .astype({
-                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'int8',
-                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'int8',
+                    PERMISSION_NAME.HOLIDAY_ABSENCE: 'uint8',
+                    PERMISSION_NAME.HOLIDAY_COMPENSATION: 'uint8',
                 })
                 # Cálculo los días festivos restantes para tomar por el empleado
                 .assign(**remaining_holidays)
