@@ -39,11 +39,15 @@ ASSIGNED_DTYPES: dict[str, AstypeArg] = {
     COLUMN.HOLIDAY_DATE: 'datetime64[ns]',
     COLUMN.IS_CLOSED_CORRECT: 'bool',
     COLUMN.IS_CURRENT_DAY_CHECKIN: 'bool',
+    COLUMN.SCHEMA: 'category',
+    COLUMN.WAREHOUSE: 'category',
     COLUMN.WORKED_DAYS: 'uint8',
     COLUMN.NULL_BY_JUSTIFICATION: 'bool',
     COLUMN.HIRE_DATE: 'datetime64[s]',
     COLUMN.SALARY_BY_SCHEMA: 'float64',
     COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'datetime64[s]',
+    COLUMN.AVAILABLE_HOLIDAYS: 'uint8',
+    COLUMN.REMAINING_HOLIDAYS: 'uint8',
 }
 """
 `dict[str, AstypeArg]` Tipos de dato asignados a las columnas de DataFrames.
