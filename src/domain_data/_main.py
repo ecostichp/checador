@@ -61,7 +61,7 @@ class USERS_DATA_VALUES:
         SALARY_BY_SCHEMA = 'Salario'
 
 class VISUALIZATIONS_FILE:
-    NAME = 'checador_visualizaciones_prueba'
+    NAME = 'Checador_visualizaciones'
     class SHEET:
         USERS = 'Usuarios'
         COMPLETE_GENERAL_SUMMARY = 'datos'
