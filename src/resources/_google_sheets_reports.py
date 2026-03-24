@@ -4,6 +4,7 @@ from ..constants import (
     VALIDATION,
 )
 from ..contracts.resources import _Contract_ReportsToUpload
+from ..mapping import COLUMN_LABELS
 from ..settings import OUTPUT
 from ..typing.interfaces import Interface_RegistryProcessing
 
@@ -79,9 +80,28 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
 
         # Generación de los reportes
         reports_to_upload = {
-            sheet: generator(self._main)
+            sheet: (
+                generator(self._main)
+                .pipe(self._get_labels)
+            )
             for ( sheet, generator )
             in self._reports_to_get.items()
         }
 
         return reports_to_upload
+
+    def _get_labels(
+        self,
+        data: pd.DataFrame,
+    ) -> pd.DataFrame:
+
+        return (
+            data
+            .rename(
+                columns= {
+                    old: new
+                    for ( old, new ) in COLUMN_LABELS.items()
+                    if old in data.columns
+                }
+            )
+        )
