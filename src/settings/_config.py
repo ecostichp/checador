@@ -7,7 +7,6 @@ from ..constants import ENV_VARIABLE
 from ..domain_data import (
     PERMISSIONS_VALUES,
     USERS_DATA_VALUES,
-    VISUALIZATIONS_FILE,
     WAREHOUSE_IDS,
 )
 
@@ -23,12 +22,27 @@ class CONFIG:
     `timedelta` Límite de duración de tiempo de comida.
     """
 
+    VISUALIZATIONS = env.variable(ENV_VARIABLE.VISUALIZATIONS_SPREADSHEET)
+    """
+    `str` Archivo de Hojas de Cálculo donde se subirán las actualizaciones de los
+    datos.
+    """
+
     class DATE_LIMITS:
         """Fechas límite."""
         FIRST_HALF_MONTH_END = 15
         """Día final de la primera quincena del mes."""
         SECOND_HALF_MONTH_START = 16
         """Día inicial de la segunda quincena del mes."""
+
+class VISUALIZATIONS_FILE:
+    NAME = CONFIG.VISUALIZATIONS
+    class SHEET:
+        USERS = 'Usuarios'
+        COMPLETE_GENERAL_SUMMARY = 'datos'
+        JUSTIFICATIONS_HISTORY = 'Incidencias'
+        LUNCH_SUMMARY = 'Min comida'
+        JUSTIFICATIONS_SUMMARY = 'Resumen Incidencias'
 
 class INPUT:
     class FORM:

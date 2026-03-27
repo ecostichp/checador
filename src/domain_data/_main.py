@@ -60,15 +60,6 @@ class USERS_DATA_VALUES:
         HIRE_DATE = 'Fecha de ingreso'
         SALARY_BY_SCHEMA = 'Salario'
 
-class VISUALIZATIONS_FILE:
-    NAME = 'Checador_visualizaciones'
-    class SHEET:
-        USERS = 'Usuarios'
-        COMPLETE_GENERAL_SUMMARY = 'datos'
-        JUSTIFICATIONS_HISTORY = 'Incidencias'
-        LUNCH_SUMMARY = 'Min comida'
-        JUSTIFICATIONS_SUMMARY = 'Resumen Incidencias'
-
 class WAREHOUSE_IDS:
     CSL = 2
     SJC = 3

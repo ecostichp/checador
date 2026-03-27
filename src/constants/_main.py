@@ -12,6 +12,11 @@ class ENV_VARIABLE:
     """`Literal` Día en curso."""
     SELECTED_DATABASE = 'DATABASE'
     """`Literal` Base de datos a utilizar."""
+    VISUALIZATIONS_SPREADSHEET = 'VISUALIZATIONS_SPREADSHEET'
+    """
+    `Literal` Archivo de Hojas de Cálculo donde se subirán las actualizaciones de
+    los datos.
+    """
 
 class COLUMN:
     """
