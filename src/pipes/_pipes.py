@@ -199,8 +199,18 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
 
         @pipeline_hub.register_method(
             PIPE.DATA.JUSTIFICATIONS.RENAME_COLUMNS,
-            renames= ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES,
-            selects= set( ATTENDANCE_JUSTIFICATIONS_REASSIGNATION_NAMES.values() ),
+            renames= {
+                INPUT.FORM.PERMISSIONS.COLUMN.NAME: COLUMN.NAME,
+                INPUT.FORM.PERMISSIONS.COLUMN.PERMISSION_TYPE: COLUMN.PERMISSION_TYPE,
+                INPUT.FORM.PERMISSIONS.COLUMN.PERMISSION_START: COLUMN.PERMISSION_START,
+                INPUT.FORM.PERMISSIONS.COLUMN.PERMISSION_END: COLUMN.PERMISSION_END,
+            },
+            selects= {
+                COLUMN.NAME,
+                COLUMN.PERMISSION_TYPE,
+                COLUMN.PERMISSION_START,
+                COLUMN.PERMISSION_END,
+            },
         )
         def rename_justifications_columns(
             self: PipeMethods.Data,
@@ -228,7 +238,11 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
 
         @pipeline_hub.register_method(
             PIPE.DATA.EMPLOYEES_DATA.RENAME_COLUMNS,
-            renames= USERS_DATA_REASSIGNATION_NAMES,
+            renames= {
+                INPUT.FORM.USERS_DATA.COLUMN.USER_ID: COLUMN.USER_ID,
+                INPUT.FORM.USERS_DATA.COLUMN.HIRE_DATE: COLUMN.HIRE_DATE,
+                INPUT.FORM.USERS_DATA.COLUMN.SALARY_BY_SCHEMA: COLUMN.SALARY_BY_SCHEMA,
+            },
         )
         def rename_employees_data_columns(
             self: PipeMethods.Data,
@@ -779,7 +793,9 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 ATTENDANCE_COLUMN.REGISTRY_TYPE: COLUMN.REGISTRY_TYPE,
                 ATTENDANCE_COLUMN.DEVICE: COLUMN.DEVICE,
             },
-            creates= {COLUMN.ID},
+            creates= {
+                COLUMN.ID,
+            },
         )
         def process_before_save_in_database(
             self: PipeMethods.Processing,
@@ -1566,7 +1582,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             )
 
         @pipeline_hub.register_method(
-            'get_cummulated_time',
+            PIPE.PROCESSING.RECORDS.GET_CUMMULATED_TIME,
             requires= {
                 COLUMN.REGISTRY_TYPE,
                 COLUMN.REGISTRY_TIME,
@@ -1974,7 +1990,11 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     REGISTRY_TYPE.BREAK_IN,
                     REGISTRY_TYPE.CHECK_OUT,
                 },
-                creates= set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() ),
+                creates= {
+                    VALIDATION.COMPLETE,
+                    VALIDATION.BREAK_PAIRS,
+                    VALIDATION.UNIQUE_START_AND_END,
+                },
             )
             def validate_day_pivoted_records(
                 self: PipeMethods.Processing.Pivoted,
@@ -2002,12 +2022,12 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
 
             @pipeline_hub.register_method(
                 PIPE.COLUMNS_SELECTION.PIVOTED.RECORDS,
-                requires= (
-                    {
-                        COLUMN.USER_AND_DATE_INDEX,
-                    }
-                    | set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
-                )
+                requires= {
+                    COLUMN.USER_AND_DATE_INDEX,
+                    VALIDATION.COMPLETE,
+                    VALIDATION.BREAK_PAIRS,
+                    VALIDATION.UNIQUE_START_AND_END,
+                },
             )
             def select_columns_pivot_records(
                 self: PipeMethods.Processing.Pivoted,
@@ -2377,22 +2397,22 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
 
         @pipeline_hub.register_method(
             PIPE.COLUMNS_SELECTION.VALIDATE_TODAY_CHECKIN,
-            requires= (
-                {
-                    COLUMN.USER_ID,
-                    COLUMN.NAME,
-                    COLUMN.REGISTRY_TIME,
-                    COLUMN.DATE,
-                    COLUMN.TIME,
-                    COLUMN.REGISTRY_TYPE,
-                    COLUMN.DEVICE,
-                    COLUMN.IS_DUPLICATED,
-                    COLUMN.IS_CORRECTION,
-                    COLUMN.NULL_BY_JUSTIFICATION,
-                    COLUMN.IS_VACATION,
-                }
-                | set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
-            )
+            requires= {
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.REGISTRY_TIME,
+                COLUMN.DATE,
+                COLUMN.TIME,
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.DEVICE,
+                COLUMN.IS_DUPLICATED,
+                COLUMN.IS_CORRECTION,
+                COLUMN.NULL_BY_JUSTIFICATION,
+                COLUMN.IS_VACATION,
+                VALIDATION.COMPLETE,
+                VALIDATION.BREAK_PAIRS,
+                VALIDATION.UNIQUE_START_AND_END,
+            },
         )
         def select_columns_validate_today_checkin(
             self: PipeMethods.Format,
