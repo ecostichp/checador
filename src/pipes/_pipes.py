@@ -4,6 +4,7 @@ from datetime import (
     date,
     timedelta,
 )
+from typing import Callable
 from attendance_registry._constants import COLUMN as ATTENDANCE_COLUMN
 from ..constants import (
     COLUMN,
@@ -1147,6 +1148,179 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             )
 
         @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.TAG_VACATION_DAYS,
+            requires= {
+                COLUMN.USER_ID,
+            },
+            creates= {
+                COLUMN.IS_VACATION,
+            },
+        )
+        def tag_vacation_records(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Etiquetado de eventos en vacaciones
+            Este pipe busca los eventos con valores de tipo de registro válido que hayan
+            sido creados en los días en el usuario tiene incidencia de vacaciones.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Constante temporal
+            _VALUES = '_values'
+
+            # Función para forzar resultado a Pandas Series
+            force_series: SeriesFromDataFrame = (
+                lambda maybe_series: (
+                    maybe_series
+                        if isinstance(maybe_series, pd.Series)
+                        else pd.Series([])
+                )
+            )
+
+            # Función para forzar resultado a lista
+            force_list: Callable[[pd.DataFrame], list[str]] = (
+                lambda df: (
+                    (
+                        df
+                        [_VALUES]
+                        .sum()
+                    )
+                        if not df.empty
+                        else []
+                )
+            )
+
+            # Función para obtener valores de fechas donde existen incidencias de vacaciones del usuario
+            get_vacation_dates: ColumnAssignation = {
+                _VALUES: (
+                    lambda df: (
+                        df
+                        .apply(
+                            lambda s: (
+                                pd.date_range(
+                                    s[COLUMN.PERMISSION_START],
+                                    s[COLUMN.PERMISSION_END],
+                                )
+                                .tolist()
+                            ),
+                            axis= 1
+                        )
+                        .pipe(force_series)
+                    )
+                )
+            }
+
+            # Mapeo para crear columna de registro en vacaciones
+            initialize_is_vacation: ColumnAssignation = {
+                COLUMN.IS_VACATION: False,
+            }
+
+            # Función para crear pipe que etiqueta registros de vacaciones por usuario
+            def build_tag_vacation_records_by_user(user_id: int) -> Callable[[pd.DataFrame], pd.Series]:
+
+                fn: SeriesFromDataFrame = (
+                    lambda df: (
+                        # Búsquedas donde existen incidencias de vacaciones
+                        (
+                            df
+                            ['date']
+                            .isin(
+                                self._pipes_m._main.data.justifications
+                                .pipe(
+                                    lambda df: df[df[COLUMN.USER_ID] == user_id]
+                                )
+                                .pipe(lambda df: df[df[COLUMN.PERMISSION_TYPE] == 'Vacaciones'])
+                                .assign(
+                                    permission_start = lambda df: df[COLUMN.PERMISSION_START].dt.date,
+                                    permission_end = lambda df: df[COLUMN.PERMISSION_END].dt.date,
+                                )
+                                .assign(**get_vacation_dates)
+                                .pipe(force_list)
+                            )
+                        )
+                        # La ID de usuario coincide con el usuario en valicación
+                        & ( df[COLUMN.USER_ID] == user_id )
+                    )
+                )
+
+                return fn
+
+            # Función para etiquetar registros donde existen incidencias de vacaciones
+            def tag_vacation_justifications_on_users(df: pd.DataFrame):
+
+                # Obtención de las IDs de los usuarios en los datos
+                user_ids: list[int] = df[COLUMN.USER_ID].unique().tolist()
+                # Inicialización de la columna de registro en vacaciones
+                df = df.assign(**initialize_is_vacation)
+
+                # Iteración por cada ID de usuario
+                for user_id in user_ids:
+
+                    # Construcción del pipe de validación para el usuario
+                    fn = build_tag_vacation_records_by_user(user_id)
+
+                    # Reasignación de columna reuniendo todos los valores True en valicación
+                    tag_vacation_records_by_user: ColumnAssignation = {
+                        COLUMN.IS_VACATION: (
+                            lambda df: (
+                                df[COLUMN.IS_VACATION] | df.pipe(fn)
+                            )
+                        )
+                    }
+
+                    # Se añaden todos los valores en True
+                    df = df.assign(**tag_vacation_records_by_user)
+
+                return df
+
+            return (
+                records
+                # Se etiquetan registros donde existen incidencias de vacaciones
+                .pipe(tag_vacation_justifications_on_users)
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.VACATION_EVENTS_TO_NULL_TYPE,
+            requires= {
+                COLUMN.IS_VACATION,
+                COLUMN.REGISTRY_TYPE,
+            },
+        )
+        def vacation_events_to_null_type(
+            self: PipeMethods.Processing,
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Anulación de eventos en vacaciones del usuario
+            Este pipe busca los eventos que hayan sido creados en los días en el usuario
+            tiene incidencia de vacaciones y cambia sus valores de tipo de registro a nulo.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Función para corrección de tipo de registro en días de vacaciones del usuario
+            registry_type_correction: ColumnAssignation = {
+                COLUMN.REGISTRY_TYPE: (
+                    lambda df: (
+                        np.where(
+                            df[COLUMN.IS_VACATION],
+                            REGISTRY_TYPE.NULL,
+                            df[COLUMN.REGISTRY_TYPE],
+                        )
+                    )
+                )
+            }
+
+            return (
+                records
+                # Corrección de tipo de registro en días de vacaciones del usuario
+                .assign(**registry_type_correction)
+            )
+
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.RECORDS.ASSIGN_DAY_AND_USER_INDEX,
             requires= {
                 COLUMN.USER_ID,
@@ -2215,6 +2389,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.IS_DUPLICATED,
                     COLUMN.IS_CORRECTION,
                     COLUMN.NULL_BY_JUSTIFICATION,
+                    COLUMN.IS_VACATION,
                 }
                 | set( VALIDATIONS_PER_DAY_AND_USER_ID.keys() )
             )
@@ -2241,6 +2416,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.IS_CORRECTION,
                     COLUMN.NULL_BY_JUSTIFICATION,
                     COLUMN.IS_CURRENT_DAY_CHECKIN,
+                    COLUMN.IS_VACATION,
                 ]
                 + validation_names
             )

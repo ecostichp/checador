@@ -206,6 +206,22 @@ class PIPE:
 
             :param records DataFrame: Datos entrantes.
             """
+            TAG_VACATION_DAYS = 'tag_vacation_records'
+            """
+            ### Etiquetado de eventos en vacaciones
+            Este pipe busca los eventos con valores de tipo de registro válido que hayan
+            sido creados en los días en el usuario tiene incidencia de vacaciones.
+
+            :param records DataFrame: Datos entrantes.
+            """
+            VACATION_EVENTS_TO_NULL_TYPE = 'vacation_events_to_null_type'
+            """
+            ### Anulación de eventos en vacaciones del usuario
+            Este pipe busca los eventos que hayan sido creados en los días en el usuario
+            tiene incidencia de vacaciones y cambia sus valores de tipo de registro a nulo.
+
+            :param records DataFrame: Datos entrantes.
+            """
             ASSIGN_DAY_AND_USER_INDEX = 'assign_day_and_user_id_index'
             """
             ### Asignación de índice por usuario y día de registro

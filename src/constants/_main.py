@@ -67,6 +67,10 @@ class COLUMN:
     `bool` El tipo de registro representa un mismo evento pero se creó dos o más
     veces por el usuario en el mismo día
     ."""
+    IS_VACATION = 'is_vacation'
+    """
+    `bool` Es registro en vacaciones del usuario.
+    """
     NULL_BY_JUSTIFICATION = 'null_by_justification'
     """
     `bool` El registro fue anulado por una incidencia.
