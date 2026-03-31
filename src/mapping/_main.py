@@ -187,6 +187,8 @@ COLUMN_LABELS: dict[str, str] = {
     COLUMN.HIRE_DATE: 'Fecha de ingreso',
     COLUMN.SALARY_BY_SCHEMA: 'Salario',
     COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'Fecha de inicio para días festivos',
+    COLUMN.INCAPACITIES_COUNT: 'Incapacidades',
+    COLUMN.ABSENCES_COUNT: 'Faltas',
 
     VALIDATION.COMPLETE: 'Día completo',
     VALIDATION.BREAK_PAIRS: 'Pares en comida',

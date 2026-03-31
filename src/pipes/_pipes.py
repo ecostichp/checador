@@ -1337,6 +1337,39 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             )
 
         @pipeline_hub.register_method(
+            PIPE.PROCESSING.RECORDS.USER_WAREHOUSE,
+            requires= {
+                COLUMN.USER_ID,
+            },
+            creates= {
+                COLUMN.WAREHOUSE,
+            },
+        )
+        def user_warehouse(
+            self: 'PipeMethods.Processing',
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Obtención de almacén del usuario
+            Este pipe obtiene el valor de nombre corto de almacén al que pertenecen los
+            usuarios.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                .merge(
+                    right= (
+                        self._pipes_m._main._data.users
+                        [[COLUMN.USER_ID, COLUMN.WAREHOUSE]]
+                    ),
+                    on= COLUMN.USER_ID,
+                    how= 'left',
+                )
+            )
+
+        @pipeline_hub.register_method(
             PIPE.PROCESSING.RECORDS.ASSIGN_DAY_AND_USER_INDEX,
             requires= {
                 COLUMN.USER_ID,
@@ -1685,6 +1718,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 COLUMN.IS_CLOSED_CORRECT,
                 COLUMN.LATE_TIME,
                 COLUMN.EARLY_TIME,
+                COLUMN.WAREHOUSE,
             },
         )
         def select_columns_evaluate_registry_times(
@@ -1719,6 +1753,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.IS_CLOSED_CORRECT,
                     COLUMN.LATE_TIME,
                     COLUMN.EARLY_TIME,
+                    COLUMN.WAREHOUSE,
                 ]]
             )
 
@@ -2479,5 +2514,42 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     PERMISSION_NAME.HOLIDAY_ABSENCE,
                     PERMISSION_NAME.HOLIDAY_COMPENSATION,
                     COLUMN.REMAINING_HOLIDAYS,
+                ]]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.JUSTIFICATIONS_HISTORY,
+            selects= {
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.PERMISSION_TYPE,
+                COLUMN.PERMISSION_START,
+                COLUMN.PERMISSION_END,
+                COLUMN.WAREHOUSE,
+            },
+        )
+        def select_columns_justifications_history(
+            self: 'PipeMethods.Format',
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Selección de columnas
+            Este pipe selecciona las columnas indicadas para controlar la forma del
+            DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+            columna.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.NAME,
+                    COLUMN.PERMISSION_TYPE,
+                    COLUMN.PERMISSION_START,
+                    COLUMN.PERMISSION_END,
+                    COLUMN.WAREHOUSE,
                 ]]
             )

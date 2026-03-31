@@ -24,6 +24,11 @@ class _Interface_Report:
         """
         ...
 
+    def justifications(
+        self,
+    ) -> pd.DataFrame:
+        ...
+
     def holidays_summary(
         self,
     ) -> pd.DataFrame:

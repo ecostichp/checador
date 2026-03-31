@@ -21,7 +21,7 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
         # Resumen general completo
         OUTPUT.FILE.VISUALIZATIONS.SHEET.COMPLETE_GENERAL_SUMMARY: (
             lambda main: (
-                main._report.complete_general_summary()
+                main._records_for_report
                 # Selección de columnas
                 [[
                     COLUMN.USER_ID,
@@ -43,13 +43,14 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
                     VALIDATION.IS_EARLY_END,
                     COLUMN.LATE_TIME,
                     COLUMN.EARLY_TIME,
+                    COLUMN.WAREHOUSE,
                 ]]
             )
         ),
         # Historial completo de incidencias
         OUTPUT.FILE.VISUALIZATIONS.SHEET.JUSTIFICATIONS_HISTORY: (
             lambda main: (
-                main._data.justifications
+                main._report.justifications()
             )
         ),
         # Resumen de acumulados en horas de comida

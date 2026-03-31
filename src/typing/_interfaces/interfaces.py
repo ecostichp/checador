@@ -63,12 +63,18 @@ class HorizontalSeries(pd.Series):
 class Interface_RegistryProcessing:
     _data: 'Data'
     _report: 'Report'
+    _records_for_report: pd.DataFrame
 
     class Data:
         users: pd.DataFrame
         justifications: pd.DataFrame
 
     class Report:
+
+        def justifications(
+            self,
+        ) -> pd.DataFrame:
+            ...
 
         def complete_general_summary(
             self,

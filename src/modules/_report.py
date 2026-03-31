@@ -4,10 +4,9 @@ import numpy as np
 from datetime import timedelta
 from ..constants import (
     COLUMN,
+    PERMISSION_NAME,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
-    PERMISSION_NAME,
-    NAN_TO_ZERO,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
@@ -83,29 +82,19 @@ class _Report(_Interface_Report):
         return (
             # Obtención de los registros base para reporte
             self._main._records_for_report
-            # Selección de columnas
-            [[
-                COLUMN.USER_ID,
-                COLUMN.NAME,
-                COLUMN.TIME,
-                COLUMN.DATE,
-                COLUMN.REGISTRY_TYPE,
-                COLUMN.DEVICE,
-                COLUMN.IS_DUPLICATED,
-                COLUMN.REGISTRY_TIME,
-                COLUMN.IS_CORRECTION,
-                COLUMN.NULL_BY_JUSTIFICATION,
-                VALIDATION.COMPLETE,
-                VALIDATION.BREAK_PAIRS,
-                VALIDATION.UNIQUE_START_AND_END,
-                COLUMN.WEEKDAY,
-                COLUMN.ALLOWED_START,
-                COLUMN.ALLOWED_END,
-                VALIDATION.IS_LATE_START,
-                VALIDATION.IS_EARLY_END,
-                COLUMN.LATE_TIME,
-                COLUMN.EARLY_TIME,
-            ]]
+        )
+
+    def justifications(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención del historial de incidencias
+        justifications = self._main._data.justifications
+        # Procesamiento por medio de pipes
+        data = pipeline_hub.run_pipe_flow(justifications, PIPELINE.JUSTIFICATIONS_HISTORY)
+
+        return (
+            data
         )
 
     def holidays_summary(
@@ -229,7 +218,7 @@ class _Report(_Interface_Report):
                 lambda df: (
                     pd.merge(
                         left= df,
-                        right= self._justifications(schema),
+                        right= self._justifications_summary(schema),
                         on= [COLUMN.USER_ID, COLUMN.NAME],
                     )
                 )
@@ -395,7 +384,7 @@ class _Report(_Interface_Report):
             .reset_index()
         )
 
-    def _justifications(
+    def _justifications_summary(
         self,
         schema: _DateSchema,
     ) -> pd.DataFrame:
@@ -407,6 +396,37 @@ class _Report(_Interface_Report):
 
         :param schema _DateSchema: Esquema de tiempo.
         """
+
+        # Función para contar los permisos de días en el resumen
+        permission_counts: ColumnAssignation = {
+            COLUMN.INCAPACITIES_COUNT: (
+                lambda df: (
+                    df
+                    # Selección de columnas
+                    [[
+                        PERMISSION_NAME.SICK_GENERAL,
+                        PERMISSION_NAME.WORK_RISK,
+                        PERMISSION_NAME.MATERNITY,
+                        PERMISSION_NAME.HOLIDAY_ABSENCE,
+                        PERMISSION_NAME.HOLIDAY_COMPENSATION,
+                    ]]
+                    # Suma de los valores en el eje horizontal
+                    .sum(axis= 1)
+                )
+            ),
+            COLUMN.ABSENCES_COUNT: (
+                lambda df: (
+                    df
+                    # Selección de columnas
+                    [[
+                        PERMISSION_NAME.UNJUSTIFIED_ABSENCE,
+                        PERMISSION_NAME.UNPAID_EXTRA_ABSENCE,
+                    ]]
+                    # Suma de los valores en el eje horizontal
+                    .sum(axis= 1)
+                )
+            ),
+        }
 
         return (
             self._main.data.justifications
@@ -427,6 +447,8 @@ class _Report(_Interface_Report):
                     )
                 )
             )
+            # Conteo de permisos de días en el resumen
+            .assign(**permission_counts)
         )
 
     def _records_into_schema(

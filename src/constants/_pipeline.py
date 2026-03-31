@@ -256,6 +256,14 @@ class PIPE:
 
             :param records DataFrame: Datos entrantes.
             """
+            USER_WAREHOUSE = 'user_warehouse'
+            """
+            ### Obtención de almacén del usuario
+            Este pipe obtiene el valor de nombre corto de almacén al que pertenecen los
+            usuarios.
+
+            :param records DataFrame: Datos entrantes.
+            """
             GET_SCHEDULE_OFFSETS = 'get_schedule_offsets'
             """
             ### Obtención de desfases de horarios para gerentes
@@ -412,6 +420,15 @@ class PIPE:
         :param records DataFrame: Datos entrantes.
         """
         HOLIDAYS_SUMMARY = 'select_columns_holidays_summary'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        JUSTIFICATIONS_HISTORY = 'select_columns_justifications_history'
         """
         ### Selección de columnas
         Este pipe selecciona las columnas indicadas para controlar la forma del
