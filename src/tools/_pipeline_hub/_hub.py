@@ -4,6 +4,7 @@ from typing import (
     Generic,
     Optional,
     TypeVar,
+    get_type_hints,
 )
 import pandas as pd
 from ...typing.callables import (
@@ -226,8 +227,11 @@ class PipelineHub:
                             # Obtención del método desde las especificaciones
                             method_executable = pipe_metadata.fn
 
+                            # Obtención del tipado del método
+                            hints = get_type_hints(method_executable)
+
                             # Obtención de las clases propietarias de los objetos
-                            registered_method_owner: type[_Owner] = method_executable.__annotations__['self']
+                            registered_method_owner: type[_Owner] = hints.get('self')
                             maybe_method_executable_owner: type[_Owner] = type(value_object.__self__)
 
                             # Validación de que pertenecen a la misma clase

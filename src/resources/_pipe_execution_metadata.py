@@ -13,7 +13,7 @@ class PipesExecutionMetadata:
     def get_dataframe_metadata(
         self,
         df: pd.DataFrame,
-    ) -> PipesExecutionMetadata.DataFrame:
+    ) -> 'PipesExecutionMetadata.DataFrame':
 
         # Se obtienen los metadatos del DataFrame entrante
         df_metadata = self.DataFrame(df)
@@ -23,9 +23,9 @@ class PipesExecutionMetadata:
     def get_io_metadata(
         self,
         pipe_name: str,
-        input_metadata: PipesExecutionMetadata.DataFrame,
-        output_metadata: PipesExecutionMetadata.DataFrame,
-    ) -> PipesExecutionMetadata.InOut:
+        input_metadata: 'PipesExecutionMetadata.DataFrame',
+        output_metadata: 'PipesExecutionMetadata.DataFrame',
+    ) -> 'PipesExecutionMetadata.InOut':
 
         # Creación de objeto de metadatos de entrada y salida
         io_metadata = self.InOut(pipe_name, input_metadata, output_metadata)
@@ -74,8 +74,8 @@ class PipesExecutionMetadata:
     @dataclass(slots= True)
     class InOut:
         pipe_name: str
-        input_metadata: PipesExecutionMetadata.DataFrame
-        output_metadata: PipesExecutionMetadata.DataFrame
+        input_metadata: 'PipesExecutionMetadata.DataFrame'
+        output_metadata: 'PipesExecutionMetadata.DataFrame'
 
         def __repr__(
             self,

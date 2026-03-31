@@ -163,7 +163,7 @@ class ColumnsContext:
 
     @dataclass
     class _Traceback:
-        states: list[ColumnsContext._State]
+        states: list['ColumnsContext._State']
 
         def __repr__(
             self,
@@ -178,7 +178,7 @@ class ColumnsContext:
 
         def add(
             self,
-            new_state: ColumnsContext._State,
+            new_state: 'ColumnsContext._State',
         ) -> None:
 
             # Se añade un nuevo estado a la lista de estados

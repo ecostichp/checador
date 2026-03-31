@@ -74,7 +74,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_warehouse_name(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -119,7 +119,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_job_name(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -157,7 +157,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def add_correction_tag(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -181,7 +181,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def sort_by_date(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -213,7 +213,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def rename_justifications_columns(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -245,7 +245,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def rename_employees_data_columns(
-            self: PipeMethods.Data,
+            self: 'PipeMethods.Data',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -261,7 +261,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             PIPE.PROCESSING.ASSIGN_DTYPES,
         )
         def assign_dtypes(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -354,7 +354,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_user_names(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -404,7 +404,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def add_date_and_time(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -460,7 +460,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def time_first_to_string(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -495,7 +495,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def null_by_justification(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -539,7 +539,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def assign_ordered_registry_type(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -628,7 +628,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def add_registry_time(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -687,7 +687,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             }
         )
         def get_and_keep_by_user_id(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -750,7 +750,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def format_permission_date_strings(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -798,7 +798,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def process_before_save_in_database(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -866,7 +866,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def discard_duplicated(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -996,7 +996,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             }
         )
         def discard_corrected_records_from_original_data(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1057,7 +1057,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def concat_corrections(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1173,7 +1173,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def tag_vacation_records(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1306,7 +1306,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def vacation_events_to_null_type(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1347,7 +1347,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             }
         )
         def assign_day_and_user_id_index(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1399,7 +1399,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             }
         )
         def validate_today_check_in(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -1430,7 +1430,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_daily_schedules(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1488,7 +1488,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_schedule_offsets(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1536,7 +1536,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def define_allowed_start_and_end_time(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1597,7 +1597,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_cummulated_time(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1688,7 +1688,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_evaluate_registry_times(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -1729,7 +1729,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def rename_permission_types(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -1762,7 +1762,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_holiday_justifications(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1811,7 +1811,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def count_holiday_justifications_per_employee(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -1859,7 +1859,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             )
 
         def _assign_ordered_registry_type(
-            self: PipeMethods.Processing,
+            self: 'PipeMethods.Processing',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -1913,7 +1913,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 },
             )
             def count_per_registry_type(
-                self: PipeMethods.Processing.Pivoted,
+                self: 'PipeMethods.Processing.Pivoted',
                 records: pd.DataFrame,
             ) -> pd.DataFrame:
                 """
@@ -1997,7 +1997,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 },
             )
             def validate_day_pivoted_records(
-                self: PipeMethods.Processing.Pivoted,
+                self: 'PipeMethods.Processing.Pivoted',
                 records: pd.DataFrame,
             ) -> pd.DataFrame:
                 """
@@ -2030,7 +2030,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 },
             )
             def select_columns_pivot_records(
-                self: PipeMethods.Processing.Pivoted,
+                self: 'PipeMethods.Processing.Pivoted',
                 records: pd.DataFrame,
             ) -> pd.DataFrame:
                 """
@@ -2069,7 +2069,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_employee_data_for_user(
-            self: PipeMethods.Report,
+            self: 'PipeMethods.Report',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -2097,7 +2097,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def add_initial_date_for_holidays(
-            self: PipeMethods.Report,
+            self: 'PipeMethods.Report',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -2203,7 +2203,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def get_remaining_holidays(
-            self: PipeMethods.Report,
+            self: 'PipeMethods.Report',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -2255,7 +2255,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_assistance_records(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -2288,7 +2288,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_corrections(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -2319,7 +2319,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_justifications(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -2344,7 +2344,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_column_employees_data(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             """
@@ -2378,7 +2378,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_assistance_records_update(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -2415,7 +2415,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             },
         )
         def select_columns_validate_today_checkin(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
 
@@ -2462,7 +2462,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             }
         )
         def select_columns_holidays_summary(
-            self: PipeMethods.Format,
+            self: 'PipeMethods.Format',
             records: pd.DataFrame,
         ) -> pd.DataFrame:
             
