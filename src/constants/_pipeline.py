@@ -355,6 +355,16 @@ class PIPE:
         :param records DataFrame: Datos entrantes.
         """
 
+    class ADAPTER:
+        DISPLAY_JUSTIFICATION_ON_REGISTRY_TYPE = 'display_justification_on_registry_type'
+        """
+        ### Mostrar incidencia en tipo de registro
+        Esta función reemplaza los valores `'null'` de la columna `'status'` en
+        todos los registros que contengan `True` en la columna `'is_vacation'`.
+
+        :param records DataFrame: Datos entrantes.
+        """
+
     class COLUMNS_SELECTION:
         ASSISTANCE_RECORDS = 'select_columns_assistance_records'
         """

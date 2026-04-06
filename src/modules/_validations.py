@@ -97,8 +97,8 @@ class _Validations(_Interface_Validations):
 
             # Condiciones para filtrar por validez de integridad de datos completos
             filter_validity: dict[ViewOptions, pd.Series] = {
-                # Filtro por los datos cuyo día sea cerrado y correcto
-                'report': data[COLUMN.IS_CLOSED_CORRECT],
+                # No se filtra ningún registro
+                'report': data[COLUMN.USER_ID] == data[COLUMN.USER_ID],
                 # Filtro por los datos cuyo día sea cerrado e incorrecto y además que el tipo de registro sea diferente a [null]
                 'verifications': ~data[COLUMN.IS_CLOSED_CORRECT] & (data[COLUMN.REGISTRY_TYPE] != REGISTRY_TYPE.NULL),
             }

@@ -79,10 +79,12 @@ class _Report(_Interface_Report):
         self,
     ) -> pd.DataFrame:
 
-        return (
-            # Obtención de los registros base para reporte
-            self._main._records_for_report
-        )
+        # Obtención de los registros base para reporte
+        records_for_report = self._main._records_for_report
+        # Procesamiento por medio de pipes
+        data = pipeline_hub.run_pipe_flow(records_for_report, PIPELINE.CUSTOMIZED_OUTPUT)
+
+        return data
 
     def justifications(
         self,

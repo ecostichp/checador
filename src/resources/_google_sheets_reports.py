@@ -21,7 +21,7 @@ class GoogleSheetsReports(_Contract_ReportsToUpload):
         # Resumen general completo
         OUTPUT.FILE.VISUALIZATIONS.SHEET.COMPLETE_GENERAL_SUMMARY: (
             lambda main: (
-                main._records_for_report
+                main._report.complete_general_summary()
                 # Selección de columnas
                 [[
                     COLUMN.USER_ID,

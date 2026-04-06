@@ -64,6 +64,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
         self._processing_pivot = self.Processing.Pivoted(self)
         self._format = self.Format(self)
         self._report = self.Report(self)
+        self._adapter = self.Adapter(self)
 
     class Data(_Submodule):
 
@@ -1706,6 +1707,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 COLUMN.REGISTRY_TIME,
                 COLUMN.IS_CORRECTION,
                 COLUMN.NULL_BY_JUSTIFICATION,
+                COLUMN.IS_VACATION,
                 VALIDATION.COMPLETE,
                 VALIDATION.BREAK_PAIRS,
                 VALIDATION.UNIQUE_START_AND_END,
@@ -1741,6 +1743,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.REGISTRY_TIME,
                     COLUMN.IS_CORRECTION,
                     COLUMN.NULL_BY_JUSTIFICATION,
+                    COLUMN.IS_VACATION,
                     VALIDATION.COMPLETE,
                     VALIDATION.BREAK_PAIRS,
                     VALIDATION.UNIQUE_START_AND_END,
@@ -2552,4 +2555,41 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.PERMISSION_END,
                     COLUMN.WAREHOUSE,
                 ]]
+            )
+
+    class Adapter(_Submodule):
+
+        @pipeline_hub.register_method(
+            PIPE.ADAPTER.DISPLAY_JUSTIFICATION_ON_REGISTRY_TYPE,
+            requires= {
+                COLUMN.REGISTRY_TYPE,
+                COLUMN.IS_VACATION,
+            },
+        )
+        def display_justification_on_registry_type(
+            self: 'PipeMethods.Adapter',
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Mostrar incidencia en tipo de registro
+            Esta función reemplaza los valores `'null'` de la columna `'status'` en
+            todos los registros que contengan `True` en la columna `'is_vacation'`.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            # Funciópn para mostrar etiqueta de incidencia en tipo de registro
+            display_justification_fn: ColumnAssignation = {
+                COLUMN.REGISTRY_TYPE: (
+                    lambda df: np.where(
+                        df[COLUMN.IS_VACATION],
+                        'Incidencia',
+                        df[COLUMN.REGISTRY_TYPE],
+                    )
+                )
+            }
+
+            return (
+                records
+                .assign(**display_justification_fn)
             )
