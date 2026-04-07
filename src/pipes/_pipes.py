@@ -2584,7 +2584,7 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
             display_justification_fn: ColumnAssignation = {
                 COLUMN.REGISTRY_TYPE: (
                     lambda df: np.where(
-                        df[COLUMN.IS_VACATION],
+                        df[COLUMN.NULL_BY_JUSTIFICATION],
                         'Incidencia',
                         df[COLUMN.REGISTRY_TYPE],
                     )
