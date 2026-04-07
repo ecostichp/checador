@@ -409,8 +409,6 @@ class _Report(_Interface_Report):
                         PERMISSION_NAME.SICK_GENERAL,
                         PERMISSION_NAME.WORK_RISK,
                         PERMISSION_NAME.MATERNITY,
-                        PERMISSION_NAME.HOLIDAY_ABSENCE,
-                        PERMISSION_NAME.HOLIDAY_COMPENSATION,
                     ]]
                     # Suma de los valores en el eje horizontal
                     .sum(axis= 1)
