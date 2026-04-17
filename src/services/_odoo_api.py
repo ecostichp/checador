@@ -27,6 +27,7 @@ class OdooAPI(_Contract_OdooAPI):
                     'x_pay_frequency',
                     'x_warehouse_id',
                     'job_id',
+                    'x_hire_date',
                 ],
             )
             # Reasignación de nombres de columnas
@@ -37,6 +38,7 @@ class OdooAPI(_Contract_OdooAPI):
                     'x_pay_frequency': COLUMN.PAY_FREQUENCY,
                     'x_warehouse_id': COLUMN.WAREHOUSE,
                     'job_id': COLUMN.JOB,
+                    'x_hire_date': COLUMN.HIRE_DATE,
                 },
             )
             # Ordenamiento de valores por ID de usuario
@@ -48,5 +50,6 @@ class OdooAPI(_Contract_OdooAPI):
                 COLUMN.WAREHOUSE,
                 COLUMN.PAY_FREQUENCY,
                 COLUMN.JOB,
+                COLUMN.HIRE_DATE,
             ]]
         )

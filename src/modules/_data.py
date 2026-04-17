@@ -28,7 +28,6 @@ class _Data(_Interface_Data):
         self.holidays = self._load_holidays()
         self.schedules = self._load_schedules()
         self.schedule_offsets = self._load_schedule_offsets()
-        self.employees_data = self._load_employees_data()
 
     def _load_users(
         self,
@@ -140,14 +139,3 @@ class _Data(_Interface_Data):
             )
 
         return corrections
-
-    def _load_employees_data(
-        self,
-    ) -> pd.DataFrame:
-
-        # Se cargan los datos desde Excel
-        users_data = self._main._services.excel.load_users_data()
-        # Procesamiento por medio de pipe
-        result = pipeline_hub.run_pipe_flow(users_data, PIPELINE.GET_EMPLOYEES_DATA)
-
-        return result

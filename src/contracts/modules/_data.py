@@ -12,7 +12,6 @@ class _Interface_Data:
     holidays: pd.DataFrame
     schedules: pd.DataFrame
     schedule_offsets: pd.DataFrame
-    employees_data: pd.DataFrame
 
     def load(
         self,

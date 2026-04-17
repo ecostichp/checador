@@ -2097,38 +2097,6 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
     class Report(_Submodule):
 
         @pipeline_hub.register_method(
-            PIPE.REPORT.GET_EMPLOYEE_DATA_FOR_USER,
-            requires= {
-                COLUMN.USER_ID,
-            },
-            creates= {
-                COLUMN.HIRE_DATE,
-                COLUMN.SALARY_BY_SCHEMA,
-            },
-        )
-        def get_employee_data_for_user(
-            self: 'PipeMethods.Report',
-            records: pd.DataFrame,
-        ) -> pd.DataFrame:
-            """
-            ### Obtención de datos de empleado
-            Este pipe obtiene los datos de empleado de los registros provistos, como la
-            fecha de ingreso.onteo y cuenta las incidencias
-            existentes para cada empleado.
-
-            :param records DataFrame: Datos entrantes.
-            """
-
-            return (
-                records
-                .merge(
-                    right= self._pipes_m._main.data.employees_data,
-                    on= COLUMN.USER_ID,
-                    how= 'left',
-                )
-            )
-
-        @pipeline_hub.register_method(
             PIPE.REPORT.COMPUTE_AVAILABLE_HOLIDAYS,
             creates= {
                 COLUMN.INITIAL_DATE_FOR_HOLIDAYS,
