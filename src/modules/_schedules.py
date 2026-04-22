@@ -253,8 +253,8 @@ class _Schedules(_Interface_Schedules):
     ) -> int:
 
         # Obtención de valores
-        date_start = record_row[COLUMN.PERMISSION_START]
-        date_end = record_row[COLUMN.PERMISSION_END]
+        date_start = record_row[COLUMN.PERMISSION_START].date()
+        date_end = record_row[COLUMN.PERMISSION_END].date()
         rest_days = record_row[COLUMN.REST_DAYS_COUNT]
         holidays = record_row[COLUMN.HOLIDAYS_COUNT]
 
