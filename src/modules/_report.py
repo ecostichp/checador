@@ -5,6 +5,7 @@ from datetime import timedelta
 from ..constants import (
     COLUMN,
     PERMISSION_NAME,
+    REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,
     VALIDATION,
 )
@@ -352,36 +353,20 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        # Función para obtención de validación de día completo de booleano a unsigned int 8
-        validation_complete_as_int: ColumnAssignation = {
-            COLUMN.WORKED_DAYS: (
-                lambda df: (
-                    df[VALIDATION.COMPLETE].astype('uint8')
-                )
-            )
-        }
-
         return (
             # Obtención de los registros
             self._records_into_schema(schema)
-            # Selección de columnas
-            [[
-                COLUMN.USER_ID,
-                COLUMN.DATE,
-                VALIDATION.COMPLETE,
-            ]]
-            # Agrupamiento por ID de usuario y fecha
-            .groupby([COLUMN.USER_ID, COLUMN.DATE])
-            .agg({
-                VALIDATION.COMPLETE: 'first',
-            })
-            # Asignación de columna numérica de validación de día completo
-            .assign(**validation_complete_as_int)
+            # Obtención de los registros que son tipo de registro de entrada
+            .pipe(lambda df: df[df[COLUMN.REGISTRY_TYPE] == REGISTRY_TYPE.CHECK_IN])
             # Agrupamiento por ID de usuario
             .groupby(COLUMN.USER_ID)
-            .agg({
-                COLUMN.WORKED_DAYS: 'count',
-            })
+            .agg({COLUMN.REGISTRY_TYPE: 'count'})
+            # Reasignación de nombre de columna
+            .rename(
+                columns= {
+                    COLUMN.REGISTRY_TYPE: COLUMN.WORKED_DAYS,
+                },
+            )
             # Reseteo de índice
             .reset_index()
         )
