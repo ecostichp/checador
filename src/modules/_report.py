@@ -511,6 +511,20 @@ class _Report(_Interface_Report):
                 .pipe( self._main._schedules.get_permissions_in_date_range(schema) )
                 # Se cortan los rangos de fechas para contar desde la fecha inicial del rango asignado
                 .pipe( self._main._schedules.cut_justifications_date_ranges(schema) )
+                # Conversión de columna a string para hacer el reemplazo
+                .astype({
+                    COLUMN.PERMISSION_TYPE: 'string[python]',
+                })
+                # Reemplazo de nombre de tipo de permiso
+                .replace({
+                    COLUMN.PERMISSION_TYPE: {
+                        PERMISSION_NAME.UNPAID_EXTRA_HOURS_PERMISSION: PERMISSION_NAME.HOURS_PERMISSION,
+                    },
+                })
+                # Conversión de columna a categórica
+                .astype({
+                    COLUMN.PERMISSION_TYPE: 'category',
+                })
                 # Reasgnación de categorías para evitar pérdida de información en pivoteos de DataFrane
                 .pipe( self._main._transformation.reassign_registry_type_categories(assigned_categories) )
                 # Cálculo de diferencia en rango de fechas

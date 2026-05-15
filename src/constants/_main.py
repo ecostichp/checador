@@ -252,6 +252,8 @@ class PERMISSION_NAME:
     """`Literal` Permiso de horas."""
     OVERTIME = 'overtime'
     """`Literal` Horas extra."""
+    UNPAID_EXTRA_HOURS_PERMISSION = 'unpaid_extra_hours_permission'
+    """`Literal` Permiso de horas sin goce de sueldo y sin afectar bonos."""
 
     # Tiempo de comida no tomado o compensado
     MEAL_BREAK_MISSING = 'meal_break_missing'

@@ -40,6 +40,7 @@ class PERMISSIONS_VALUES:
         UNJUSTIFIED_ABSENCE = 'Ausencias laborales (Falta)'
         UNJUSTIFIED_ABSENCE_ = 'Ausencias laborales(Falta)'
         UNPAID_EXTRA_ABSENCE = 'Ausencia extra (Sin gose y sin contar en bono)'
+        UNPAID_EXTRA_HOURS_PERMISSION = 'Permiso de horas (Sin gose y sin contar en bono)'
         HOLIDAY_ABSENCE = 'Ausencia por Día festivo'
         HOLIDAY_COMPENSATION = 'Compensación por Día festivo'
         HOURS_PERMISSION = 'Permiso de horas'
