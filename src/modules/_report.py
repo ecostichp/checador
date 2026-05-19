@@ -353,7 +353,8 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        return (
+        # Obtención de días laborados por usuario
+        worked_days_per_user = (
             # Obtención de los registros
             self._records_into_schema(schema)
             # Obtención de los registros que son tipo de registro de entrada
