@@ -61,6 +61,11 @@ class USERS_DATA_VALUES:
         HIRE_DATE = 'Fecha de ingreso'
         SALARY_BY_SCHEMA = 'Salario'
 
+class ASSIGNED_REST_DAYS:
+    class COLUMNS:
+        USER_ID = 'id'
+        REST_DATE = 'fecha'
+
 class WAREHOUSE_IDS:
     CSL = 2
     SJC = 3

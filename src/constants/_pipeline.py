@@ -50,6 +50,14 @@ class PIPE:
 
             :param records DataFrame: Datos entrantes.
             """
+        class REST_DAYS:
+            RENAME_COLUMNS = 'rename_rest_days_columns'
+            """
+            ### Reasignación de nombres de columnas en datos de usuarios
+            Este pipe reasigna nombres de columnas al DataFrame entrante.
+
+            :param records DataFrame: Datos entrantes.
+            """
     class PROCESSING:
         ASSIGN_DTYPES = 'assign_dtypes'
         """
@@ -439,6 +447,15 @@ class PIPE:
         :param records DataFrame: Datos entrantes.
         """
         JUSTIFICATIONS_HISTORY = 'select_columns_justifications_history'
+        """
+        ### Selección de columnas
+        Este pipe selecciona las columnas indicadas para controlar la forma del
+        DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+        columna.
+
+        :param records DataFrame: Datos entrantes.
+        """
+        REST_DAYS = 'select_columns_rest_days'
         """
         ### Selección de columnas
         Este pipe selecciona las columnas indicadas para controlar la forma del

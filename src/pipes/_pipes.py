@@ -256,6 +256,30 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                 .rename(columns= USERS_DATA_REASSIGNATION_NAMES)
             )
 
+        @pipeline_hub.register_method(
+            PIPE.DATA.REST_DAYS.RENAME_COLUMNS,
+            renames= {
+                INPUT.FORM.ASSIGNED_REST_DAYS.COLUMNS.USER_ID: COLUMN.USER_ID,
+                INPUT.FORM.ASSIGNED_REST_DAYS.COLUMNS.REST_DATE: COLUMN.REST_DATE,
+            },
+        )
+        def rename_rest_days_columns(
+            self: 'PipeMethods.Data',
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+
+            # Declaración de diccionario de reasignación de nombres de columnas
+            columns_to_rename = {
+                INPUT.FORM.ASSIGNED_REST_DAYS.COLUMNS.USER_ID: COLUMN.USER_ID,
+                INPUT.FORM.ASSIGNED_REST_DAYS.COLUMNS.REST_DATE: COLUMN.REST_DATE,
+            }
+
+            return (
+                records
+                # Reasignación de nombres de columnas
+                .rename(columns= columns_to_rename)
+            )
+
     class Processing(_Submodule):
 
         @pipeline_hub.register_method(
@@ -2524,6 +2548,35 @@ class PipeMethods(_Contract_PipeMethods, _BasePipeMethods):
                     COLUMN.PERMISSION_START,
                     COLUMN.PERMISSION_END,
                     COLUMN.WAREHOUSE,
+                ]]
+            )
+
+        @pipeline_hub.register_method(
+            PIPE.COLUMNS_SELECTION.REST_DAYS,
+            selects= {
+                COLUMN.USER_ID,
+                COLUMN.REST_DATE,
+            },
+        )
+        def select_columns_rest_days(
+            self: 'PipeMethods.Format',
+            records: pd.DataFrame,
+        ) -> pd.DataFrame:
+            """
+            ### Selección de columnas
+            Este pipe selecciona las columnas indicadas para controlar la forma del
+            DataFrame resultante y modificarlo explícitamente si se desea agregar otra
+            columna.
+
+            :param records DataFrame: Datos entrantes.
+            """
+
+            return (
+                records
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.REST_DATE,
                 ]]
             )
 

@@ -96,3 +96,17 @@ class Excel(_Contract_Excel):
         )
 
         return data
+
+    def load_rest_schedules(
+        self,
+    ) -> pd.DataFrame:
+
+        # Generación de nombre de archivo a buscar
+        file_name = EXCEL_FILE.REST_SCHEDULES.NAME
+        # Obtención de la ruta del archivo
+        file_path = path_from_dropbox(f'{file_name}.xlsx')
+
+        # Obtención de los datos desde un archivo de Excel
+        data = pd.read_excel(file_path)
+
+        return data

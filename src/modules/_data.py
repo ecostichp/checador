@@ -28,6 +28,7 @@ class _Data(_Interface_Data):
         self.holidays = self._load_holidays()
         self.schedules = self._load_schedules()
         self.schedule_offsets = self._load_schedule_offsets()
+        self.rest_schedules = self._load_rest_schedules()
 
     def _load_users(
         self,
@@ -114,6 +115,17 @@ class _Data(_Interface_Data):
         schedule_offsets = self._main._services.database.load_schedule_offsets()
 
         return schedule_offsets
+
+    def _load_rest_schedules(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención de historial de días descansados
+        data = self._main._services.excel.load_rest_schedules()
+        # Procesamiento por medio de pipe
+        processed_data = pipeline_hub.run_pipe_flow(data, PIPELINE.GET_REST_DAYS)
+
+        return processed_data
 
     def _load_corrections_files(
         self,

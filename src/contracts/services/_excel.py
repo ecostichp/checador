@@ -27,3 +27,9 @@ class _Contract_Excel:
         proporcionados.
         """
         ...
+
+    def load_rest_schedules(
+        self,
+    ) -> pd.DataFrame:
+        ...
+

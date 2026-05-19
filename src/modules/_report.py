@@ -7,7 +7,6 @@ from ..constants import (
     PERMISSION_NAME,
     REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,
-    VALIDATION,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
@@ -162,6 +161,7 @@ class _Report(_Interface_Report):
             COLUMN.EARLY_TIME: self._early_end(schema),
             COLUMN.EXCEEDING_LUNCH_TIME: self._lunch_time(schema),
             COLUMN.WORKED_DAYS: self._worked_days(schema),
+            COLUMN.REST_DAYS_COUNT: self._rest_days(schema),
         }
 
         # Función para unir los reportes
@@ -367,8 +367,115 @@ class _Report(_Interface_Report):
                     COLUMN.REGISTRY_TYPE: COLUMN.WORKED_DAYS,
                 },
             )
+            # Asignación de tipo de dato
+            .astype({
+                COLUMN.WORKED_DAYS: 'uint8',
+            })
             # Reseteo de índice
             .reset_index()
+        )
+
+    def _rest_days(
+        self,
+        schema: _DateSchema,
+    ) -> pd.DataFrame:
+
+        # Conteo de días de descanso asignados
+        assigned_days_count_per_user = (
+            self._main._data.rest_schedules
+            # Filtro por las fechas provistas en el esquema de tiempo y la fecha de hoy
+            .pipe(
+                lambda df: df[
+                    ( df[COLUMN.REST_DATE].dt.date >= schema.start_date )
+                    & ( df[COLUMN.REST_DATE].dt.date <= min(schema.end_date, self._main._schemas._today) )
+                ]
+            )
+            # Agrupamiento por ID de usuario
+            .groupby(COLUMN.USER_ID)
+            .agg({COLUMN.REST_DATE: 'count'})
+            # Reasignación de nombre de columna
+            .rename(
+                columns= {COLUMN.REST_DATE: COLUMN.REST_DAYS_COUNT},
+            )
+            # Reseteo de índice
+            .reset_index()
+        )
+
+        def get_fixed_rest_days(user_id: int):
+
+            # Obtención de los días de descanso del usuario
+            user_fixed_days_values = self._main._get_user_rest_days(user_id)
+
+            # Obtención de los días de descanso fijos ya tomados
+            rest_days_already_taken_count = (
+                # Creación de rango de fecha en el esquema  
+                pd.date_range(
+                    # Desde fecha inicial
+                    schema.start_date,
+                    # Hasta hoy o fin de esquema (Lo que pase primero)
+                    min(
+                        schema.end_date,
+                        self._main._schemas._today
+                    )
+                )
+                # Obtención del valor de día de semana de la fecha
+                .weekday
+                # Conversión a Pandas Series
+                .to_series()
+                # Evaluación booleana
+                .pipe(lambda s: s.isin(user_fixed_days_values))
+                # Suma de valores en True
+                .sum()
+            )
+            return rest_days_already_taken_count
+
+        # Función para obtención de conteo de días de descanso fijos del usuario
+        fixed_rest_days_count_fn: ColumnAssignation = {
+            COLUMN.ASSIGNED_REST_DAYS_COUNT: (
+                lambda df: (
+                    df
+                    # Selección de columna de ID de usuario
+                    [COLUMN.USER_ID]
+                    # Obtención de días de descanso fijos
+                    .apply(get_fixed_rest_days)
+                )
+            )
+        }
+
+        # Función para suma de conteos de días de descanso fijos y asignados
+        fixed_and_assigned_days_sum_fn: ColumnAssignation = {
+            COLUMN.REST_DAYS_COUNT: (
+                lambda df: (
+                    # Suma de días de descanso fijos y asignados
+                    df[COLUMN.REST_DAYS_COUNT] + df[COLUMN.ASSIGNED_REST_DAYS_COUNT]
+                )
+            )
+        }
+
+        return (
+            # Uso de los datos de usuarios
+            self._main._data.users
+            # Obtención de conteo de días de descanso fijos del usuario
+            .assign(**fixed_rest_days_count_fn)
+            # Unión con conteo de días asignados por usuario ya tomados hasta la fecha de hoy
+            .merge(
+                right= assigned_days_count_per_user,
+                on= COLUMN.USER_ID,
+                how= 'left'
+            )
+            # Reemplazo de valores nulos por ceros
+            .replace({COLUMN.REST_DAYS_COUNT: {np.nan: 0}})
+            # Suma de conteos de días de descanso fijos y asignados
+            .assign(**fixed_and_assigned_days_sum_fn)
+            # Asignación de tipo de dato
+            .astype({
+                COLUMN.REST_DAYS_COUNT: 'uint8',
+            })
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.REST_DAYS_COUNT,
+            ]]
         )
 
     def _justifications_summary(

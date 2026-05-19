@@ -1,4 +1,5 @@
 from ._main import (
+    ASSIGNED_REST_DAYS,
     DEVICE_SERIAL_NUMBER,
     PERMISSIONS_VALUES,
     REST_DAYS,

@@ -175,6 +175,10 @@ class COLUMN:
     """`int8` Cantidad de días festivos disponibles para el empleado."""
     REMAINING_HOLIDAYS = 'remaining_holidays'
     """`int8` Cantidad de días festivos restantes para tomar por el empleado."""
+    REST_DATE = 'rest_date'
+    """`datetime64[s]` Fecha de descanso."""
+    ASSIGNED_REST_DAYS_COUNT = 'assigned_rest_days_count'
+    """`uint8` Conteo de días de descanso asignados."""
     INCAPACITIES_COUNT = 'incapacities_count'
     """`uint8` Conteo de incapacidades."""
     ABSENCES_COUNT = 'absences_count'

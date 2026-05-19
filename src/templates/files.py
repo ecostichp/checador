@@ -21,6 +21,15 @@ class EXCEL_FILE:
         `Literal` Nombre del archivo.
         """
 
+    class REST_SCHEDULES:
+        """
+        `CONST` Archivo de días de descanso.
+        """
+        NAME = "data/descansos"
+        """
+        `Literal` Nombre del archivo.
+        """
+
 class SPREADSHEET:
     """
     `CONST` Nombres de archivos de Hojas de Cálculo de Google y sus hojas.

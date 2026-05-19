@@ -5,6 +5,7 @@ from datetime import (
 from ._env import env
 from ..constants import ENV_VARIABLE
 from ..domain_data import (
+    ASSIGNED_REST_DAYS,
     PERMISSIONS_VALUES,
     USERS_DATA_VALUES,
     WAREHOUSE_IDS,
@@ -48,6 +49,7 @@ class INPUT:
     class FORM:
         PERMISSIONS = PERMISSIONS_VALUES
         USERS_DATA = USERS_DATA_VALUES
+        ASSIGNED_REST_DAYS = ASSIGNED_REST_DAYS
     class VALUE:
         JUSTIFICATION = 'Incidencia'
 
