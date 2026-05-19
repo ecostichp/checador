@@ -376,6 +376,25 @@ class _Report(_Interface_Report):
             .reset_index()
         )
 
+        return (
+            # Uso de los datos de usuarios
+            self._main._data.users
+            # Unión con cálculo d econteo de días laborados
+            .merge(
+                right= worked_days_per_user,
+                on= COLUMN.USER_ID,
+                how= 'left',
+            )
+            # Reemplazo de valores nulos encontrados
+            .replace({
+                COLUMN.WORKED_DAYS: {np.nan: 0}
+            })
+            # Conversión de tipo de dato
+            .astype({
+                COLUMN.WORKED_DAYS: 'uint8',
+            })
+        )
+
     def _rest_days(
         self,
         schema: _DateSchema,
