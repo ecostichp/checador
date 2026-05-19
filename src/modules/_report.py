@@ -353,7 +353,8 @@ class _Report(_Interface_Report):
         :param schema _DateSchema: Esquema de tiempo para usar como criterio.
         """
 
-        return (
+        # Obtención de días laborados por usuario
+        worked_days_per_user = (
             # Obtención de los registros
             self._records_into_schema(schema)
             # Obtención de los registros que son tipo de registro de entrada
@@ -369,6 +370,27 @@ class _Report(_Interface_Report):
             )
             # Reseteo de índice
             .reset_index()
+        )
+
+        return (
+            # Uso de los datos de usuarios para tratar datos nulos
+            self._main._data.users
+            # Unión con cálculo de días laborados
+            .merge(
+                right= worked_days_per_user,
+                on= COLUMN.USER_ID,
+                how= 'left',
+            )
+            # Reemplazo de valores
+            .replace({
+                COLUMN.WORKED_DAYS: {
+                    np.nan: 0,
+                }
+            })
+            # Conversión de tipo de dato
+            .astype({
+                COLUMN.WORKED_DAYS: 'uint8',
+            })
         )
 
     def _justifications_summary(
