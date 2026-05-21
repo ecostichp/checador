@@ -161,7 +161,8 @@ class _Report(_Interface_Report):
             COLUMN.EARLY_TIME: self._early_end(schema),
             COLUMN.EXCEEDING_LUNCH_TIME: self._lunch_time(schema),
             COLUMN.WORKED_DAYS: self._worked_days(schema),
-            COLUMN.REST_DAYS_COUNT: self._rest_days(schema),
+            COLUMN.REST_DAYS_TAKEN: self._rest_days_taken(schema),
+            COLUMN.REST_DAYS_CONFIRMED: self._rest_days_confirmed(schema),
         }
 
         # Función para unir los reportes
@@ -395,10 +396,41 @@ class _Report(_Interface_Report):
             })
         )
 
-    def _rest_days(
+    def _rest_days_taken(
         self,
         schema: _DateSchema,
     ) -> pd.DataFrame:
+
+        agg_data = self._rest_days(schema, True)
+
+        return agg_data
+
+    def _rest_days_confirmed(
+        self,
+        schema: _DateSchema,
+    ) -> pd.DataFrame:
+
+        agg_data = self._rest_days(schema, False)
+
+        return agg_data
+
+    def _rest_days(
+        self,
+        schema: _DateSchema,
+        cut_to_today: bool,
+    ) -> pd.DataFrame:
+
+        end_date_limit = (
+            min(schema.end_date, self._main._schemas._today)
+                if cut_to_today
+                else schema.end_date
+        )
+
+        _REST_DAYS_COLUMN = (
+            COLUMN.REST_DAYS_TAKEN
+                if cut_to_today
+                else COLUMN.REST_DAYS_CONFIRMED
+        )
 
         # Conteo de días de descanso asignados
         assigned_days_count_per_user = (
@@ -407,7 +439,7 @@ class _Report(_Interface_Report):
             .pipe(
                 lambda df: df[
                     ( df[COLUMN.REST_DATE].dt.date >= schema.start_date )
-                    & ( df[COLUMN.REST_DATE].dt.date <= min(schema.end_date, self._main._schemas._today) )
+                    & ( df[COLUMN.REST_DATE].dt.date <= end_date_limit )
                 ]
             )
             # Agrupamiento por ID de usuario
@@ -415,7 +447,7 @@ class _Report(_Interface_Report):
             .agg({COLUMN.REST_DATE: 'count'})
             # Reasignación de nombre de columna
             .rename(
-                columns= {COLUMN.REST_DATE: COLUMN.REST_DAYS_COUNT},
+                columns= {COLUMN.REST_DATE: _REST_DAYS_COLUMN},
             )
             # Reseteo de índice
             .reset_index()
@@ -433,10 +465,7 @@ class _Report(_Interface_Report):
                     # Desde fecha inicial
                     schema.start_date,
                     # Hasta hoy o fin de esquema (Lo que pase primero)
-                    min(
-                        schema.end_date,
-                        self._main._schemas._today
-                    )
+                    end_date_limit,
                 )
                 # Obtención del valor de día de semana de la fecha
                 .weekday
@@ -464,10 +493,10 @@ class _Report(_Interface_Report):
 
         # Función para suma de conteos de días de descanso fijos y asignados
         fixed_and_assigned_days_sum_fn: ColumnAssignation = {
-            COLUMN.REST_DAYS_COUNT: (
+            _REST_DAYS_COLUMN: (
                 lambda df: (
                     # Suma de días de descanso fijos y asignados
-                    df[COLUMN.REST_DAYS_COUNT] + df[COLUMN.ASSIGNED_REST_DAYS_COUNT]
+                    df[_REST_DAYS_COLUMN] + df[COLUMN.ASSIGNED_REST_DAYS_COUNT]
                 )
             )
         }
@@ -484,17 +513,17 @@ class _Report(_Interface_Report):
                 how= 'left'
             )
             # Reemplazo de valores nulos por ceros
-            .replace({COLUMN.REST_DAYS_COUNT: {np.nan: 0}})
+            .replace({_REST_DAYS_COLUMN: {np.nan: 0}})
             # Suma de conteos de días de descanso fijos y asignados
             .assign(**fixed_and_assigned_days_sum_fn)
             # Asignación de tipo de dato
             .astype({
-                COLUMN.REST_DAYS_COUNT: 'uint8',
+                _REST_DAYS_COLUMN: 'uint8',
             })
             # Selección de columnas
             [[
                 COLUMN.USER_ID,
-                COLUMN.REST_DAYS_COUNT,
+                _REST_DAYS_COLUMN,
             ]]
         )
 

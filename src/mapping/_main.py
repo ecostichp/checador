@@ -191,6 +191,8 @@ COLUMN_LABELS: dict[str, str] = {
     COLUMN.INCAPACITIES_COUNT: 'Incapacidades',
     COLUMN.ABSENCES_COUNT: 'Faltas',
     COLUMN.REST_DAYS_COUNT: 'Días descansados',
+    COLUMN.REST_DAYS_TAKEN: 'Días de descanso tomados',
+    COLUMN.REST_DAYS_CONFIRMED: 'Días de descanso confirmados',
 
     VALIDATION.COMPLETE: 'Día completo',
     VALIDATION.BREAK_PAIRS: 'Pares en comida',

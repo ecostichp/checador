@@ -141,6 +141,10 @@ class COLUMN:
     """`datetime64[ns]` Fecha y hora de fin de permiso."""
     REST_DAYS_COUNT = 'rest_days_count'
     """`uint8` Conteo de días de descanso."""
+    REST_DAYS_TAKEN = 'rest_days_taken'
+    """`uint8` Conteo de días de descanso tomados."""
+    REST_DAYS_CONFIRMED = 'rest_days_confirmed'
+    """`uint8` Conteo de días de descanso confirmados."""
     HOLIDAYS_COUNT = 'holidays_count'
     """`uint8` Conteo de días festivos."""
     VACATION_DAYS_COUNT = 'vacation_days_count'

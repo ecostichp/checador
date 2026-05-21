@@ -15,10 +15,10 @@ class _Interface_DateSchema():
     - `'biweekly'`: Quincenal.
     """
 
-    start_date: datetime
+    start_date: date
     """Fecha de inicio."""
 
-    end_date: datetime
+    end_date: date
     """Fecha de término."""
 
     name: str
