@@ -5,6 +5,10 @@ from ..contracts import (
 )
 from ..core import pipeline_hub
 from ..rules import PIPELINE
+from ..constants import COLUMN
+from ..constants import WEEKDAY
+from ..domain_data import REST_DAYS
+from ..typing import ColumnAssignation
 
 class _Data(_Interface_Data):
 
@@ -119,13 +123,71 @@ class _Data(_Interface_Data):
     def _load_rest_schedules(
         self,
     ) -> pd.DataFrame:
+        
+        _X = '_x'
 
         # Obtención de historial de días descansados
         data = self._main._services.excel.load_rest_schedules()
         # Procesamiento por medio de pipe
         processed_data = pipeline_hub.run_pipe_flow(data, PIPELINE.GET_REST_DAYS)
 
-        return processed_data
+        # Función para evluación de si es un día de descanso para el usuario
+        def user_fixed_rest_days(closure_user_id: int) -> ColumnAssignation:
+            # Obtención de los días de descanso fijos del usuario
+            user_rest_days = self._main._get_user_rest_days(closure_user_id)
+            # Construcción de diccionario de asignación de columna
+            column_assignation: ColumnAssignation = {
+                _X: (
+                    lambda df: (
+                        df
+                        [COLUMN.WEEKDAY]
+                        .apply(lambda wd: wd in user_rest_days)
+                    )
+                )
+            }
+            return column_assignation
+
+        # Función para obtención de día de la semana
+        get_weekday_fn: ColumnAssignation = {
+            COLUMN.WEEKDAY: (
+                lambda df: df[COLUMN.REST_DATE].dt.weekday
+            )
+        }
+
+        # Obtención de lista de IDs de usuario
+        user_ids: list[int] = self.users[COLUMN.USER_ID].to_list()
+
+        # Inicialización de lista de DataFrames a concatenar
+        l: list[pd.DataFrame] = [processed_data]
+
+        for user_id in user_ids:
+            rest_schedules = (
+                pd.DataFrame({
+                    COLUMN.REST_DATE: (
+                        pd.date_range(
+                            self._main._schemas.min_date(),
+                            self._main._schemas.max_date(),
+                        )
+                    )
+                })
+                # Asignación de columna de ID de usuario
+                .assign(**{COLUMN.USER_ID: user_id})
+                # Obtención del día de la semana
+                .assign(**get_weekday_fn)
+                # Evaluación de días de descanso del usuario
+                .assign(**user_fixed_rest_days(user_id))
+                # Se remueven todos los registros cuya fecha no pertenezca a un día de descanso del usuario
+                .pipe(lambda df: df[df[_X]])
+                # Selección de columnas
+                [[
+                    COLUMN.USER_ID,
+                    COLUMN.REST_DATE,
+                ]]
+            )
+
+            l.append(rest_schedules)
+
+        return pd.concat(l, ignore_index= True)
 
     def _load_corrections_files(
         self,

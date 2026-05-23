@@ -1,6 +1,7 @@
 from typing import Callable
 import pandas as pd
 import numpy as np
+from datetime import date
 from datetime import timedelta
 from ..constants import (
     COLUMN,
@@ -18,6 +19,7 @@ from ..typing import (
     ColumnAssignation,
     DataFramePipe,
 )
+from ..typing.interfaces import HorizontalSeries
 from ..typing.aliases import DatetimeStr
 from ..typing.literals import PermissionTypeOption
 from ..core import pipeline_hub
@@ -420,6 +422,88 @@ class _Report(_Interface_Report):
         cut_to_today: bool,
     ) -> pd.DataFrame:
 
+        _VALID = '_valid'
+
+        # Tipos de permiso que invalidan un día de descanso
+        LEAVE_JUSTIFICACION_NAMES = [
+            PERMISSION_NAME.SICK_GENERAL,
+            PERMISSION_NAME.WORK_RISK,
+            PERMISSION_NAME.MATERNITY,
+        ]
+
+        # Asignación de columnas en formato de fecha
+        to_date_fn: ColumnAssignation = {
+            COLUMN.PERMISSION_START: lambda df: df[COLUMN.PERMISSION_START].dt.date,
+            COLUMN.PERMISSION_END: lambda df: df[COLUMN.PERMISSION_END].dt.date,
+        }
+
+        # Obtención de incidencias de incapacidad
+        leave_justifications: pd.DataFrame = (
+            self._main.data.justifications
+            # Se renombran los tipos de permiso
+            .pipe(self._main._pipes.rename_permission_types)
+            # Se conservan únicamente las incidencias que sean incapacidades
+            .pipe(lambda df: df[df[COLUMN.PERMISSION_TYPE].isin(LEAVE_JUSTIFICACION_NAMES)])
+            # Conversión de tipos de dato de fecha y hora a solo fecha
+            .assign(**to_date_fn)
+            # Filtro por fechas relevantes únicamente
+            .pipe(
+                lambda df: (
+                    df[
+                        (
+                            (
+                                ( df[COLUMN.PERMISSION_START] >= self._main._schemas.min_date() )
+                                & ( df[COLUMN.PERMISSION_START] <= self._main._schemas.max_date() )
+                            )
+                            | (
+                                ( df[COLUMN.PERMISSION_END] >= self._main._schemas.min_date() )
+                                & ( df[COLUMN.PERMISSION_END] <= self._main._schemas.max_date() )
+                            )
+                        )
+                    ]
+                )
+            )
+        )
+
+        def discard_rest_days_into_leaves(rest_days: pd.DataFrame):
+
+            # Inicialización de valor de validación en Falso
+            rest_days[_VALID] = False
+
+            def tag_valid_rest_days(s: pd.Series):
+                # Obtención de valores
+                start_date: date = s[COLUMN.PERMISSION_START]
+                end_date: date = s[COLUMN.PERMISSION_END]
+                user_id: int = int(s[COLUMN.USER_ID])
+
+                # Construcción de rango de fechas para evaluar valores
+                leave_justification_date_range = (
+                    pd.date_range(start_date, end_date)
+                    .date
+                    .tolist()
+                )
+
+                # Reasignación de valor
+                rest_days[_VALID] = (
+                    rest_days[_VALID]
+                    | (
+                        rest_days
+                        .pipe(
+                            lambda df: (
+                                # La ID de usuario corresponde al de la incapacidad
+                                ( df[COLUMN.USER_ID] == user_id )
+                                # La fecha se encuentra dentro del rango de la fecha de incapacidad
+                                & ( df[COLUMN.REST_DATE].dt.date.isin(leave_justification_date_range) )
+                            )
+                        )
+                    )
+                )
+
+            # Iteración por cada registro de incapacidad
+            leave_justifications.apply(tag_valid_rest_days, axis= 1)
+
+            return rest_days.pipe(lambda df: df[df[_VALID] == False])
+
         end_date_limit = (
             min(schema.end_date, self._main._schemas._today)
                 if cut_to_today
@@ -442,6 +526,8 @@ class _Report(_Interface_Report):
                     & ( df[COLUMN.REST_DATE].dt.date <= end_date_limit )
                 ]
             )
+            # Se descartan días de descanso dentro de incidencias de incapacidad
+            .pipe(discard_rest_days_into_leaves)
             # Agrupamiento por ID de usuario
             .groupby(COLUMN.USER_ID)
             .agg({COLUMN.REST_DATE: 'count'})
@@ -453,59 +539,9 @@ class _Report(_Interface_Report):
             .reset_index()
         )
 
-        def get_fixed_rest_days(user_id: int):
-
-            # Obtención de los días de descanso del usuario
-            user_fixed_days_values = self._main._get_user_rest_days(user_id)
-
-            # Obtención de los días de descanso fijos ya tomados
-            rest_days_already_taken_count = (
-                # Creación de rango de fecha en el esquema  
-                pd.date_range(
-                    # Desde fecha inicial
-                    schema.start_date,
-                    # Hasta hoy o fin de esquema (Lo que pase primero)
-                    end_date_limit,
-                )
-                # Obtención del valor de día de semana de la fecha
-                .weekday
-                # Conversión a Pandas Series
-                .to_series()
-                # Evaluación booleana
-                .pipe(lambda s: s.isin(user_fixed_days_values))
-                # Suma de valores en True
-                .sum()
-            )
-            return rest_days_already_taken_count
-
-        # Función para obtención de conteo de días de descanso fijos del usuario
-        fixed_rest_days_count_fn: ColumnAssignation = {
-            COLUMN.ASSIGNED_REST_DAYS_COUNT: (
-                lambda df: (
-                    df
-                    # Selección de columna de ID de usuario
-                    [COLUMN.USER_ID]
-                    # Obtención de días de descanso fijos
-                    .apply(get_fixed_rest_days)
-                )
-            )
-        }
-
-        # Función para suma de conteos de días de descanso fijos y asignados
-        fixed_and_assigned_days_sum_fn: ColumnAssignation = {
-            _REST_DAYS_COLUMN: (
-                lambda df: (
-                    # Suma de días de descanso fijos y asignados
-                    df[_REST_DAYS_COLUMN] + df[COLUMN.ASSIGNED_REST_DAYS_COUNT]
-                )
-            )
-        }
-
         return (
             # Uso de los datos de usuarios
             self._main._data.users
-            # Obtención de conteo de días de descanso fijos del usuario
-            .assign(**fixed_rest_days_count_fn)
             # Unión con conteo de días asignados por usuario ya tomados hasta la fecha de hoy
             .merge(
                 right= assigned_days_count_per_user,
@@ -514,8 +550,6 @@ class _Report(_Interface_Report):
             )
             # Reemplazo de valores nulos por ceros
             .replace({_REST_DAYS_COLUMN: {np.nan: 0}})
-            # Suma de conteos de días de descanso fijos y asignados
-            .assign(**fixed_and_assigned_days_sum_fn)
             # Asignación de tipo de dato
             .astype({
                 _REST_DAYS_COLUMN: 'uint8',
