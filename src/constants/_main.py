@@ -188,6 +188,17 @@ class COLUMN:
     ABSENCES_COUNT = 'absences_count'
     """`uint8` Conteo de faltas."""
 
+    YEAR_PERIOD = 'year_period'
+    """`uint8` Año de período vacacional."""
+    YEAR_VALIDITY_DATE = 'year_validity_date'
+    """`datetime64[s]` Fecha de validez en el período vacacional."""
+    AVAILABLE_VACATION_DAYS = 'available_vacation_days'
+    """`uint8` Días de vacaciones asignados por el período."""
+    VACATION_DAYS_TAKEN = 'vacation_days_taken'
+    """`uint8` Días de vacaciones tomados."""
+    REMAINING_VACATION_DAYS = 'remaning_vacation_days'
+    """`int8` Días de vacaciones restantes a tomar."""
+
 class REGISTRY_TYPE:
     """`CONST` Nombres de tipos de registro."""
     CHECK_IN = 'checkIn'
@@ -318,3 +329,42 @@ NAN_TO_TIME_DELTA_ON_ZERO = {nan: TIME_DELTA_ON_ZERO}
 """
 `NaT` a `00:00:00`.
 """
+
+VACATION_DAYS_PER_YEAR = {
+    0: 0,
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 18,
+    5: 20,
+    6: 22,
+    7: 22,
+    8: 22,
+    9: 22,
+    10: 22,
+    11: 24,
+    12: 24,
+    13: 24,
+    14: 24,
+    15: 24,
+    16: 26,
+    17: 26,
+    18: 26,
+    19: 26,
+    20: 26,
+    21: 28,
+    22: 28,
+    23: 28,
+    24: 28,
+    25: 28,
+    26: 30,
+    27: 30,
+    28: 30,
+    29: 30,
+    30: 30,
+    31: 32,
+    32: 32,
+    33: 32,
+    34: 32,
+    35: 32,
+}

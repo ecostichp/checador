@@ -13,6 +13,7 @@ class _Interface_Data:
     schedules: pd.DataFrame
     schedule_offsets: pd.DataFrame
     rest_schedules: pd.DataFrame
+    vacations_history_old: pd.DataFrame
 
     def load(
         self,

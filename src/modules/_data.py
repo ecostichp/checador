@@ -33,6 +33,7 @@ class _Data(_Interface_Data):
         self.schedules = self._load_schedules()
         self.schedule_offsets = self._load_schedule_offsets()
         self.rest_schedules = self._load_rest_schedules()
+        self.vacations_history_old = self._load_vacation_days_history()
 
     def _load_users(
         self,
@@ -213,3 +214,14 @@ class _Data(_Interface_Data):
             )
 
         return corrections
+
+    def _load_vacation_days_history(
+        self,
+    ) -> pd.DataFrame:
+
+        # Obtención de los datos
+        data = self._main._services.excel.load_vacation_days_history()
+        # Procesamiento por medio de pipe
+        processed_data = pipeline_hub.run_pipe_flow(data, PIPELINE.GET_VACATIONS_HISTORY)
+
+        return processed_data

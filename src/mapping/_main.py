@@ -50,6 +50,11 @@ ASSIGNED_DTYPES: dict[str, AstypeArg] = {
     COLUMN.INITIAL_DATE_FOR_HOLIDAYS: 'datetime64[s]',
     COLUMN.AVAILABLE_HOLIDAYS: 'uint8',
     COLUMN.REMAINING_HOLIDAYS: 'uint8',
+    COLUMN.YEAR_PERIOD: 'uint8',
+    COLUMN.YEAR_VALIDITY_DATE: 'datetime64[s]',
+    COLUMN.AVAILABLE_VACATION_DAYS: 'uint8',
+    COLUMN.VACATION_DAYS_TAKEN: 'int8',
+    COLUMN.REMAINING_VACATION_DAYS: 'int8',
 }
 """
 `dict[str, AstypeArg]` Tipos de dato asignados a las columnas de DataFrames.
@@ -193,6 +198,8 @@ COLUMN_LABELS: dict[str, str] = {
     COLUMN.REST_DAYS_COUNT: 'Días descansados',
     COLUMN.REST_DAYS_TAKEN: 'Días de descanso tomados',
     COLUMN.REST_DAYS_CONFIRMED: 'Días de descanso confirmados',
+    COLUMN.YEAR_VALIDITY_DATE: 'Fecha de validez',
+    COLUMN.REMAINING_VACATION_DAYS: 'Días de vacaciones por tomar',
 
     VALIDATION.COMPLETE: 'Día completo',
     VALIDATION.BREAK_PAIRS: 'Pares en comida',

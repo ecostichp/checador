@@ -110,3 +110,17 @@ class Excel(_Contract_Excel):
         data = pd.read_excel(file_path)
 
         return data
+
+    def load_vacation_days_history(
+        self,
+    ) -> pd.DataFrame:
+
+        # Generación de nombre de archivo a buscar
+        file_name = EXCEL_FILE.VACATION_DAYS_HISTORY.NAME
+        # Obtención de la ruta del archivo
+        file_path = path_from_dropbox(f'{file_name}.xlsx')
+
+        # Obtención de los datos desde un archivo de Excel
+        data = pd.read_excel(file_path)
+
+        return data

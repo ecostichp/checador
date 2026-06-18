@@ -30,6 +30,15 @@ class EXCEL_FILE:
         `Literal` Nombre del archivo.
         """
 
+    class VACATION_DAYS_HISTORY:
+        """
+        `CONST` Archivo de historial de vacaciones hasta 2025.
+        """
+        NAME = 'data/historial_de_vacaciones_2025'
+        """
+        `Literal` Nombre del archivo.
+        """
+
 class SPREADSHEET:
     """
     `CONST` Nombres de archivos de Hojas de Cálculo de Google y sus hojas.

@@ -33,3 +33,8 @@ class _Contract_Excel:
     ) -> pd.DataFrame:
         ...
 
+    def load_vacation_days_history(
+        self,
+    ) -> pd.DataFrame:
+        ...
+

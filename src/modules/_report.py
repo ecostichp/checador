@@ -8,11 +8,13 @@ from ..constants import (
     PERMISSION_NAME,
     REGISTRY_TYPE,
     TIME_DELTA_ON_ZERO,
+    VACATION_DAYS_PER_YEAR,
 )
 from ..contracts import (
     _CoreRegistryProcessing,
     _Interface_Report,
 )
+from ..mapping import PERMISSION_TYPE_REASSIGNATION_NAMES
 from ..resources import _DateSchema
 from ..settings import REPORT
 from ..typing import (
@@ -21,6 +23,7 @@ from ..typing import (
 )
 from ..typing.interfaces import HorizontalSeries
 from ..typing.aliases import DatetimeStr
+from ..typing.callables import SeriesApply
 from ..typing.literals import PermissionTypeOption
 from ..core import pipeline_hub
 from ..rules import PIPELINE
@@ -109,6 +112,13 @@ class _Report(_Interface_Report):
         users = self._main._data.users
         justifications = self._main._data.justifications
 
+        # Asignación de columna para obtención de días restantes a tomar
+        remaining_days_fn: ColumnAssignation = {
+            COLUMN.REMAINING_VACATION_DAYS: (
+                lambda df: df[COLUMN.AVAILABLE_VACATION_DAYS] - df[COLUMN.VACATION_DAYS_TAKEN]
+            ),
+        }
+
         # Procesamiento por medio de pipes
         available_holidays_per_employee = pipeline_hub.run_pipe_flow(users, PIPELINE.GET_AVAILABLE_HOLIDAYS)
         justification_counts = pipeline_hub.run_pipe_flow(justifications, PIPELINE.COUNT_HOLIDAYS_ON_JUSTIFICATIONS)
@@ -126,7 +136,43 @@ class _Report(_Interface_Report):
         # Procesamiento por medio de pipe
         summary = pipeline_hub.run_pipe_flow(d, PIPELINE.HOLIDAYS_SUMMARY)
 
-        return summary
+        return (
+            summary
+            .merge(
+                self._get_total_vacation_days(),
+                'left',
+                COLUMN.USER_ID,
+            )
+            .merge(
+                self._get_vacation_days_taken(),
+                'left',
+                COLUMN.USER_ID,
+            )
+            # Reemplazo de valores nulos en conteos de días de vacaciones
+            .replace({
+                COLUMN.AVAILABLE_VACATION_DAYS: {np.nan: 0},
+                COLUMN.VACATION_DAYS_TAKEN: {np.nan: 0},
+            })
+            # Asignación de días restantes de vacaciones a tomar
+            .assign(**remaining_days_fn)
+            # Asignación de tipos de dato
+            .pipe(self._main._processing.assign_dtypes)
+            # Seleeción de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.NAME,
+                COLUMN.WAREHOUSE,
+                COLUMN.PAY_FREQUENCY,
+                COLUMN.JOB,
+                COLUMN.HIRE_DATE,
+                COLUMN.AVAILABLE_HOLIDAYS,
+                PERMISSION_NAME.HOLIDAY_ABSENCE,
+                PERMISSION_NAME.HOLIDAY_COMPENSATION,
+                COLUMN.REMAINING_HOLIDAYS,
+                COLUMN.YEAR_VALIDITY_DATE,
+                COLUMN.REMAINING_VACATION_DAYS,
+            ]]
+        )
 
     def lunch_summary(
         self,
@@ -139,6 +185,216 @@ class _Report(_Interface_Report):
     ) -> pd.DataFrame:
 
         return self._reports_by_schemas( self._justification_counts )
+
+    def _get_total_vacation_days(
+        self,
+    ) -> pd.DataFrame:
+
+        def year_validity_date_fn(s: HorizontalSeries):
+
+            # Obtención del año del período vacacional
+            year = s[COLUMN.YEAR_PERIOD]
+            # Obtención de la fecha de ingreso a la empresa
+            hire_date = s[COLUMN.HIRE_DATE]
+
+            # Construcción de fecha de validez de período vacacional para el año provisto
+            year_validity_date = date(year, hire_date.month, 1)
+
+            return year_validity_date
+
+        def has_available_vacation_days_fn(s: HorizontalSeries):
+
+            # Obtención del año del período vacacional
+            hire_date = s[COLUMN.HIRE_DATE]
+            # Obtención de fecha de validez de período vacacional para el año provisto
+            year_validity_date = s[COLUMN.YEAR_VALIDITY_DATE]
+
+            # Indicador de no año actual
+            not_current_year = hire_date.year < year_validity_date.year
+            # Indicador de que el mes actual es mayor o igual al de la fecha de validez
+            is_current_month_greater_or_equal = hire_date.month <= year_validity_date.month
+
+            # Evaluación de si el empleado tiene disponibles días de vacaciones
+            has_available_vacation_days = not_current_year and is_current_month_greater_or_equal
+
+            return has_available_vacation_days
+
+        def years_in_company_fn(s: HorizontalSeries):
+
+            # Obtención de año del período vacacional
+            year = s[COLUMN.YEAR_PERIOD]
+            # Obtención de la fecha de ingreso a la empresa
+            hire_date = s[COLUMN.HIRE_DATE]
+
+            # Obtención de los años de antigüedad en la empresa
+            years_in_company = year - hire_date.year
+
+            return years_in_company
+
+        # Columnas temporales
+        _HAS_AVAILABLE_VACATION_DAYS = '_has_available_vacation_days'
+        _YEARS_IN_COMPANY = '_years_in_company'
+
+        # Inicialización de lista de DataFrames a concatenar
+        dfs_to_concat: list[pd.DataFrame] = []
+
+        # Función para obtención de días de vacaciones del período en base a la antigüedad del empleado
+        vacation_days_apply: SeriesApply[int] = (
+            lambda years: VACATION_DAYS_PER_YEAR[years] if years >= 0 else 0
+        )
+
+        # Inicialización de diccionario de columnas a asignar a los DataFrames
+        columns_to_assign: ColumnAssignation = {
+            # Fecha de validez de inicio de período vacacional en base al año provisto
+            COLUMN.YEAR_VALIDITY_DATE: (
+                lambda df: (
+                    df
+                    .apply(
+                        year_validity_date_fn,
+                        axis= 1,
+                    )
+                )
+            ),
+            # Indicador de si el empleado tiene derecho a período vacacional
+            _HAS_AVAILABLE_VACATION_DAYS: (
+                lambda df: (
+                    df
+                    .apply(
+                        has_available_vacation_days_fn,
+                        axis= 1,
+                    )
+                )
+            ),
+            # Años de antigüedad en la empresa
+            _YEARS_IN_COMPANY: (
+                lambda df: (
+                    df
+                    .apply(
+                        years_in_company_fn,
+                        axis= 1,
+                    )
+                )
+            ),
+            # Cantidad de días de vacaciones del período vacacional
+            COLUMN.AVAILABLE_VACATION_DAYS: (
+                lambda df: (
+                    df[_YEARS_IN_COMPANY]
+                    .apply(vacation_days_apply)
+                )
+            ),
+        }
+
+        # Creación de lista de años a iterar para obtención de períodos vacacionales
+        years = [year for year in range(2024, self._main._schemas._today.year + 1)]
+
+        # Iteración sobre una lista de valores de año comenzando por 2024
+        for year_i in years:
+
+            # Función de asignación de valor de año
+            year_assignation: ColumnAssignation = {
+                COLUMN.YEAR_PERIOD: year_i,
+            }
+
+            # Procesamiento de DataFrame con los datos correspondientes al año i
+            df_i = (
+                self._main._data.users
+                # Asignación de valor de año provisto
+                .assign(**year_assignation)
+                # Asignación de columnas
+                .assign(**columns_to_assign)
+                # Se filtran los registros solo por los que tienen un período vacacional disponible
+                .pipe(lambda df: df[df[_HAS_AVAILABLE_VACATION_DAYS]])
+                # Se filtran los registros cuya fecha de validez ya es menor o igual al día de hoy
+                .pipe(lambda df: df[df[COLUMN.YEAR_VALIDITY_DATE] <= self._main._schemas._today])
+            )
+
+            # Se añade el DataFrame i a la lista de DataFrames a concaterar
+            dfs_to_concat.append(df_i)
+
+        return (
+            pd.concat(
+                # Concatenación de DataFrames
+                dfs_to_concat,
+                ignore_index= True,
+            )
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.YEAR_VALIDITY_DATE,
+                COLUMN.AVAILABLE_VACATION_DAYS,
+            ]]
+            # Agrupamiento por ID de usuario para obtener total de días de vacaciones
+            .groupby(COLUMN.USER_ID)
+            .agg({
+                COLUMN.YEAR_VALIDITY_DATE: 'max',
+                COLUMN.AVAILABLE_VACATION_DAYS: 'sum',
+            })
+            # Reseteo de índice
+            .reset_index()
+        )
+
+    def _get_vacation_days_taken(
+        self,
+    ) -> pd.DataFrame:
+
+        # Función para renombrar valores de tipos de permisos
+        def rename_permission_names(df: pd.DataFrame) -> pd.DataFrame:
+            return (
+                df
+                .astype({COLUMN.PERMISSION_TYPE: 'string'})
+                .replace({COLUMN.PERMISSION_TYPE: PERMISSION_TYPE_REASSIGNATION_NAMES})
+                .astype({COLUMN.PERMISSION_TYPE: 'category'})
+            )
+
+        # Asignaciónes de columnas para obtención únicamente de los valores de fecha sin hora
+        get_dates_only: ColumnAssignation = {
+            COLUMN.PERMISSION_START: lambda df: df[COLUMN.PERMISSION_START].dt.date,
+            COLUMN.PERMISSION_END: lambda df: df[COLUMN.PERMISSION_END].dt.date,
+        }
+
+        # Función de conteo de días de vacaciones tomadas
+        day_assignations: ColumnAssignation = {
+            COLUMN.REST_DAYS_COUNT: ( lambda df: df.apply(self._main._schedules.count_rest_days, axis= 1, result_type= 'reduce') ),
+            COLUMN.HOLIDAYS_COUNT: ( lambda df: df.apply(self._main._schedules.count_holidays, axis= 1, result_type= 'reduce') ),
+            COLUMN.VACATION_DAYS_TAKEN: ( lambda df: df.apply(self._main._schedules.count_vacation_days, axis= 1, result_type= 'reduce') ),
+        }
+
+        return (
+            self._main._data.justifications
+            # Reasignación de nombres de permisos
+            .pipe(rename_permission_names)
+            # Se filtran solo los registros cuyo tipo de permiso es de vacaciones
+            .pipe(lambda df: df[df[COLUMN.PERMISSION_TYPE] == PERMISSION_NAME.VACATION])
+            # Obtención de los valores de fecha sin hora
+            .assign(**get_dates_only)
+            # Recuperación de tipos de datos
+            .astype({
+                COLUMN.PERMISSION_START: 'datetime64[s]',
+                COLUMN.PERMISSION_END: 'datetime64[s]',
+            })
+            # Selección de columnas
+            [[
+                COLUMN.USER_ID,
+                COLUMN.PERMISSION_START,
+                COLUMN.PERMISSION_END,
+            ]]
+            # Se concatena el resultado con el historial de vacaciones tomadas desde 2024
+            .pipe(
+                lambda df: pd.concat([
+                    self._main._data.vacations_history_old,
+                    df,
+                ])
+            )
+            # Obtención de días de vacaciones tomadas
+            .assign(**day_assignations)
+            # Agrupamiento por ID de usuario
+            .groupby(COLUMN.USER_ID)
+            .agg({
+                COLUMN.VACATION_DAYS_TAKEN: 'sum',
+            })
+            # Reseteo de índice
+            .reset_index()
+        )
 
     def _cummulated_summary(
         self,
