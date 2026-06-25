@@ -723,8 +723,13 @@ class _Report(_Interface_Report):
 
         def discard_rest_days_into_leaves(rest_days: pd.DataFrame):
 
-            # Inicialización de valor de validación en Falso
-            rest_days[_VALID] = False
+            # Asignación de columna para validación
+            validity_fn: ColumnAssignation = {
+                _VALID: False,
+            }
+
+            # Asignación de la columna de validación
+            rest_days = rest_days.assign(**validity_fn)
 
             def tag_valid_rest_days(s: pd.Series):
                 # Obtención de valores
